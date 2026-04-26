@@ -1,5 +1,5 @@
 import { REQUIRED_FILE_NAME, gameState } from "../state.js";
-import { createWindow, closeWindow } from "./desktop.js";
+import { APP_ICONS, createWindow, closeWindow } from "./desktop.js";
 
 function renderFileChoices(container, fileLabel, status) {
   container.replaceChildren();
@@ -42,7 +42,8 @@ export function open() {
     width: 460,
     height: 330,
     left: 240,
-    top: 120
+    top: 120,
+    taskbarIcon: APP_ICONS.portal
   });
 
   if (!body) return;
