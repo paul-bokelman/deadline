@@ -171,6 +171,12 @@ body.dragging {
   margin: 10px 0 6px;
 }
 
+.portal-checklist {
+  margin: 4px 0 10px;
+  font-size: 12px;
+  color: #6f0000;
+}
+
 .file-picker-dialog {
   margin-top: 10px;
 }

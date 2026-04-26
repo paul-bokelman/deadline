@@ -9,9 +9,22 @@ export const gameState = {
   gameStatus: "playing", // "playing" | "won" | "lost"
   startedAtMs: 0,
   tickIntervalId: null,
+  popupCounter: 0,
 
   downloadedFiles: [],
   selectedPortalFile: null,
+
+  annoyance: {
+    pendingMessages: 0,
+    activeCalls: 0,
+    activeViruses: 0,
+    securityScanComplete: false,
+    downloadPhase: "idle", // "idle" | "downloading" | "corrupted" | "scanning" | "ready"
+    downloadAttempts: 0,
+    downloadTimeoutId: null,
+    scanTimeoutId: null,
+    nextInterruptAtMs: 24000
+  },
 
   windows: {},
   taskbarButtons: {},

@@ -53,6 +53,10 @@ export function open() {
   intro.textContent = "Upload report and submit before 5:00 PM.";
   body.appendChild(intro);
 
+  const checklist = document.createElement("p");
+  checklist.className = "portal-checklist";
+  body.appendChild(checklist);
+
   const controls = document.createElement("div");
   controls.className = "portal-controls";
   body.appendChild(controls);
@@ -96,12 +100,56 @@ export function open() {
   closeRow.appendChild(closeBtn);
   body.appendChild(closeRow);
 
+  function refreshChecklist() {
+    checklist.textContent = [
+      gameState.annoyance.securityScanComplete ? "scan: ok" : "scan: required",
+      gameState.annoyance.activeViruses > 0
+        ? `viruses: ${gameState.annoyance.activeViruses} active`
+        : "viruses: clear",
+      gameState.annoyance.activeCalls > 0
+        ? `calls: ${gameState.annoyance.activeCalls} active`
+        : "calls: clear",
+      gameState.annoyance.pendingMessages > 0
+        ? `messages: ${gameState.annoyance.pendingMessages} pending`
+        : "messages: clear"
+    ].join(" | ");
+  }
+
   chooseBtn.addEventListener("click", () => {
     renderFileChoices(pickerBody, fileLabel, status);
     pickerDialog.classList.remove("hidden");
+    refreshChecklist();
   });
 
   submitBtn.addEventListener("click", () => {
+    refreshChecklist();
+
+    if (gameState.annoyance.activeCalls > 0) {
+      status.textContent = "Submission blocked: you are stuck on an IT call.";
+      return;
+    }
+
+    if (gameState.annoyance.pendingMessages > 0) {
+      status.textContent = "Submission blocked: acknowledge all mandatory pop-up messages.";
+      return;
+    }
+
+    if (gameState.annoyance.activeViruses > 0) {
+      status.textContent = "Submission blocked: close all virus alert windows first.";
+      return;
+    }
+
+    if (!gameState.annoyance.securityScanComplete) {
+      status.textContent = "Submission blocked: run the Email security scan first.";
+      return;
+    }
+
+    if (gameState.annoyance.downloadPhase !== "ready") {
+      status.textContent =
+        "Submission blocked: correct report not ready. Complete the annoying download flow in Email.";
+      return;
+    }
+
     if (!gameState.selectedPortalFile) {
       status.textContent = "Error: Choose a file before submitting.";
       return;
@@ -117,4 +165,6 @@ export function open() {
       gameState.endGame("won");
     }
   });
+
+  refreshChecklist();
 }
