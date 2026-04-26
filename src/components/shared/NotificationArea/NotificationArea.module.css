@@ -20,6 +20,11 @@
     cursor: pointer;
 }
 
+.zoomIcon {
+    width: 16px;
+    height: 16px;
+}
+
 .clock {
     margin: 0 10px;
 }

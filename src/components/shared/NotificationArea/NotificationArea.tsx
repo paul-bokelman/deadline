@@ -2,6 +2,8 @@ import { h, FunctionComponent } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 
 import Icon from '../Icon/Icon';
+import maximizeIcon from '../../../assets/img/ui/maximize.svg';
+import restoreIcon from '../../../assets/img/ui/restore.svg';
 
 import style from './NotificationArea.module.css';
 
@@ -18,6 +20,7 @@ const formatTrayTime = (date: Date) =>
 const NotificationArea: FunctionComponent = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [clockText, setClockText] = useState(formatTrayTime(new Date()));
 
   useEffect(() => {
@@ -66,6 +69,19 @@ const NotificationArea: FunctionComponent = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const syncFullscreenState = () => {
+      setIsFullscreen(document.fullscreenElement !== null);
+    };
+
+    document.addEventListener('fullscreenchange', syncFullscreenState);
+    syncFullscreenState();
+
+    return () => {
+      document.removeEventListener('fullscreenchange', syncFullscreenState);
+    };
+  }, []);
+
   const handleSoundToggle = () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -78,6 +94,19 @@ const NotificationArea: FunctionComponent = () => {
     audio.pause();
   };
 
+  const handleFullscreenToggle = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+        return;
+      }
+
+      await document.exitFullscreen();
+    } catch (e) {
+      console.error('Failed to toggle fullscreen mode', e);
+    }
+  };
+
   return (
     <div className={style.notificationArea}>
       <button
@@ -87,6 +116,18 @@ const NotificationArea: FunctionComponent = () => {
         type="button"
       >
         <Icon iconId={isPlaying ? 'sound' : 'soundOff'} />
+      </button>
+      <button
+        className={style.statusIcon}
+        onClick={handleFullscreenToggle}
+        title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+        type="button"
+      >
+        <img
+          alt=""
+          className={style.zoomIcon}
+          src={isFullscreen ? restoreIcon : maximizeIcon}
+        />
       </button>
       <div className={style.clock}>{clockText}</div>
     </div>
