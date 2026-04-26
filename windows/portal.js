@@ -1,5 +1,35 @@
-import { REQUIRED_FILE_NAME, gameState } from "../state.js";
+import { gameState } from "../state.js";
 import { APP_ICONS, createWindow, closeWindow } from "./desktop.js";
+
+function issueCaptcha() {
+  const a = Math.floor(Math.random() * 8) + 2;
+  const b = Math.floor(Math.random() * 8) + 2;
+  gameState.annoyance.captcha.a = a;
+  gameState.annoyance.captcha.b = b;
+  gameState.annoyance.captcha.answer = String(a + b);
+  gameState.annoyance.captcha.solved = false;
+}
+
+function runJankyProgress(progressFill, onDone) {
+  let progress = 0;
+  progressFill.style.width = "0%";
+
+  const timer = window.setInterval(() => {
+    const roll = Math.random();
+    if (roll < 0.12) {
+      progress = Math.max(0, progress - Math.random() * 10);
+    } else if (roll < 0.32) {
+      progress += 0;
+    } else {
+      progress += 2 + Math.random() * 16;
+    }
+    progressFill.style.width = `${Math.min(100, progress)}%`;
+    if (progress >= 100) {
+      window.clearInterval(timer);
+      onDone();
+    }
+  }, 120 + Math.random() * 500);
+}
 
 function renderFileChoices(container, fileLabel, status) {
   container.replaceChildren();
@@ -79,6 +109,43 @@ export function open() {
     : "Selected: (none)";
   body.appendChild(fileLabel);
 
+  const captchaRow = document.createElement("div");
+  captchaRow.className = "portal-controls";
+  const captchaLabel = document.createElement("span");
+  const captchaInput = document.createElement("input");
+  captchaInput.type = "text";
+  captchaInput.placeholder = "captcha answer";
+  captchaInput.size = 8;
+  const verifyBtn = document.createElement("button");
+  verifyBtn.type = "button";
+  verifyBtn.textContent = "Verify CAPTCHA";
+  const resetCaptchaBtn = document.createElement("button");
+  resetCaptchaBtn.type = "button";
+  resetCaptchaBtn.textContent = "New CAPTCHA";
+  captchaRow.appendChild(captchaLabel);
+  captchaRow.appendChild(captchaInput);
+  captchaRow.appendChild(verifyBtn);
+  captchaRow.appendChild(resetCaptchaBtn);
+  body.appendChild(captchaRow);
+
+  const submitPasswordRow = document.createElement("div");
+  submitPasswordRow.className = "portal-controls";
+  const submitPasswordLabel = document.createElement("span");
+  submitPasswordLabel.textContent = "Submission password:";
+  const submitPasswordInput = document.createElement("input");
+  submitPasswordInput.type = "password";
+  submitPasswordInput.placeholder = "second password";
+  submitPasswordRow.appendChild(submitPasswordLabel);
+  submitPasswordRow.appendChild(submitPasswordInput);
+  body.appendChild(submitPasswordRow);
+
+  const submitBar = document.createElement("div");
+  submitBar.className = "loading-strip hidden";
+  const submitFill = document.createElement("div");
+  submitFill.className = "loading-fill";
+  submitBar.appendChild(submitFill);
+  body.appendChild(submitBar);
+
   const status = document.createElement("p");
   status.className = "inline-status";
   status.textContent = "";
@@ -102,8 +169,10 @@ export function open() {
   body.appendChild(closeRow);
 
   function refreshChecklist() {
+    captchaLabel.textContent = `CAPTCHA: ${gameState.annoyance.captcha.a} + ${gameState.annoyance.captcha.b} = ?`;
     checklist.textContent = [
       gameState.annoyance.securityScanComplete ? "scan: ok" : "scan: required",
+      gameState.annoyance.captcha.solved ? "captcha: ok" : "captcha: required",
       gameState.annoyance.activeViruses > 0
         ? `viruses: ${gameState.annoyance.activeViruses} active`
         : "viruses: clear",
@@ -151,21 +220,62 @@ export function open() {
       return;
     }
 
+    if (!gameState.annoyance.captcha.solved) {
+      status.textContent = "Submission blocked: CAPTCHA required.";
+      return;
+    }
+
     if (!gameState.selectedPortalFile) {
       status.textContent = "Error: Choose a file before submitting.";
       return;
     }
 
-    if (gameState.selectedPortalFile !== REQUIRED_FILE_NAME) {
-      status.textContent = "Error: That is not the required report file.";
+    if (gameState.selectedPortalFile !== gameState.annoyance.expectedFileName) {
+      status.textContent = `Error: Required file is now ${gameState.annoyance.expectedFileName}`;
       return;
     }
 
-    status.textContent = "File accepted. Submitting...";
-    if (typeof gameState.endGame === "function") {
-      gameState.endGame("won");
+    if (submitPasswordInput.value.trim() !== gameState.annoyance.submitPassword) {
+      status.textContent =
+        "Error: Submission password incorrect. Hidden somewhere weird on this PC.";
+      return;
     }
+
+    submitBtn.disabled = true;
+    submitBar.classList.remove("hidden");
+    status.textContent = "Submitting to server... please do not refresh.";
+    runJankyProgress(submitFill, () => {
+      submitBtn.disabled = false;
+      submitBar.classList.add("hidden");
+      if (typeof gameState.endGame === "function") {
+        gameState.endGame("won");
+      }
+    });
   });
+
+  verifyBtn.addEventListener("click", () => {
+    if (captchaInput.value.trim() === gameState.annoyance.captcha.answer) {
+      gameState.annoyance.captcha.solved = true;
+      status.textContent = "CAPTCHA verified.";
+    } else {
+      gameState.annoyance.captcha.solved = false;
+      status.textContent = "CAPTCHA incorrect. New challenge generated.";
+      issueCaptcha();
+    }
+    captchaInput.value = "";
+    refreshChecklist();
+  });
+
+  resetCaptchaBtn.addEventListener("click", () => {
+    issueCaptcha();
+    status.textContent = "New CAPTCHA issued.";
+    captchaInput.value = "";
+    refreshChecklist();
+  });
+
+  if (!gameState.annoyance.captcha.answer) {
+    issueCaptcha();
+  }
 
   refreshChecklist();
 }

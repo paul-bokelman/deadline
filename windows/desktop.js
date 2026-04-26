@@ -274,7 +274,13 @@ export function renderDesktop(root, handlers) {
   desktop.appendChild(iconColumn);
 
   const launchers = [
-    { label: "Email", icon: APP_ICONS.email, onOpen: handlers.onOpenEmail },
+    { label: "Outlook??", icon: APP_ICONS.email, onOpen: handlers.onOpenFakeEmailA },
+    {
+      label: "Mail (Legacy)",
+      icon: APP_ICONS.email,
+      onOpen: handlers.onOpenFakeEmailB
+    },
+    { label: "E-mail [Corp]", icon: APP_ICONS.email, onOpen: handlers.onOpenEmail },
     { label: "Portal", icon: APP_ICONS.portal, onOpen: handlers.onOpenPortal },
     { label: "Notepad", icon: APP_ICONS.notepad, onOpen: handlers.onOpenNotepad },
     {

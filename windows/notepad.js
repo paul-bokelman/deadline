@@ -17,7 +17,7 @@ export function open() {
   const textArea = document.createElement("textarea");
   textArea.className = "notepad-editor";
   textArea.value =
-    "TODO:\n- Submit Q3 report\n- Reply to boss\n- Do not miss 5:00 PM deadline";
+    "TODO:\n- Submit Q3 report\n- Reply to boss\n- Do not miss 5:00 PM deadline\n\nMeeting Notes:\n- Rotate mailbox credentials weekly\n- current mailbox pass: petunia-98\n- maybe delete this later";
   body.appendChild(textArea);
 
   const actions = document.createElement("div");

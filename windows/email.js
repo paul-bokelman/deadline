@@ -34,6 +34,20 @@ function createVirusPopup() {
   if (!body) return;
 
   body.replaceChildren();
+  const art = document.createElement("div");
+  art.className = "virus-art";
+  const artIcon = document.createElement("img");
+  artIcon.src = APP_ICONS.recycle;
+  artIcon.alt = "";
+  art.appendChild(artIcon);
+  body.appendChild(art);
+
+  const preview = document.createElement("img");
+  preview.className = "virus-preview";
+  preview.src = "./assets/images/chaos-popups.png";
+  preview.alt = "";
+  body.appendChild(preview);
+
   const text = document.createElement("p");
   text.textContent = "Suspicious macro detected. Terminate process manually.";
   body.appendChild(text);
@@ -58,7 +72,38 @@ function spawnVirusBurst(count) {
   }
 }
 
+function runJankyProgress(progressFill, onDone, minStepMs = 120, maxStepMs = 520) {
+  let progress = 0;
+  progressFill.style.width = "0%";
+
+  const timerId = window.setInterval(() => {
+    const roll = Math.random();
+    if (roll < 0.14) {
+      progress = Math.max(0, progress - Math.random() * 7);
+    } else if (roll < 0.28) {
+      // Stutter and do not progress this frame.
+      progress += 0;
+    } else {
+      progress += 1 + Math.random() * 13;
+    }
+
+    progressFill.style.width = `${Math.min(progress, 100)}%`;
+    if (progress >= 100) {
+      window.clearInterval(timerId);
+      onDone();
+    }
+  }, minStepMs + Math.random() * (maxStepMs - minStepMs));
+
+  return timerId;
+}
+
 export function open() {
+  if (Date.now() > gameState.annoyance.emailUnlockedUntilMs) {
+    gameState.annoyance.emailUnlockedUntilMs = 0;
+    openEmailPasswordGate();
+    return;
+  }
+
   const body = createWindow({
     id: "email-window",
     title: "Inbox - boss@company.com",
@@ -90,7 +135,7 @@ export function open() {
   attachmentRow.className = "attachment-row";
 
   const attachmentName = document.createElement("span");
-  attachmentName.textContent = REQUIRED_FILE_NAME;
+  attachmentName.textContent = gameState.annoyance.expectedFileName;
   attachmentRow.appendChild(attachmentName);
 
   const downloadBtn = document.createElement("button");
@@ -111,6 +156,20 @@ export function open() {
     "Warning: network is unstable today. Corrupt downloads and malware alerts are expected.";
   body.appendChild(hint);
 
+  const downloadBar = document.createElement("div");
+  downloadBar.className = "loading-strip hidden";
+  const downloadFill = document.createElement("div");
+  downloadFill.className = "loading-fill";
+  downloadBar.appendChild(downloadFill);
+  body.appendChild(downloadBar);
+
+  const scanBar = document.createElement("div");
+  scanBar.className = "loading-strip hidden";
+  const scanFill = document.createElement("div");
+  scanFill.className = "loading-fill";
+  scanBar.appendChild(scanFill);
+  body.appendChild(scanBar);
+
   const status = document.createElement("p");
   status.className = "inline-status";
   status.textContent = "";
@@ -128,15 +187,18 @@ export function open() {
   function refreshControls() {
     const phase = gameState.annoyance.downloadPhase;
     const busy = phase === "downloading" || phase === "scanning";
+    attachmentName.textContent = gameState.annoyance.expectedFileName;
     downloadBtn.disabled = busy;
     scanBtn.disabled = phase !== "corrupted" || busy;
+    downloadBar.classList.toggle("hidden", phase !== "downloading");
+    scanBar.classList.toggle("hidden", phase !== "scanning");
 
     if (phase === "ready") {
-      status.textContent = `${REQUIRED_FILE_NAME} is finally available.`;
+      status.textContent = `${gameState.annoyance.expectedFileName} is finally available.`;
     } else if (phase === "downloading") {
-      status.textContent = "Downloading... please wait (slow office VPN).";
+      status.textContent = "Downloading... ETA keeps changing (slow office VPN).";
     } else if (phase === "scanning") {
-      status.textContent = "Security scan running... this may take a while.";
+      status.textContent = "Security scan running... this may take a while (or go backwards).";
     } else if (phase === "corrupted") {
       status.textContent =
         "Downloaded file is corrupt. Run security scan, close virus popups, then try again.";
@@ -160,8 +222,8 @@ export function open() {
     }
 
     gameState.annoyance.downloadPhase = "ready";
-    if (!gameState.downloadedFiles.includes(REQUIRED_FILE_NAME)) {
-      gameState.downloadedFiles.push(REQUIRED_FILE_NAME);
+    if (!gameState.downloadedFiles.includes(gameState.annoyance.expectedFileName)) {
+      gameState.downloadedFiles.push(gameState.annoyance.expectedFileName);
     }
     refreshControls();
   }
@@ -177,11 +239,19 @@ export function open() {
     refreshControls();
 
     if (gameState.annoyance.downloadTimeoutId) {
-      window.clearTimeout(gameState.annoyance.downloadTimeoutId);
+      window.clearInterval(gameState.annoyance.downloadTimeoutId);
       gameState.annoyance.downloadTimeoutId = null;
     }
 
-    gameState.annoyance.downloadTimeoutId = window.setTimeout(finishDownload, 6500);
+    gameState.annoyance.downloadTimeoutId = runJankyProgress(
+      downloadFill,
+      () => {
+        gameState.annoyance.downloadTimeoutId = null;
+        finishDownload();
+      },
+      160,
+      720
+    );
   });
 
   scanBtn.addEventListener("click", () => {
@@ -191,20 +261,73 @@ export function open() {
     refreshControls();
 
     if (gameState.annoyance.scanTimeoutId) {
-      window.clearTimeout(gameState.annoyance.scanTimeoutId);
+      window.clearInterval(gameState.annoyance.scanTimeoutId);
       gameState.annoyance.scanTimeoutId = null;
     }
 
-    gameState.annoyance.scanTimeoutId = window.setTimeout(() => {
-      gameState.annoyance.scanTimeoutId = null;
-      gameState.annoyance.securityScanComplete = true;
-      gameState.annoyance.downloadPhase = "idle";
-      status.textContent =
-        "Scan complete, but malware dialogs popped up. Close all virus popups, then download again.";
-      spawnVirusBurst(3);
-      refreshControls();
-    }, 7000);
+    gameState.annoyance.scanTimeoutId = runJankyProgress(
+      scanFill,
+      () => {
+        gameState.annoyance.scanTimeoutId = null;
+        gameState.annoyance.securityScanComplete = true;
+        gameState.annoyance.downloadPhase = "idle";
+        status.textContent =
+          "Scan complete, but malware dialogs popped up. Close all virus popups, then download again.";
+        spawnVirusBurst(3);
+        refreshControls();
+      },
+      220,
+      680
+    );
   });
 
   refreshControls();
+}
+
+function openEmailPasswordGate() {
+  const body = createWindow({
+    id: "email-auth-window",
+    title: "E-mail [Corp] - Password Required",
+    width: 370,
+    height: 210,
+    left: 120,
+    top: 90,
+    taskbarIcon: APP_ICONS.email
+  });
+
+  if (!body) return;
+  body.replaceChildren();
+
+  const intro = document.createElement("p");
+  intro.textContent = "This mailbox is locked. Password hint exists somewhere on this machine.";
+  body.appendChild(intro);
+
+  const row = document.createElement("div");
+  row.className = "portal-controls";
+  const password = document.createElement("input");
+  password.type = "password";
+  password.placeholder = "mailbox password";
+  const unlock = document.createElement("button");
+  unlock.type = "button";
+  unlock.textContent = "Unlock";
+  row.appendChild(password);
+  row.appendChild(unlock);
+  body.appendChild(row);
+
+  const status = document.createElement("p");
+  status.className = "inline-status";
+  body.appendChild(status);
+
+  unlock.addEventListener("click", () => {
+    if (password.value.trim() !== gameState.annoyance.emailPassword) {
+      status.textContent = "Incorrect password. Security has been notified.";
+      return;
+    }
+
+    gameState.annoyance.emailUnlockedUntilMs = Date.now() + 45000;
+    status.textContent = "Unlocked for 45 seconds.";
+    const closeButton = body.parentElement?.querySelector(".title-bar-controls button");
+    if (closeButton) closeButton.click();
+    open();
+  });
 }

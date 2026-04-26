@@ -15,7 +15,25 @@ export function open() {
   body.replaceChildren();
 
   const message = document.createElement("p");
-  message.textContent = "Recycle Bin is empty.";
+  message.textContent = "Recycle Bin has suspicious leftovers.";
+  body.appendChild(message);
+
+  const list = document.createElement("ul");
+  list.className = "computer-list";
+  const hidden = document.createElement("button");
+  hidden.type = "button";
+  hidden.textContent = "restore_me(seriously).txt";
+  list.appendChild(hidden);
+  body.appendChild(list);
+
+  const hint = document.createElement("p");
+  hint.className = "inline-status";
+  hint.textContent = "";
+  body.appendChild(hint);
+
+  hidden.addEventListener("click", () => {
+    hint.textContent = "Recovered note: submit password = BIN_RITUAL_451";
+  });
 
   const restore = document.createElement("button");
   restore.type = "button";
@@ -31,7 +49,5 @@ export function open() {
   actions.className = "window-actions";
   actions.appendChild(restore);
   actions.appendChild(closeButton);
-
-  body.appendChild(message);
   body.appendChild(actions);
 }
