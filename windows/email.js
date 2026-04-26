@@ -1,5 +1,5 @@
 import { REQUIRED_FILE_NAME, gameState } from "../state.js";
-import { createWindow, closeWindow } from "./desktop.js";
+import { APP_ICONS, createWindow, closeWindow } from "./desktop.js";
 
 export function open() {
   const body = createWindow({
@@ -8,7 +8,8 @@ export function open() {
     width: 470,
     height: 320,
     left: 70,
-    top: 70
+    top: 70,
+    taskbarIcon: APP_ICONS.email
   });
 
   if (!body) return;

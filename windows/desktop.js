@@ -18,14 +18,29 @@ function formatCountdown(msRemaining) {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
-function createDesktopIcon(label, onDoubleClick) {
+export const APP_ICONS = {
+  email: "./assets/icons/email.svg",
+  portal: "./assets/icons/portal.svg",
+  notepad: "./assets/icons/notepad.svg",
+  calculator: "./assets/icons/calculator.svg",
+  paint: "./assets/icons/paint.svg",
+  computer: "./assets/icons/computer.svg",
+  recycle: "./assets/icons/recycle.svg",
+  start: "./assets/icons/start.svg"
+};
+
+function createDesktopIcon(label, iconPath, onDoubleClick) {
   const icon = document.createElement("button");
   icon.className = "desktop-icon";
   icon.type = "button";
 
   const glyph = document.createElement("div");
   glyph.className = "desktop-icon-glyph";
-  glyph.textContent = "📄";
+  const glyphImage = document.createElement("img");
+  glyphImage.className = "icon-image";
+  glyphImage.src = iconPath;
+  glyphImage.alt = "";
+  glyph.appendChild(glyphImage);
   icon.appendChild(glyph);
 
   const iconLabel = document.createElement("span");
@@ -120,7 +135,8 @@ export function createWindow({
   height = 320,
   left = 80,
   top = 60,
-  onClose
+  onClose,
+  taskbarIcon = APP_ICONS.computer
 }) {
   if (!desktopRoot) return null;
 
@@ -178,7 +194,17 @@ export function createWindow({
     const taskButton = document.createElement("button");
     taskButton.type = "button";
     taskButton.className = "taskbar-window-button";
-    taskButton.textContent = title;
+
+    const icon = document.createElement("img");
+    icon.className = "taskbar-window-icon";
+    icon.src = taskbarIcon;
+    icon.alt = "";
+    taskButton.appendChild(icon);
+
+    const label = document.createElement("span");
+    label.textContent = title;
+    taskButton.appendChild(label);
+
     taskButton.addEventListener("click", () => bringWindowToFront(id));
     gameState.ui.taskbarWindowsEl.appendChild(taskButton);
     gameState.taskbarButtons[id] = taskButton;
@@ -247,10 +273,33 @@ export function renderDesktop(root, handlers) {
   iconColumn.className = "desktop-icons";
   desktop.appendChild(iconColumn);
 
-  iconColumn.appendChild(createDesktopIcon("Email", handlers.onOpenEmail));
-  iconColumn.appendChild(createDesktopIcon("Portal", handlers.onOpenPortal));
-  iconColumn.appendChild(createDesktopIcon("My Computer", null));
-  iconColumn.appendChild(createDesktopIcon("Recycle Bin", null));
+  const launchers = [
+    { label: "Email", icon: APP_ICONS.email, onOpen: handlers.onOpenEmail },
+    { label: "Portal", icon: APP_ICONS.portal, onOpen: handlers.onOpenPortal },
+    { label: "Notepad", icon: APP_ICONS.notepad, onOpen: handlers.onOpenNotepad },
+    {
+      label: "Calculator",
+      icon: APP_ICONS.calculator,
+      onOpen: handlers.onOpenCalculator
+    },
+    { label: "Paint", icon: APP_ICONS.paint, onOpen: handlers.onOpenPaint },
+    {
+      label: "My Computer",
+      icon: APP_ICONS.computer,
+      onOpen: handlers.onOpenComputer
+    },
+    {
+      label: "Recycle Bin",
+      icon: APP_ICONS.recycle,
+      onOpen: handlers.onOpenRecycleBin
+    }
+  ];
+
+  launchers.forEach((launcher) => {
+    iconColumn.appendChild(
+      createDesktopIcon(launcher.label, launcher.icon, launcher.onOpen)
+    );
+  });
 
   const overlay = document.createElement("div");
   overlay.className = "end-overlay hidden";
@@ -262,8 +311,32 @@ export function renderDesktop(root, handlers) {
   const startBtn = document.createElement("button");
   startBtn.type = "button";
   startBtn.className = "start-button";
-  startBtn.textContent = "Start";
+  const startIcon = document.createElement("img");
+  startIcon.className = "start-icon";
+  startIcon.src = APP_ICONS.start;
+  startIcon.alt = "";
+  startBtn.appendChild(startIcon);
+  startBtn.appendChild(document.createTextNode("Start"));
   taskbar.appendChild(startBtn);
+
+  const dock = document.createElement("div");
+  dock.className = "taskbar-dock";
+  launchers.forEach((launcher) => {
+    const quickLaunch = document.createElement("button");
+    quickLaunch.type = "button";
+    quickLaunch.className = "dock-button";
+    quickLaunch.title = launcher.label;
+    const quickIcon = document.createElement("img");
+    quickIcon.className = "dock-icon";
+    quickIcon.src = launcher.icon;
+    quickIcon.alt = "";
+    quickLaunch.appendChild(quickIcon);
+    quickLaunch.addEventListener("click", () => {
+      if (typeof launcher.onOpen === "function") launcher.onOpen();
+    });
+    dock.appendChild(quickLaunch);
+  });
+  taskbar.appendChild(dock);
 
   const windowButtons = document.createElement("div");
   windowButtons.className = "taskbar-windows";
