@@ -1,6 +1,6 @@
 import { h, FunctionComponent, Fragment } from 'preact';
 
-import style from './Checkbox.css';
+import style from './Checkbox.module.css';
 
 interface Props {
   checked: boolean;

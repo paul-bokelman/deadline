@@ -1,6 +1,6 @@
 import { h, FunctionComponent } from 'preact';
 
-import style from './MenuBar.css';
+import style from './MenuBar.module.css';
 
 interface Props {
   options: string[];

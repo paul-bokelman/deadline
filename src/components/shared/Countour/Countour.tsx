@@ -1,6 +1,6 @@
 import { h, FunctionComponent, ComponentChildren } from 'preact';
 
-import style from './Countour.css';
+import style from './Countour.module.css';
 
 interface Props {
   children: ComponentChildren;

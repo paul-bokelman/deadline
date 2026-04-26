@@ -5,7 +5,7 @@ import Countour from '../../shared/Countour/Countour';
 import MenuBar from '../../shared/MenuBar/MenuBar';
 import WindowContent from '../../shared/WindowContent/WindowContent';
 
-import style from './NotepadApp.css';
+import style from './NotepadApp.module.css';
 
 const NotepadApp: FunctionComponent<AppProps> = ({ workingFile }: AppProps) => (
   <WindowContent

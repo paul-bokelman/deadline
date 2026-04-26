@@ -1,6 +1,6 @@
 import { h, FunctionComponent, ComponentChild, VNode } from 'preact';
 
-import style from './TreeView.css';
+import style from './TreeView.module.css';
 interface Props {
   items: ComponentChild[];
   isExpandable?: boolean;

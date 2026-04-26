@@ -1,6 +1,6 @@
 import { h, FunctionComponent, Fragment } from 'preact';
 
-import style from './Dropdown.css';
+import style from './Dropdown.module.css';
 
 interface Option {
   disabled?: boolean;

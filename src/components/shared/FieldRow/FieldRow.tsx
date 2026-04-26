@@ -1,6 +1,6 @@
 import { h, FunctionComponent, ComponentChildren } from 'preact';
 
-import style from './FieldRow.css';
+import style from './FieldRow.module.css';
 
 interface Props {
   children: ComponentChildren;

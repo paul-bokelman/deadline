@@ -1,6 +1,6 @@
 import { h, FunctionComponent, Fragment, ComponentChild } from 'preact';
 
-import style from './Slider.css';
+import style from './Slider.module.css';
 
 interface Props {
   min?: number;

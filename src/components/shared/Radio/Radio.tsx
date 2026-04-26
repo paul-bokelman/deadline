@@ -1,6 +1,6 @@
 import { h, FunctionComponent, Fragment } from 'preact';
 
-import style from './Radio.css';
+import style from './Radio.module.css';
 
 interface Props {
   checked: boolean;

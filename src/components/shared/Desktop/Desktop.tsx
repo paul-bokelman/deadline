@@ -8,7 +8,7 @@ import { ShellItem } from '../../../types/Shell';
 import { getDirFromPath } from '../../../utils/win96/FileSystemUtils';
 import FileGrid from '../FileGrid/FileGrid';
 
-import style from './Desktop.css';
+import style from './Desktop.module.css';
 
 type Props = {
   background?: string;

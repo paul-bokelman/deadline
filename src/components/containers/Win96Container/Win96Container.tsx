@@ -5,7 +5,7 @@ import TaskbarContainer from '../TaskbarContainer/TaskbarContainer';
 import WindowsContainer from '../WindowsContainer/WindowsContainer';
 import OpenWindowsProvider from './OpenWIndowsProvider';
 
-import style from './Win96Container.css';
+import style from './Win96Container.module.css';
 
 const Win96Container: FunctionComponent = () => (
   <div className={style.win96}>

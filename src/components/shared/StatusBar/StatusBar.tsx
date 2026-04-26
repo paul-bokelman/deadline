@@ -1,6 +1,6 @@
 import { h, FunctionComponent } from 'preact';
 
-import style from './StatusBar.css';
+import style from './StatusBar.module.css';
 
 interface Props {
   textLeft?: string | null;

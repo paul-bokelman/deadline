@@ -6,7 +6,7 @@ import { startMenuFs } from '../../../data/fileSystem';
 import { getProgramsMenuOptions } from '../../../utils/win96/StartMenuUtils';
 import Menu from '../Menu/Menu';
 
-import style from './StartMenu.css';
+import style from './StartMenu.module.css';
 
 const programsOption = getProgramsMenuOptions(startMenuFs.dir.programs);
 const documentsOption = getProgramsMenuOptions(startMenuFs.dir.documents);

@@ -10,7 +10,7 @@ import Button from '../Button/Button';
 import NotificationArea from '../NotificationArea/NotificationArea';
 import StartMenu from '../StartMenu/StartMenu';
 
-import style from './Taskbar.css';
+import style from './Taskbar.module.css';
 import { AppId } from '../../../types/App';
 
 interface Props {

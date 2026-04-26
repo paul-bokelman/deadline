@@ -3,7 +3,7 @@ import { h, FunctionComponent } from 'preact';
 import { IconId } from '../../../types/Icon';
 import { iconList } from '../../../data/iconList';
 
-import style from './Icon.css';
+import style from './Icon.module.css';
 
 interface Props {
   iconId?: IconId;

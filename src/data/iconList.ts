@@ -7,10 +7,9 @@ import {
   IconUrls,
 } from '../types/Icon';
 
-function importIcons(r: __WebpackModuleApi.RequireContext) {
+function importIcons(files: Record<string, string>) {
   const importedIcons = {} as IconList;
-  r.keys().forEach((key) => {
-    const filePath: string = r(key);
+  Object.entries(files).forEach(([key, filePath]) => {
     const matches = key.match(/\/(\w*?)\/(\w*?)_(\d*?)\.png/);
     const iconId = matches ? (matches[1] as IconId) : '';
     const size = matches ? (parseInt(matches[3]) as IconSize) : null;
@@ -37,5 +36,8 @@ function importIcons(r: __WebpackModuleApi.RequireContext) {
   return importedIcons;
 }
 export const iconList = importIcons(
-  require.context('../assets/img/icons', true, /\.png$/)
+  import.meta.glob('../assets/img/icons/**/*.png', {
+    eager: true,
+    import: 'default',
+  }) as Record<string, string>
 );

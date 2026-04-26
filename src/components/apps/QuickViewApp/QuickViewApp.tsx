@@ -6,7 +6,7 @@ import MenuBar from '../../shared/MenuBar/MenuBar';
 import StatusBar from '../../shared/StatusBar/StatusBar';
 import WindowContent from '../../shared/WindowContent/WindowContent';
 
-import style from './QuickViewApp.css';
+import style from './QuickViewApp.module.css';
 
 const QuickViewApp: FunctionComponent<AppProps> = ({
   workingFile,

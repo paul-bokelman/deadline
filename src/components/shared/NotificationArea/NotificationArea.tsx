@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 
 import Icon from '../Icon/Icon';
 
-import style from './NotificationArea.css';
+import style from './NotificationArea.module.css';
 
 const AUDIO_SOURCE_WEBM = 'https://www.cameronsworld.net/sound/cameronsworld.webm';
 const AUDIO_SOURCE_MP3 = 'https://www.cameronsworld.net/sound/cameronsworld.mp3';

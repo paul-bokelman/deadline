@@ -2,7 +2,7 @@ import { h, FunctionComponent } from 'preact';
 
 import MenuOption, { OptionType } from '../MenuOption/MenuOption';
 
-import style from './Menu.css';
+import style from './Menu.module.css';
 
 interface Props {
   // disabled?: boolean;

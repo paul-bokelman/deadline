@@ -1,6 +1,6 @@
 import { h, FunctionComponent, Fragment } from 'preact';
 
-import style from './Textbox.css';
+import style from './Textbox.module.css';
 
 interface Props {
   cols?: number;
@@ -25,16 +25,26 @@ const Textbox: FunctionComponent<Props> = ({
 }: Props) => (
   <Fragment>
     <label htmlFor={id}>{label}</label>
-    <input
-      className={style.textbox}
-      cols={cols}
-      disabled={disabled}
-      id={id}
-      onChange={onChange}
-      rows={rows}
-      type={type}
-      value={value}
-    />
+    {type === 'textarea' ? (
+      <textarea
+        className={style.textbox}
+        cols={cols}
+        disabled={disabled}
+        id={id}
+        onChange={onChange}
+        rows={rows}
+        value={value}
+      />
+    ) : (
+      <input
+        className={style.textbox}
+        disabled={disabled}
+        id={id}
+        onChange={onChange}
+        type={type}
+        value={value}
+      />
+    )}
   </Fragment>
 );
 

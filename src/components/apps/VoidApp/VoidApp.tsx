@@ -5,7 +5,7 @@ import Button from '../../shared/Button/Button';
 import Icon from '../../shared/Icon/Icon';
 import WindowContent from '../../shared/WindowContent/WindowContent';
 
-import style from './VoidApp.css';
+import style from './VoidApp.module.css';
 
 const VoidApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
   return (

@@ -3,7 +3,7 @@ import { h, FunctionComponent, RefObject } from 'preact';
 import { IconId } from '../../../types/Icon';
 import Button from '../Button/Button';
 import Icon from '../Icon/Icon';
-import style from './TitleBar.css';
+import style from './TitleBar.module.css';
 
 export interface Props {
   iconId?: IconId;

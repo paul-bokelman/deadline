@@ -11,7 +11,7 @@ import Button from '../../shared/Button/Button';
 import TimerNumber from '../../shared/TimerNumber/TimerNumber';
 import WindowContent from '../../shared/WindowContent/WindowContent';
 
-import style from './TimerApp.css';
+import style from './TimerApp.module.css';
 
 const TARGET_MS = Date.now() + 1000 * 60 * 60 * 24 * 0.666;
 const SMILEY_SRC = [happy, sick];

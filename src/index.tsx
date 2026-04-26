@@ -5,4 +5,10 @@ import Win96Container from './components/containers/Win96Container/Win96Containe
 import './theme/variables.css';
 import './index.css';
 
-render(<Win96Container />, document.body);
+const appRoot = document.getElementById('root');
+
+if (!appRoot) {
+  throw new Error('Root element was not found');
+}
+
+render(<Win96Container />, appRoot);

@@ -12,7 +12,7 @@ import TimerApp from '../../apps/TimerApp/TimerApp';
 import VoidApp from '../../apps/VoidApp/VoidApp';
 import Window from '../../shared/Window/Window';
 
-import style from './WindowsContainer.css';
+import style from './WindowsContainer.module.css';
 
 const components: { [key in AppId]: FunctionComponent<AppProps> } = {
   calc: VoidApp,

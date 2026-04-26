@@ -3,7 +3,7 @@ import { IconId, IconSize } from '../../../types/Icon';
 
 import Icon from '../Icon/Icon';
 
-import style from './Button.css';
+import style from './Button.module.css';
 
 interface Props {
   disabled?: boolean;

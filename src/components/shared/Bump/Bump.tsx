@@ -1,6 +1,6 @@
 import { h, FunctionComponent, ComponentChildren } from 'preact';
 
-import style from './Bump.css';
+import style from './Bump.module.css';
 
 interface Props {
   children: ComponentChildren;

@@ -3,7 +3,7 @@ import { ShellItem } from '../../../types/Shell';
 
 import Icon from '../Icon/Icon';
 
-import style from './FileGrid.css';
+import style from './FileGrid.module.css';
 
 interface Props {
   direction?: 'column' | 'row';

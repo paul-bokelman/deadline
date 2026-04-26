@@ -1,6 +1,6 @@
 import { h, FunctionComponent, ComponentChild } from 'preact';
 
-import style from './WindowContent.css';
+import style from './WindowContent.module.css';
 
 interface Props {
   body: ComponentChild;

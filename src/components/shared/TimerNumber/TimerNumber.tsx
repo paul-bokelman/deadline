@@ -12,7 +12,7 @@ import n8 from '../../../assets/img/interface/minesweeper_8.png';
 import n9 from '../../../assets/img/interface/minesweeper_9.png';
 import nx from '../../../assets/img/interface/minesweeper_x.png';
 
-import style from './TimerNumber.css';
+import style from './TimerNumber.module.css';
 
 interface Props {
   i: number;

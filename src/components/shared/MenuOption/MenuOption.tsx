@@ -6,7 +6,7 @@ import { IconId } from '../../../types/Icon';
 import Icon from '../Icon/Icon';
 import Menu from '../Menu/Menu';
 
-import style from './MenuOption.css';
+import style from './MenuOption.module.css';
 
 export type OptionType = {
   disabled?: boolean;

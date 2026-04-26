@@ -3,7 +3,7 @@ import { h, FunctionComponent, ComponentChildren, createRef } from 'preact';
 import useDragging from '../../../hooks/useDragging';
 import TitleBar, { Props as TitleBarProps } from '../TitleBar/TitleBar';
 
-import style from './Window.css';
+import style from './Window.module.css';
 
 type Props = TitleBarProps & {
   children: ComponentChildren;

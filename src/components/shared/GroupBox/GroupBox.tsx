@@ -1,6 +1,6 @@
 import { h, FunctionComponent, ComponentChildren } from 'preact';
 
-import style from './GroupBox.css';
+import style from './GroupBox.module.css';
 
 interface Props {
   children: ComponentChildren;

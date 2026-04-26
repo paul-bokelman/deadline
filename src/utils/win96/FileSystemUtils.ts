@@ -73,7 +73,8 @@ export const dirTypeExists = (dirType?: string): boolean => {
 };
 
 export const createFs = (
-  r: __WebpackModuleApi.RequireContext
+  files: Record<string, unknown>,
+  basePath: string
 ): FileSystemDir => {
   const fs: FileSystemDir = {
     dir: {},
@@ -81,13 +82,15 @@ export const createFs = (
     iconId: 'myComputer',
     type: 'dir',
   };
-  r.keys().forEach((key) => {
-    const path = key.substring(2).split('/');
-    const file = r(key);
+  Object.entries(files).forEach(([key, file]) => {
+    const normalizedKey = key.startsWith(`${basePath}/`)
+      ? key.slice(basePath.length + 1)
+      : key;
+    const path = normalizedKey.split('/');
     const content =
-      typeof file === 'object' && 'default' in file
+      typeof file === 'object' && file !== null && 'default' in file
         ? // if file is a module
-          file.default
+          (file as { default: unknown }).default
         : // else
           file ?? '';
     addItemToFs(path, content, fs);
@@ -97,7 +100,7 @@ export const createFs = (
 
 const addItemToFs = (
   path: string[],
-  content: string | Record<string, unknown>,
+  content: unknown,
   fsNode = {} as FileSystemDir
 ): void => {
   const pathLength = path.length;
