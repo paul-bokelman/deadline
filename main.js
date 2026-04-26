@@ -12,6 +12,11 @@ import {
 } from "./windows/desktop.js";
 import { open as openEmail } from "./windows/email.js";
 import { open as openPortal } from "./windows/portal.js";
+import { open as openNotepad } from "./windows/notepad.js";
+import { open as openCalculator } from "./windows/calculator.js";
+import { open as openPaint } from "./windows/paint.js";
+import { open as openComputer } from "./windows/computer.js";
+import { open as openRecycleBin } from "./windows/recycle.js";
 
 const startOfGameClock = new Date();
 startOfGameClock.setHours(START_HOUR_24, START_MINUTE, 0, 0);
@@ -51,7 +56,12 @@ function init() {
 
   renderDesktop(app, {
     onOpenEmail: openEmail,
-    onOpenPortal: openPortal
+    onOpenPortal: openPortal,
+    onOpenNotepad: openNotepad,
+    onOpenCalculator: openCalculator,
+    onOpenPaint: openPaint,
+    onOpenComputer: openComputer,
+    onOpenRecycleBin: openRecycleBin
   });
 
   gameState.startedAtMs = Date.now();
