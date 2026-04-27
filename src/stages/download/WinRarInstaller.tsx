@@ -1,8 +1,10 @@
 import { h, FunctionComponent, JSX } from 'preact';
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 
 import { AppProps } from '../../types/App';
 import { useGameState } from '../../game/state';
+import { createLoadingSfxController } from '../../utils/audio/sfx';
+import { getErraticProgressStep } from '../../utils/loading/erraticProgress';
 
 type InstallerPhase =
   | 'installing'
@@ -34,6 +36,16 @@ const buttonStyle: JSX.CSSProperties = {
   marginTop: '10px',
 };
 
+const INSTALL_PROGRESS_BEHAVIOR = {
+  maxDelayMs: 260,
+  maxIncrement: 4.8,
+  maxPauseMs: 3600,
+  minDelayMs: 90,
+  minIncrement: 0.6,
+  minPauseMs: 1300,
+  pauseChance: 0.2,
+};
+
 const WinRarInstaller: FunctionComponent<AppProps> = ({
   closeWindow,
 }: AppProps) => {
@@ -46,6 +58,22 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
   } = useGameState();
   const [phase, setPhase] = useState<InstallerPhase>('installing');
   const [progress, setProgress] = useState(0);
+  const loadingSfxRef = useRef(createLoadingSfxController());
+
+  useEffect(() => {
+    if (phase === 'installing' || phase === 'updating') {
+      loadingSfxRef.current.start();
+      return;
+    }
+    loadingSfxRef.current.stop();
+  }, [phase]);
+
+  useEffect(
+    () => () => {
+      loadingSfxRef.current.stop();
+    },
+    []
+  );
 
   useEffect(() => {
     if (flags.hasWinRarInstalled) {
@@ -56,38 +84,52 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
 
   useEffect(() => {
     if (phase !== 'installing') return;
-    const startedAt = Date.now();
-    const durationMs = 4000;
-    const intervalId = window.setInterval(() => {
-      const elapsed = Date.now() - startedAt;
-      const nextProgress = Math.min(
-        100,
-        Math.round((elapsed / durationMs) * 100)
-      );
-      setProgress(nextProgress);
-      if (nextProgress >= 100) {
-        window.clearInterval(intervalId);
-        setPhase('updatePrompt');
-      }
-    }, 120);
 
-    return () => window.clearInterval(intervalId);
+    setProgress(0);
+    let timeoutId: number | null = null;
+    let nextProgress = 0;
+
+    const tick = () => {
+      const step = getErraticProgressStep(
+        nextProgress,
+        100,
+        INSTALL_PROGRESS_BEHAVIOR
+      );
+      nextProgress = step.nextProgress;
+      setProgress(nextProgress);
+
+      if (nextProgress >= 100) {
+        setPhase('updatePrompt');
+        return;
+      }
+
+      timeoutId = window.setTimeout(tick, step.delayMs);
+    };
+
+    timeoutId = window.setTimeout(tick, 300);
+    return () => {
+      if (timeoutId !== null) window.clearTimeout(timeoutId);
+    };
   }, [phase]);
 
   useEffect(() => {
     if (phase !== 'updating') return;
+
     setProgress(0);
-    const startedAt = Date.now();
-    const durationMs = 3000;
-    const intervalId = window.setInterval(() => {
-      const elapsed = Date.now() - startedAt;
-      const nextProgress = Math.min(
+
+    let timeoutId: number | null = null;
+    let nextProgress = 0;
+
+    const tick = () => {
+      const step = getErraticProgressStep(
+        nextProgress,
         100,
-        Math.round((elapsed / durationMs) * 100)
+        INSTALL_PROGRESS_BEHAVIOR
       );
+      nextProgress = step.nextProgress;
       setProgress(nextProgress);
+
       if (nextProgress >= 100) {
-        window.clearInterval(intervalId);
         setPhase('complete');
         setFlag('hasWinRarInstalled', true);
         setFlag('hasZipFile', false);
@@ -100,17 +142,22 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
             triggerSkypeCall('it_guy_angry_1');
           }, 3000);
         }
+        return;
       }
-    }, 120);
 
-    return () => window.clearInterval(intervalId);
+      timeoutId = window.setTimeout(tick, step.delayMs);
+    };
+
+    timeoutId = window.setTimeout(tick, 300);
+    return () => {
+      if (timeoutId !== null) window.clearTimeout(timeoutId);
+    };
   }, [
     phase,
     hasEventFired,
     markEventFired,
     setFlag,
     triggerSkypeCall,
-    closeWindow,
   ]);
 
   if (phase === 'done') {

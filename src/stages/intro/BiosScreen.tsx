@@ -156,165 +156,78 @@ const descriptionStyle: JSX.CSSProperties = {
   marginTop: '12px',
 };
 
-const bootOverlayStyle: JSX.CSSProperties = {
-  position: 'fixed',
-  inset: 0,
-  backgroundColor: '#000000',
-  color: '#cccccc',
-  fontFamily: 'var(--font-family-sys), monospace',
-  fontSize: '18px',
-  padding: '24px',
-  zIndex: 200001,
-  whiteSpace: 'pre-wrap',
-};
-
-const itemRowStyle = (isSelected: boolean): JSX.CSSProperties => ({
+const itemRowStyle: JSX.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: '8px',
   padding: '0 16px',
-  backgroundColor: isSelected ? BIOS_RED : 'transparent',
-  color: isSelected ? BIOS_WHITE : BIOS_WHITE,
-  cursor: 'pointer',
-});
+  color: BIOS_WHITE,
+  cursor: 'default',
+};
 
 const triangleStyle: JSX.CSSProperties = {
   color: BIOS_YELLOW,
 };
 
-const BOOT_LINES: string[] = [
-  'Award Modular BIOS v4.51PG, An Energy Star Ally',
-  'Copyright (C) 1984-1999, Award Software, Inc.',
-  '',
-  'Saving CMOS settings... OK',
-  'Detecting IDE Primary Master ... DEADLINE-HDD',
-  'Detecting IDE Primary Slave  ... None',
-  'Detecting IDE Secondary Master ... CD-ROM',
-  '',
-  'Booting from Hard Disk...',
-  'Starting Windows 96...',
-];
+const gameTitleStyle: JSX.CSSProperties = {
+  border: `1px solid ${BIOS_CYAN}`,
+  backgroundColor: BIOS_RED,
+  padding: '12px 16px',
+  textAlign: 'center',
+  marginBottom: '8px',
+};
+
+const startButtonStyle: JSX.CSSProperties = {
+  border: `1px solid ${BIOS_CYAN}`,
+  backgroundColor: BIOS_BLUE,
+  color: BIOS_WHITE,
+  fontFamily: 'var(--font-family-sys), monospace',
+  fontSize: '18px',
+  padding: '10px 18px',
+  cursor: 'pointer',
+};
 
 const BiosScreen: FunctionComponent<BiosScreenProps> = ({
   onBoot,
 }: BiosScreenProps) => {
-  const [selectedColumn, setSelectedColumn] = useState<0 | 1>(0);
-  const [selectedRow, setSelectedRow] = useState(0);
-  const [isBooting, setIsBooting] = useState(false);
-  const [bootLineCount, setBootLineCount] = useState(0);
-
+  const [isStarting, setIsStarting] = useState(false);
   const columns = useMemo(() => [LEFT_ITEMS, RIGHT_ITEMS], []);
-  const activeItem = columns[selectedColumn][selectedRow];
+  const activeItem = columns[0][0];
 
   useEffect(() => {
-    if (isBooting) return undefined;
-
     const handleKeyDown = (event: KeyboardEvent): void => {
-      const currentColumn = columns[selectedColumn];
-
-      if (event.key === 'ArrowUp') {
+      if (event.key !== 'Enter') return;
+      if (isStarting) return;
         event.preventDefault();
-        setSelectedRow((current) => {
-          const next = current - 1;
-          return next < 0 ? currentColumn.length - 1 : next;
-        });
-        return;
-      }
-
-      if (event.key === 'ArrowDown') {
-        event.preventDefault();
-        setSelectedRow((current) => {
-          const next = current + 1;
-          return next >= currentColumn.length ? 0 : next;
-        });
-        return;
-      }
-
-      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-        event.preventDefault();
-        setSelectedColumn((current) => (current === 0 ? 1 : 0));
-        return;
-      }
-
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        if (activeItem.isBoot) {
-          setIsBooting(true);
-        }
-        return;
-      }
-
-      if (event.key === 'F10') {
-        event.preventDefault();
-        setIsBooting(true);
-        return;
-      }
-
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        setIsBooting(true);
-      }
+      setIsStarting(true);
+      window.setTimeout(onBoot, 260);
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeItem, columns, isBooting, selectedColumn]);
-
-  useEffect(() => {
-    if (!isBooting) return undefined;
-
-    let lineIndex = 0;
-    setBootLineCount(0);
-
-    const intervalId = window.setInterval(() => {
-      lineIndex += 1;
-      if (lineIndex >= BOOT_LINES.length) {
-        window.clearInterval(intervalId);
-        window.setTimeout(onBoot, 600);
-      }
-      setBootLineCount(lineIndex);
-    }, 220);
-
-    return () => window.clearInterval(intervalId);
-  }, [isBooting, onBoot]);
-
-  const renderItem = (
-    item: BiosMenuItem,
-    columnIndex: 0 | 1,
-    rowIndex: number
-  ): JSX.Element => {
-    const isSelected =
-      selectedColumn === columnIndex && selectedRow === rowIndex;
-    return (
-      <div
-        key={item.id}
-        onClick={() => {
-          setSelectedColumn(columnIndex);
-          setSelectedRow(rowIndex);
-        }}
-        onDblClick={() => {
-          if (item.isBoot) setIsBooting(true);
-        }}
-        style={itemRowStyle(isSelected)}
-      >
-        <span style={triangleStyle}>▶</span>
-        <span>{item.label}</span>
-      </div>
-    );
-  };
-
-  if (isBooting) {
-    return (
-      <div style={bootOverlayStyle}>
-        {BOOT_LINES.slice(0, bootLineCount + 1).map((line, index) => (
-          <div key={index}>{line || '\u00a0'}</div>
-        ))}
-      </div>
-    );
-  }
+  }, [isStarting, onBoot]);
 
   return (
     <div style={containerStyle}>
+      <div style={gameTitleStyle}>
+        <div style={{ color: BIOS_YELLOW }}>DEADLINE</div>
+        <div style={{ marginTop: '4px' }}>
+          You have one shot to submit the report in time.
+        </div>
+        <div style={{ marginTop: '10px' }}>
+          <button
+            onClick={() => {
+              if (isStarting) return;
+              setIsStarting(true);
+              window.setTimeout(onBoot, 260);
+            }}
+            style={startButtonStyle}
+            type="button"
+          >
+            {isStarting ? 'Starting...' : 'Start Game'}
+          </button>
+        </div>
+      </div>
       <div style={titleBoxStyle}>
         CMOS Setup Utility - Copyright (C) 1984-1999 Award Software
       </div>
@@ -322,11 +235,21 @@ const BiosScreen: FunctionComponent<BiosScreenProps> = ({
       <div style={menuFrameStyle}>
         <div style={menuColumnsStyle}>
           <div>
-            {LEFT_ITEMS.map((item, index) => renderItem(item, 0, index))}
+            {LEFT_ITEMS.map((item) => (
+              <div key={item.id} style={itemRowStyle}>
+                <span style={triangleStyle}>▶</span>
+                <span>{item.label}</span>
+              </div>
+            ))}
           </div>
           <div style={dividerStyle} />
           <div>
-            {RIGHT_ITEMS.map((item, index) => renderItem(item, 1, index))}
+            {RIGHT_ITEMS.map((item) => (
+              <div key={item.id} style={itemRowStyle}>
+                <span style={triangleStyle}>▶</span>
+                <span>{item.label}</span>
+              </div>
+            ))}
           </div>
         </div>
         <div style={helpRowStyle}>
@@ -341,7 +264,9 @@ const BiosScreen: FunctionComponent<BiosScreenProps> = ({
         </div>
       </div>
 
-      <div style={descriptionStyle}>{activeItem.description}</div>
+      <div style={descriptionStyle}>
+        {activeItem.description} Press Enter or click Start Game to continue.
+      </div>
     </div>
   );
 };

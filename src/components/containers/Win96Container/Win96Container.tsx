@@ -15,6 +15,7 @@ import BluescreenSequence from '../../../stages/transition/BluescreenSequence';
 import Narrator from '../../../system/narrator/Narrator';
 import WindowsUpdateNag from '../../../system/windowsUpdate/WindowsUpdateNag';
 import BiosScreen from '../../../stages/intro/BiosScreen';
+import { playClickSfx } from '../../../utils/audio/sfx';
 
 import style from './Win96Container.module.css';
 
@@ -49,32 +50,46 @@ const InitialBiosLayer: FunctionComponent = () => {
   return <BiosScreen onBoot={completeInitialBios} />;
 };
 
-const Win96Container: FunctionComponent = () => (
-  <div className={style.win96}>
-    <div className={style.shell}>
-      <GameStateProvider>
-        <I18nProvider>
-          <OpenWindowsProvider>
-            <div className={style.mainView}>
-              <DesktopContainer />
-              <WindowsContainer />
-              <DownloadStageLayer />
-              <BluescreenSequence />
-              <MalwarePopupManager />
-              <WindowsUpdateNag />
-              <Narrator />
-              <SkypeCallWindowSync />
-              <GameScenarioController />
-            </div>
-            <div className={style.taskbarView}>
-              <TaskbarContainer />
-            </div>
-            <InitialBiosLayer />
-          </OpenWindowsProvider>
-        </I18nProvider>
-      </GameStateProvider>
+const Win96Container: FunctionComponent = () => {
+  useEffect(() => {
+    const handlePointerDown = (event: PointerEvent) => {
+      if (event.button !== 0) return;
+      playClickSfx();
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown, true);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown, true);
+    };
+  }, []);
+
+  return (
+    <div className={style.win96}>
+      <div className={style.shell}>
+        <GameStateProvider>
+          <I18nProvider>
+            <OpenWindowsProvider>
+              <div className={style.mainView}>
+                <DesktopContainer />
+                <WindowsContainer />
+                <DownloadStageLayer />
+                <BluescreenSequence />
+                <MalwarePopupManager />
+                <WindowsUpdateNag />
+                <Narrator />
+                <SkypeCallWindowSync />
+                <GameScenarioController />
+              </div>
+              <div className={style.taskbarView}>
+                <TaskbarContainer />
+              </div>
+              <InitialBiosLayer />
+            </OpenWindowsProvider>
+          </I18nProvider>
+        </GameStateProvider>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default Win96Container;

@@ -1,7 +1,9 @@
 import { h, FunctionComponent, JSX } from 'preact';
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 
 import Window from '../../components/shared/Window/Window';
+import { createLoadingSfxController } from '../../utils/audio/sfx';
+import { getErraticProgressStep } from '../../utils/loading/erraticProgress';
 
 interface ProgressBarWindowProps {
   onFailure: () => void;
@@ -29,22 +31,49 @@ const trackStyle: JSX.CSSProperties = {
   marginTop: '8px',
 };
 
+const PROGRESS_BEHAVIOR = {
+  maxDelayMs: 220,
+  maxIncrement: 3.8,
+  maxPauseMs: 3700,
+  minDelayMs: 80,
+  minIncrement: 0.4,
+  minPauseMs: 1200,
+  pauseChance: 0.24,
+};
+
 const ProgressBarWindow: FunctionComponent<ProgressBarWindowProps> = ({
   onFailure,
 }: ProgressBarWindowProps) => {
   const [progress, setProgress] = useState(0);
   const [cycle, setCycle] = useState<1 | 2 | 3>(1);
   const [status, setStatus] = useState('Preparing download...');
+  const loadingSfxRef = useRef(createLoadingSfxController());
 
   useEffect(() => {
-    let intervalId: number | null = null;
+    loadingSfxRef.current.start();
+    return () => {
+      loadingSfxRef.current.stop();
+    };
+  }, []);
+
+  useEffect(() => {
+    let timeoutId: number | null = null;
     let waiting = false;
 
-    intervalId = window.setInterval(() => {
+    const scheduleNext = (delayMs: number) => {
+      timeoutId = window.setTimeout(tick, delayMs);
+    };
+
+    const tick = () => {
       if (waiting) return;
+
       setProgress((currentProgress) => {
         const target = cycle === 3 ? 100 : 99;
-        const nextProgress = Math.min(currentProgress + target / 60, target);
+        const { delayMs, nextProgress, paused } = getErraticProgressStep(
+          currentProgress,
+          target,
+          PROGRESS_BEHAVIOR
+        );
 
         if (nextProgress >= target) {
           waiting = true;
@@ -59,28 +88,27 @@ const ProgressBarWindow: FunctionComponent<ProgressBarWindowProps> = ({
               setCycle(cycle === 1 ? 2 : 3);
               setStatus('Downloading...');
               waiting = false;
-            }, 600);
+            }, 900);
           } else {
             setStatus('Download failed.');
-            if (intervalId !== null) {
-              window.clearInterval(intervalId);
-            }
+            loadingSfxRef.current.stop();
             window.setTimeout(() => onFailure(), 2000);
           }
+        } else {
+          setStatus(paused ? 'Download paused...' : 'Downloading...');
+          scheduleNext(delayMs);
         }
 
         return nextProgress;
       });
-    }, 100);
+    };
+
+    scheduleNext(350);
 
     return () => {
-      if (intervalId !== null) window.clearInterval(intervalId);
+      if (timeoutId !== null) window.clearTimeout(timeoutId);
     };
   }, [cycle, onFailure]);
-
-  useEffect(() => {
-    if (cycle === 1 && progress < 99) setStatus('Downloading...');
-  }, [cycle, progress]);
 
   return (
     <div style={containerStyle}>

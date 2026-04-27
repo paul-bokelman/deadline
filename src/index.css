@@ -13,6 +13,28 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+:root {
+  --cursor-default: url('/cursors/raindrop_idle_firstframe_32.cur'), auto;
+  --cursor-hover: url('/cursors/raindrop_pointer_24.png') 8 1, pointer;
+}
+
+html, body, button, label, input, textarea, select, option, a {
+  cursor: var(--cursor-default);
+}
+
+button:not(:disabled),
+[role='button']:not([aria-disabled='true']),
+a[href],
+summary,
+input:not([type='hidden']):not(:disabled),
+select:not(:disabled),
+textarea:not(:disabled),
+label[for],
+[tabindex]:not([tabindex='-1']),
+[onclick] {
+  cursor: var(--cursor-hover);
+}
+
 /* body {
     font-size: 1rem;
     font-family: var(--font-family-main);

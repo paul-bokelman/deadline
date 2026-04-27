@@ -49,3 +49,7 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Local tooling/runtime installs created by the agent
+.bun/
+.tools/
