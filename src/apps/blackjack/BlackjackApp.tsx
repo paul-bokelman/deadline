@@ -186,6 +186,7 @@ const BlackjackApp: FunctionComponent<AppProps> = (_props: AppProps) => {
   const deckRef = useRef<Card[]>(buildDeck(seedRef.current));
   const discardRef = useRef<Card[]>([]);
   const hasActiveHandRef = useRef(false);
+  const tableAfterBetRef = useRef<number>(0);
 
   const [roundState, setRoundState] = useState<RoundState>('idle');
   const [dealerHand, setDealerHand] = useState<Card[]>([]);
@@ -309,7 +310,7 @@ const BlackjackApp: FunctionComponent<AppProps> = (_props: AppProps) => {
 
     if (currentBet !== null) {
       const payout = Math.round(currentBet * payoutMultiplier);
-      setFlags({ blackjackBalance: flags.blackjackBalance + payout });
+      setFlags({ blackjackBalance: tableAfterBetRef.current + payout });
     }
   };
 
@@ -367,6 +368,7 @@ const BlackjackApp: FunctionComponent<AppProps> = (_props: AppProps) => {
     }
     const bet = Math.max(1, Math.min(handSize, table));
     setCurrentBet(bet);
+    tableAfterBetRef.current = table - bet;
     setFlags({ blackjackBalance: table - bet });
 
     setOutcome(null);

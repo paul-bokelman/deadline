@@ -29,24 +29,33 @@ const CELL_HEIGHT = 80;
 const ICON_PADDING_X = 4;
 const ICON_PADDING_Y = 4;
 const DRAG_THRESHOLD_PX = 4;
-const FALLBACK_MAX_ROWS = 8;
-const FALLBACK_MAX_COLS = 10;
+const FALLBACK_DESKTOP_W = 800;
+const FALLBACK_DESKTOP_H = 600;
 
 interface IconPosition {
-  col: number;
-  row: number;
+  left: number;
+  top: number;
 }
 
 interface DragState {
-  fileId: string;
+  primaryFileId: string;
+  draggedFileIds: string[];
+  startPositions: Record<string, IconPosition>;
+  deltaX: number;
+  deltaY: number;
   pointerStartX: number;
   pointerStartY: number;
-  iconStartLeft: number;
-  iconStartTop: number;
-  ghostLeft: number;
-  ghostTop: number;
   pointerId: number;
   hasMoved: boolean;
+}
+
+interface SelectionBoxState {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  x: number;
+  y: number;
+  isActive: boolean;
 }
 
 type Props = {
@@ -54,42 +63,8 @@ type Props = {
   openApp: OpenWindowsContextType['openApp'];
 };
 
-const cellKey = (col: number, row: number): string => `${col},${row}`;
-
-const findFreeCell = (
-  occupied: Set<string>,
-  maxRows: number,
-  preferred?: IconPosition
-): IconPosition => {
-  if (preferred && !occupied.has(cellKey(preferred.col, preferred.row))) {
-    return preferred;
-  }
-
-  if (preferred) {
-    for (let dist = 1; dist < 200; dist += 1) {
-      for (let dc = -dist; dc <= dist; dc += 1) {
-        for (let dr = -dist; dr <= dist; dr += 1) {
-          if (Math.abs(dc) !== dist && Math.abs(dr) !== dist) continue;
-          const c = preferred.col + dc;
-          const r = preferred.row + dr;
-          if (c < 0 || r < 0) continue;
-          if (!occupied.has(cellKey(c, r))) return { col: c, row: r };
-        }
-      }
-    }
-  }
-
-  let col = 0;
-  let row = 0;
-  while (occupied.has(cellKey(col, row))) {
-    row += 1;
-    if (row >= maxRows) {
-      row = 0;
-      col += 1;
-    }
-  }
-  return { col, row };
-};
+const clamp = (value: number, min: number, max: number): number =>
+  Math.min(max, Math.max(min, value));
 
 const Desktop: FunctionComponent<Props> = ({
   background = '',
@@ -103,18 +78,22 @@ const Desktop: FunctionComponent<Props> = ({
   const [focusedDynamicItemId, setFocusedDynamicItemId] = useState<
     string | null
   >(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const desktopItems = useMemo<ShellItem[]>(() => {
-    const dynamicItems = getDynamicDesktopItems(flags).map((item) =>
-      item.id === focusedDynamicItemId
-        ? { ...item, hasFocus: true, hasSoftFocus: true }
-        : item
-    );
-    const mergedItems = [...files, ...dynamicItems];
+    const dynamicItems = getDynamicDesktopItems(flags);
+    const mergedItems = [...files, ...dynamicItems].map((item) => {
+      const isSelected = selectedIds.has(item.id);
+      const isFocusedDynamic = item.id === focusedDynamicItemId;
+      if (isSelected || isFocusedDynamic) {
+        return { ...item, hasFocus: true, hasSoftFocus: true };
+      }
+      return item;
+    });
     if (flags.hasDesktopScrambled) {
       return scrambleDesktop(mergedItems);
     }
     return mergedItems;
-  }, [files, flags, focusedDynamicItemId]);
+  }, [files, flags, focusedDynamicItemId, selectedIds]);
 
   const desktopRef = useRef<HTMLDivElement>(null);
   const [iconPositions, setIconPositions] = useState<
@@ -122,64 +101,66 @@ const Desktop: FunctionComponent<Props> = ({
   >({});
   const [drag, setDrag] = useState<DragState | null>(null);
   const dragRef = useRef<DragState | null>(null);
+  const [selectionBox, setSelectionBox] = useState<SelectionBoxState | null>(
+    null
+  );
+  const selectionBoxRef = useRef<SelectionBoxState | null>(null);
   const suppressClickRef = useRef(false);
   const suppressClickTimeoutRef = useRef<number | null>(null);
   const pendingPointerEventRef = useRef<{ x: number; y: number } | null>(null);
   const rafIdRef = useRef<number | null>(null);
-  const [maxRows, setMaxRows] = useState<number>(FALLBACK_MAX_ROWS);
-  const [maxCols, setMaxCols] = useState<number>(FALLBACK_MAX_COLS);
+  const [desktopSize, setDesktopSize] = useState<{ w: number; h: number }>({
+    w: FALLBACK_DESKTOP_W,
+    h: FALLBACK_DESKTOP_H,
+  });
 
   useLayoutEffect(() => {
     const element = desktopRef.current;
     if (!element) return undefined;
 
-    const updateMaxRows = (): void => {
+    const updateSize = (): void => {
       const rect = element.getBoundingClientRect();
-      const rows = Math.max(
-        1,
-        Math.floor((rect.height - ICON_PADDING_Y) / CELL_HEIGHT)
-      );
-      const cols = Math.max(
-        1,
-        Math.floor((rect.width - ICON_PADDING_X) / CELL_WIDTH)
-      );
-      setMaxRows(rows);
-      setMaxCols(cols);
+      setDesktopSize({
+        w: Math.max(1, Math.floor(rect.width)),
+        h: Math.max(1, Math.floor(rect.height)),
+      });
     };
 
-    updateMaxRows();
+    updateSize();
 
-    const observer = new ResizeObserver(updateMaxRows);
+    const observer = new ResizeObserver(updateSize);
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
 
-  // Auto-assign positions to new items, prune stale entries, and reflow
-  // anything that lands outside the desktop after a resize. Bails out
-  // when the result is shape-identical to avoid spurious re-renders.
+  // Auto-assign random positions to new items and prune stale entries.
   useEffect(() => {
     setIconPositions((current) => {
       const next: Record<string, IconPosition> = {};
-      const occupied = new Set<string>();
+      const ICON_W = CELL_WIDTH;
+      const ICON_H = CELL_HEIGHT;
+      const maxLeft = Math.max(ICON_PADDING_X, desktopSize.w - ICON_W);
+      const maxTop = Math.max(ICON_PADDING_Y, desktopSize.h - ICON_H);
 
       desktopItems.forEach((item) => {
         const existing = current[item.id];
-        if (
-          existing &&
-          existing.col < maxCols &&
-          existing.row < maxRows &&
-          !occupied.has(cellKey(existing.col, existing.row))
-        ) {
-          next[item.id] = existing;
-          occupied.add(cellKey(existing.col, existing.row));
-        }
+        if (!existing) return;
+        next[item.id] = {
+          left: clamp(existing.left, ICON_PADDING_X, maxLeft),
+          top: clamp(existing.top, ICON_PADDING_Y, maxTop),
+        };
       });
 
       desktopItems.forEach((item) => {
         if (next[item.id]) return;
-        const cell = findFreeCell(occupied, maxRows);
-        next[item.id] = cell;
-        occupied.add(cellKey(cell.col, cell.row));
+        // Completely random placement on the desktop.
+        const left =
+          ICON_PADDING_X +
+          Math.floor(Math.random() * Math.max(1, maxLeft - ICON_PADDING_X));
+        const top =
+          ICON_PADDING_Y +
+          Math.floor(Math.random() * Math.max(1, maxTop - ICON_PADDING_Y));
+        next[item.id] = { left, top };
       });
 
       const currentIds = Object.keys(current);
@@ -188,14 +169,14 @@ const Desktop: FunctionComponent<Props> = ({
         const allMatch = nextIds.every((id) => {
           const a = current[id];
           const b = next[id];
-          return !!a && !!b && a.col === b.col && a.row === b.row;
+          return !!a && !!b && a.left === b.left && a.top === b.top;
         });
         if (allMatch) return current;
       }
 
       return next;
     });
-  }, [desktopItems, maxCols, maxRows]);
+  }, [desktopItems, desktopSize.h, desktopSize.w]);
 
   useEffect(() => {
     return () => {
@@ -208,24 +189,18 @@ const Desktop: FunctionComponent<Props> = ({
     };
   }, []);
 
-  const cellToPixel = useCallback(
-    (cell: IconPosition): { left: number; top: number } => ({
-      left: ICON_PADDING_X + cell.col * CELL_WIDTH,
-      top: ICON_PADDING_Y + cell.row * CELL_HEIGHT,
-    }),
-    []
-  );
-
-  const pixelToCell = useCallback(
-    (pixelLeft: number, pixelTop: number): IconPosition => {
-      const rawCol = (pixelLeft - ICON_PADDING_X) / CELL_WIDTH;
-      const rawRow = (pixelTop - ICON_PADDING_Y) / CELL_HEIGHT;
+  const clampToDesktop = useCallback(
+    (left: number, top: number): { left: number; top: number } => {
+      const ICON_W = CELL_WIDTH;
+      const ICON_H = CELL_HEIGHT;
+      const maxLeft = Math.max(ICON_PADDING_X, desktopSize.w - ICON_W);
+      const maxTop = Math.max(ICON_PADDING_Y, desktopSize.h - ICON_H);
       return {
-        col: Math.min(maxCols - 1, Math.max(0, Math.round(rawCol))),
-        row: Math.min(maxRows - 1, Math.max(0, Math.round(rawRow))),
+        left: clamp(left, ICON_PADDING_X, maxLeft),
+        top: clamp(top, ICON_PADDING_Y, maxTop),
       };
     },
-    [maxCols, maxRows]
+    [desktopSize.h, desktopSize.w]
   );
 
   const endDrag = useCallback((): void => {
@@ -236,6 +211,11 @@ const Desktop: FunctionComponent<Props> = ({
       rafIdRef.current = null;
     }
     setDrag(null);
+  }, []);
+
+  const endSelectionBox = useCallback((): void => {
+    selectionBoxRef.current = null;
+    setSelectionBox(null);
   }, []);
 
   const armSuppressClick = useCallback((): void => {
@@ -262,40 +242,145 @@ const Desktop: FunctionComponent<Props> = ({
     const desktopRect = desktopElement.getBoundingClientRect();
     const pointerX = pending.x - desktopRect.left;
     const pointerY = pending.y - desktopRect.top;
-    const dx = pointerX - current.pointerStartX;
-    const dy = pointerY - current.pointerStartY;
+    const rawDx = pointerX - current.pointerStartX;
+    const rawDy = pointerY - current.pointerStartY;
 
     const hasMoved =
       current.hasMoved ||
-      Math.abs(dx) > DRAG_THRESHOLD_PX ||
-      Math.abs(dy) > DRAG_THRESHOLD_PX;
+      Math.abs(rawDx) > DRAG_THRESHOLD_PX ||
+      Math.abs(rawDy) > DRAG_THRESHOLD_PX;
     if (!hasMoved) return;
 
-    const maxGhostLeft = ICON_PADDING_X + (maxCols - 1) * CELL_WIDTH;
-    const maxGhostTop = ICON_PADDING_Y + (maxRows - 1) * CELL_HEIGHT;
-    const clampedGhostLeft = Math.min(
-      maxGhostLeft,
-      Math.max(ICON_PADDING_X, current.iconStartLeft + dx)
-    );
-    const clampedGhostTop = Math.min(
-      maxGhostTop,
-      Math.max(ICON_PADDING_Y, current.iconStartTop + dy)
-    );
+    const ICON_W = CELL_WIDTH;
+    const ICON_H = CELL_HEIGHT;
+    const maxLeft = Math.max(ICON_PADDING_X, desktopSize.w - ICON_W);
+    const maxTop = Math.max(ICON_PADDING_Y, desktopSize.h - ICON_H);
+
+    let groupMinLeft = Infinity;
+    let groupMinTop = Infinity;
+    let groupMaxLeft = -Infinity;
+    let groupMaxTop = -Infinity;
+    current.draggedFileIds.forEach((id) => {
+      const pos = current.startPositions[id];
+      if (!pos) return;
+      groupMinLeft = Math.min(groupMinLeft, pos.left);
+      groupMinTop = Math.min(groupMinTop, pos.top);
+      groupMaxLeft = Math.max(groupMaxLeft, pos.left);
+      groupMaxTop = Math.max(groupMaxTop, pos.top);
+    });
+    if (!Number.isFinite(groupMinLeft) || !Number.isFinite(groupMinTop)) return;
+
+    const minDx = ICON_PADDING_X - groupMinLeft;
+    const maxDx = maxLeft - groupMaxLeft;
+    const minDy = ICON_PADDING_Y - groupMinTop;
+    const maxDy = maxTop - groupMaxTop;
+
+    const dx = clamp(rawDx, minDx, maxDx);
+    const dy = clamp(rawDy, minDy, maxDy);
 
     const updated: DragState = {
       ...current,
       hasMoved: true,
-      ghostLeft: clampedGhostLeft,
-      ghostTop: clampedGhostTop,
+      deltaX: dx,
+      deltaY: dy,
     };
     dragRef.current = updated;
     setDrag(updated);
-  }, [maxCols, maxRows]);
+  }, [desktopSize.h, desktopSize.w]);
 
-  const previewDropCell = useMemo<IconPosition | null>(() => {
-    if (!drag || !drag.hasMoved) return null;
-    return pixelToCell(drag.ghostLeft, drag.ghostTop);
-  }, [drag, pixelToCell]);
+  const computeSelection = useCallback(
+    (box: SelectionBoxState): Set<string> => {
+      const desktopElement = desktopRef.current;
+      if (!desktopElement) return new Set();
+      const rect = desktopElement.getBoundingClientRect();
+      const x1 = Math.min(box.startX, box.x) - rect.left;
+      const y1 = Math.min(box.startY, box.y) - rect.top;
+      const x2 = Math.max(box.startX, box.x) - rect.left;
+      const y2 = Math.max(box.startY, box.y) - rect.top;
+
+      const ICON_W = 78;
+      const ICON_H = 74;
+      const next = new Set<string>();
+      desktopItems.forEach((item) => {
+        const pos = iconPositions[item.id];
+        if (!pos) return;
+        const ix1 = pos.left;
+        const iy1 = pos.top;
+        const ix2 = pos.left + ICON_W;
+        const iy2 = pos.top + ICON_H;
+        const intersects = !(ix2 < x1 || ix1 > x2 || iy2 < y1 || iy1 > y2);
+        if (intersects) next.add(item.id);
+      });
+      return next;
+    },
+    [desktopItems, iconPositions]
+  );
+
+  const startSelectionBox = useCallback(
+    (event: PointerEvent) => {
+      const desktopElement = desktopRef.current;
+      if (!desktopElement) return;
+      const start: SelectionBoxState = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        x: event.clientX,
+        y: event.clientY,
+        isActive: false,
+      };
+      selectionBoxRef.current = start;
+      setSelectionBox(start);
+      setSelectedIds(new Set());
+      setFocusedDynamicItemId(null);
+      removeFocus();
+      try {
+        (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+      } catch {
+        // ignore
+      }
+    },
+    [removeFocus]
+  );
+
+  const handleSelectionMove = useCallback(
+    (event: PointerEvent) => {
+      const current = selectionBoxRef.current;
+      if (!current) return;
+      if (event.pointerId !== current.pointerId) return;
+
+      const dx = event.clientX - current.startX;
+      const dy = event.clientY - current.startY;
+      const isActive =
+        current.isActive ||
+        Math.abs(dx) > DRAG_THRESHOLD_PX ||
+        Math.abs(dy) > DRAG_THRESHOLD_PX;
+
+      const next: SelectionBoxState = {
+        ...current,
+        x: event.clientX,
+        y: event.clientY,
+        isActive,
+      };
+      selectionBoxRef.current = next;
+      setSelectionBox(next);
+      if (isActive) setSelectedIds(computeSelection(next));
+    },
+    [computeSelection]
+  );
+
+  const handleSelectionUp = useCallback(
+    (event: PointerEvent) => {
+      const current = selectionBoxRef.current;
+      if (!current) return;
+      if (event.pointerId !== current.pointerId) return;
+      if (current.isActive) {
+        armSuppressClick();
+        setSelectedIds(computeSelection(current));
+      }
+      endSelectionBox();
+    },
+    [armSuppressClick, computeSelection, endSelectionBox]
+  );
 
   const handlePointerDown = useCallback(
     (event: PointerEvent, file: ShellItem): void => {
@@ -307,19 +392,26 @@ const Desktop: FunctionComponent<Props> = ({
       const position = iconPositions[file.id];
       if (!position) return;
 
-      const { left, top } = {
-        left: ICON_PADDING_X + position.col * CELL_WIDTH,
-        top: ICON_PADDING_Y + position.row * CELL_HEIGHT,
-      };
+      const { left, top } = position;
+
+      const groupIds =
+        selectedIds.has(file.id) && selectedIds.size > 1
+          ? Array.from(selectedIds)
+          : [file.id];
+      const startPositions: Record<string, IconPosition> = {};
+      groupIds.forEach((id) => {
+        const pos = iconPositions[id];
+        if (pos) startPositions[id] = { left: pos.left, top: pos.top };
+      });
 
       const startState: DragState = {
-        fileId: file.id,
+        primaryFileId: file.id,
+        draggedFileIds: groupIds,
+        startPositions,
+        deltaX: 0,
+        deltaY: 0,
         pointerStartX: event.clientX - desktopRect.left,
         pointerStartY: event.clientY - desktopRect.top,
-        iconStartLeft: left,
-        iconStartTop: top,
-        ghostLeft: left,
-        ghostTop: top,
         pointerId: event.pointerId,
         hasMoved: false,
       };
@@ -335,7 +427,7 @@ const Desktop: FunctionComponent<Props> = ({
         // setPointerCapture can throw if the pointer is no longer active.
       }
     },
-    [iconPositions]
+    [iconPositions, selectedIds]
   );
 
   const handlePointerMove = useCallback(
@@ -376,28 +468,28 @@ const Desktop: FunctionComponent<Props> = ({
 
       armSuppressClick();
 
-      const targetCell = pixelToCell(finalState.ghostLeft, finalState.ghostTop);
       setIconPositions((currentPositions) => {
-        const occupied = new Set<string>();
-        Object.entries(currentPositions).forEach(([id, pos]) => {
-          if (id === finalState.fileId) return;
-          occupied.add(cellKey(pos.col, pos.row));
+        let changed = false;
+        const next: Record<string, IconPosition> = { ...currentPositions };
+        finalState.draggedFileIds.forEach((id) => {
+          const startPos = finalState.startPositions[id];
+          if (!startPos) return;
+          const nextPos = clampToDesktop(
+            startPos.left + finalState.deltaX,
+            startPos.top + finalState.deltaY
+          );
+          const existing = currentPositions[id];
+          if (!existing) return;
+          if (existing.left !== nextPos.left || existing.top !== nextPos.top) {
+            changed = true;
+            next[id] = nextPos;
+          }
         });
-
-        const placement = findFreeCell(occupied, maxRows, targetCell);
-        const existing = currentPositions[finalState.fileId];
-        if (
-          existing &&
-          existing.col === placement.col &&
-          existing.row === placement.row
-        ) {
-          return currentPositions;
-        }
-        return { ...currentPositions, [finalState.fileId]: placement };
+        return changed ? next : currentPositions;
       });
       endDrag();
     },
-    [armSuppressClick, endDrag, flushPointerMove, maxRows, pixelToCell]
+    [armSuppressClick, clampToDesktop, endDrag, flushPointerMove]
   );
 
   const handlePointerCancel = useCallback(
@@ -431,6 +523,7 @@ const Desktop: FunctionComponent<Props> = ({
       // bubbles here directly. Anything that originated on an icon stops
       // propagation in handleClickFile.
       setFocusedDynamicItemId(null);
+      setSelectedIds(new Set());
       removeFocus();
     },
     [removeFocus]
@@ -452,6 +545,7 @@ const Desktop: FunctionComponent<Props> = ({
         (candidate) => candidate.id === file.id
       );
       setFocusedDynamicItemId(isDynamicItem ? file.id : null);
+      setSelectedIds(new Set([file.id]));
       focusOnFile(file.id);
     },
     [files, focusOnFile]
@@ -502,10 +596,15 @@ const Desktop: FunctionComponent<Props> = ({
     const position = iconPositions[file.id];
     if (!position) return null;
 
-    const isBeingDragged = !!drag && drag.fileId === file.id && drag.hasMoved;
-    const { left, top } = cellToPixel(position);
-    const renderedLeft = isBeingDragged && drag ? drag.ghostLeft : left;
-    const renderedTop = isBeingDragged && drag ? drag.ghostTop : top;
+    const isInDragGroup =
+      !!drag && drag.hasMoved && drag.draggedFileIds.includes(file.id);
+    const startPos = isInDragGroup && drag ? drag.startPositions[file.id] : null;
+    const renderedPos =
+      isInDragGroup && drag && startPos
+        ? clampToDesktop(startPos.left + drag.deltaX, startPos.top + drag.deltaY)
+        : position;
+    const isPrimaryDragged =
+      !!drag && drag.hasMoved && drag.primaryFileId === file.id;
 
     return (
       <div
@@ -522,11 +621,11 @@ const Desktop: FunctionComponent<Props> = ({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         style={{
-          left: `${renderedLeft}px`,
-          top: `${renderedTop}px`,
+          left: `${renderedPos.left}px`,
+          top: `${renderedPos.top}px`,
           color: 'white',
-          opacity: isBeingDragged ? 0.7 : 1,
-          zIndex: isBeingDragged ? 10 : 1,
+          opacity: isInDragGroup ? 0.7 : 1,
+          zIndex: isPrimaryDragged ? 10 : 1,
           touchAction: 'none',
         }}
       >
@@ -538,25 +637,34 @@ const Desktop: FunctionComponent<Props> = ({
     );
   };
 
-  const dropTargetPosition =
-    previewDropCell !== null ? cellToPixel(previewDropCell) : null;
-
   return (
     <div
       className={style.desktop}
       onClick={handleDesktopClick}
+      onPointerDown={(event) => {
+        const target = event.target as HTMLElement | null;
+        const currentTarget = event.currentTarget as HTMLElement | null;
+        if (!target || !currentTarget) return;
+        if (target !== currentTarget) return; // only start marquee on empty desktop
+        if (event.button !== 0) return;
+        startSelectionBox(event);
+      }}
+      onPointerMove={handleSelectionMove}
+      onPointerUp={handleSelectionUp}
       ref={desktopRef}
       style={{ background }}
     >
       {flags.hasDesktopScrambled && <ScreenshotWallpaper />}
       <div className={style.iconLayer}>
         {desktopItems.map((item) => renderIcon(item))}
-        {dropTargetPosition && (
+        {selectionBox && selectionBox.isActive && (
           <div
-            className={style.dropTarget}
+            className={style.selectionBox}
             style={{
-              left: `${dropTargetPosition.left}px`,
-              top: `${dropTargetPosition.top}px`,
+              left: `${Math.min(selectionBox.startX, selectionBox.x) - (desktopRef.current?.getBoundingClientRect().left ?? 0)}px`,
+              top: `${Math.min(selectionBox.startY, selectionBox.y) - (desktopRef.current?.getBoundingClientRect().top ?? 0)}px`,
+              width: `${Math.abs(selectionBox.x - selectionBox.startX)}px`,
+              height: `${Math.abs(selectionBox.y - selectionBox.startY)}px`,
             }}
           />
         )}
