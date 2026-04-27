@@ -234,4 +234,22 @@ export const appList: AppList = {
     name: 'WordPad',
     size: { width: 400, height: 177 },
   },
+  portal: {
+    id: 'portal',
+    iconId: 'msn',
+    name: 'Submission Portal',
+    size: { width: 560, height: 360 },
+  },
+  blackjack: {
+    id: 'blackjack',
+    iconId: 'calc',
+    name: 'Blackjack',
+    size: { width: 640, height: 430 },
+  },
+  bank: {
+    id: 'bank',
+    iconId: 'exchange',
+    name: 'America #1 Bank',
+    size: { width: 420, height: 260 },
+  },
 };

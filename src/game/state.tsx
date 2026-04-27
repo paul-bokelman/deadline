@@ -13,7 +13,8 @@ export type GameStage =
   | 'search_email'
   | 'password_hunt'
   | 'download'
-  | 'post_bluescreen';
+  | 'post_bluescreen'
+  | 'win';
 
 export interface GameFlags {
   hasReceivedIntroCall: boolean;
@@ -37,6 +38,12 @@ export interface GameFlags {
   hasFoundCorrectEmail: boolean;
   hasInstalledWinRar: boolean;
   malwareLevel: 0 | 1 | 2 | 3;
+  hasSubmittedFinalReport: boolean;
+  bankBalance: number;
+  blackjackBalance: number;
+  blackjackHandsInProgress: number;
+  blackjackBailoutCount: 0 | 1 | 2 | 3;
+  hasPurchasedWinRar: boolean;
   language: 'en' | 'zh';
 }
 
@@ -79,6 +86,12 @@ const initialFlags: GameFlags = {
   hasFoundCorrectEmail: false,
   hasInstalledWinRar: false,
   malwareLevel: 0,
+  hasSubmittedFinalReport: false,
+  bankBalance: 100,
+  blackjackBalance: 0,
+  blackjackHandsInProgress: 0,
+  blackjackBailoutCount: 0,
+  hasPurchasedWinRar: false,
   language: 'en',
 };
 
@@ -153,6 +166,108 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
     };
   }, []);
 
+  useEffect(() => {
+    const unsubscribeStarted = gameEventBus.on('blackjack:hand_started', () => {
+      setFlagsState((current) => ({
+        ...current,
+        blackjackHandsInProgress: Math.max(0, (current.blackjackHandsInProgress ?? 0) + 1),
+      }));
+    });
+    const unsubscribeFinished = gameEventBus.on('blackjack:hand_finished', () => {
+      setFlagsState((current) => ({
+        ...current,
+        blackjackHandsInProgress: Math.max(0, (current.blackjackHandsInProgress ?? 0) - 1),
+      }));
+    });
+    return () => {
+      unsubscribeStarted();
+      unsubscribeFinished();
+    };
+  }, []);
+
+  useEffect(() => {
+    const isBrokeNow = flags.bankBalance <= 0 && flags.blackjackBalance <= 0;
+    if (!isBrokeNow) return undefined;
+    if (activeNetVoiceCallId !== null) return undefined;
+
+    // Small debounce to avoid races where a hand just started but the
+    // blackjack "hand_started" event hasn't been processed/rendered yet.
+    const timer = window.setTimeout(() => {
+      const isStillBroke = flags.bankBalance <= 0 && flags.blackjackBalance <= 0;
+      const noActiveHands = flags.blackjackHandsInProgress <= 0;
+      if (!isStillBroke || !noActiveHands) return;
+      if (activeNetVoiceCallId !== null) return;
+
+      const bailoutCount = flags.blackjackBailoutCount ?? 0;
+      const eventId = `blackjack:bailout:${bailoutCount}:triggered`;
+      if (firedEvents[eventId]) return;
+      setFiredEvents((current) => ({ ...current, [eventId]: true }));
+
+      const nextCallId =
+        bailoutCount === 0
+          ? 'mom_bailout_1'
+          : bailoutCount === 1
+            ? 'mom_bailout_2'
+            : 'it_guy_blackjack_roast';
+      setActiveNetVoiceCallIdState(nextCallId);
+      setIsNetVoiceCallAcceptedState(false);
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    activeNetVoiceCallId,
+    firedEvents,
+    flags.bankBalance,
+    flags.blackjackBalance,
+    flags.blackjackHandsInProgress,
+    flags.blackjackBailoutCount,
+  ]);
+
+  useEffect(() => {
+    return gameEventBus.on('netvoice:call_ended', ({ callId }) => {
+      if (callId !== 'mom_bailout_1' && callId !== 'mom_bailout_2') return;
+
+      const eventId = `blackjack:bailout:${callId}:paid`;
+      setFiredEvents((currentEvents) => {
+        if (currentEvents[eventId]) return currentEvents;
+        setFlagsState((currentFlags) => ({
+          ...currentFlags,
+          bankBalance: (currentFlags.bankBalance ?? 0) + 100,
+          blackjackBailoutCount:
+            callId === 'mom_bailout_1'
+              ? 1
+              : callId === 'mom_bailout_2'
+                ? 2
+                : currentFlags.blackjackBailoutCount ?? 0,
+        }));
+        return { ...currentEvents, [eventId]: true };
+      });
+    });
+  }, []);
+
+  const rebootGame: GameStateContextValue['rebootGame'] = () => {
+    setActiveNetVoiceCallIdState(null);
+    setIsNetVoiceCallAcceptedState(false);
+    emitGameRebooted();
+    void triggerBootLoaderScreen().then(() => applyInitialGameState());
+  };
+
+  useEffect(() => {
+    return gameEventBus.on('netvoice:call_accepted', ({ callId }) => {
+      if (callId !== 'it_guy_blackjack_roast') return;
+      // Force hang up, then reboot the run.
+      window.setTimeout(() => {
+        gameEventBus.emit('netvoice:call_ended', {
+          callId: 'it_guy_blackjack_roast',
+          autoTriggerNextStage: false,
+        });
+        window.setTimeout(() => {
+          rebootGame();
+        }, 100);
+      }, 1200);
+    });
+  }, [rebootGame]);
+
   const setStage: GameStateContextValue['setStage'] = (nextStage) => {
     setStageState(nextStage);
   };
@@ -186,13 +301,6 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
   const completeInitialBios: GameStateContextValue['completeInitialBios'] = () => {
     setHasSeenInitialBiosState(true);
     setStage('desktop_intro');
-  };
-
-  const rebootGame: GameStateContextValue['rebootGame'] = () => {
-    setActiveNetVoiceCallIdState(null);
-    setIsNetVoiceCallAcceptedState(false);
-    emitGameRebooted();
-    void triggerBootLoaderScreen().then(() => applyInitialGameState());
   };
 
   const contextValue: GameStateContextValue = {

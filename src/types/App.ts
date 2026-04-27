@@ -38,6 +38,9 @@ export const appIds = [
   'zipArchive',
   'volumeControl',
   'wordpad',
+  'portal',
+  'blackjack',
+  'bank',
 ] as const;
 
 export type AppId = typeof appIds[number];

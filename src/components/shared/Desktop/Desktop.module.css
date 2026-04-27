@@ -45,3 +45,12 @@
   outline-offset: -2px;
   pointer-events: none;
 }
+
+.selectionBox {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(0, 0, 128, 0.18);
+  outline: 1px dotted rgba(255, 255, 255, 0.95);
+  outline-offset: -1px;
+  z-index: 5;
+}

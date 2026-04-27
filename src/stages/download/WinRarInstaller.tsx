@@ -8,6 +8,7 @@ import { getErraticProgressStep } from '../../utils/loading/erraticProgress';
 
 type InstallerPhase =
   | 'installing'
+  | 'purchase'
   | 'updatePrompt'
   | 'updating'
   | 'complete'
@@ -36,7 +37,34 @@ const buttonStyle: JSX.CSSProperties = {
   marginTop: '10px',
 };
 
-const INSTALL_PROGRESS_BEHAVIOR = {
+const disabledButtonStyle: JSX.CSSProperties = {
+  ...buttonStyle,
+  color: 'var(--button-shadow)',
+  textShadow: '1px 1px 0 var(--button-highlight)',
+};
+
+const WINRAR_PRICE = 300;
+
+type ProgressBehavior = typeof getErraticProgressStep extends (
+  ...args: infer A
+) => infer R
+  ? A[2]
+  : never;
+
+const scaleProgressBehavior = (
+  behavior: ProgressBehavior,
+  { delayScale, incrementScale, pauseScale }: { delayScale: number; incrementScale: number; pauseScale: number }
+): ProgressBehavior => ({
+  ...behavior,
+  maxDelayMs: Math.max(1, Math.round(behavior.maxDelayMs * delayScale)),
+  minDelayMs: Math.max(1, Math.round(behavior.minDelayMs * delayScale)),
+  maxPauseMs: Math.max(1, Math.round(behavior.maxPauseMs * pauseScale)),
+  minPauseMs: Math.max(1, Math.round(behavior.minPauseMs * pauseScale)),
+  maxIncrement: behavior.maxIncrement * incrementScale,
+  minIncrement: behavior.minIncrement * incrementScale,
+});
+
+const BASE_PROGRESS_BEHAVIOR = {
   maxDelayMs: 260,
   maxIncrement: 4.8,
   maxPauseMs: 3600,
@@ -46,6 +74,20 @@ const INSTALL_PROGRESS_BEHAVIOR = {
   pauseChance: 0.2,
 };
 
+// "55% quicker" => ~45% of original duration.
+const INSTALL_PROGRESS_BEHAVIOR = scaleProgressBehavior(BASE_PROGRESS_BEHAVIOR, {
+  delayScale: 0.45,
+  incrementScale: 1 / 0.45,
+  pauseScale: 0.45,
+});
+
+// "70% quicker" => ~30% of original duration.
+const UPDATE_PROGRESS_BEHAVIOR = scaleProgressBehavior(BASE_PROGRESS_BEHAVIOR, {
+  delayScale: 0.3,
+  incrementScale: 1 / 0.3,
+  pauseScale: 0.3,
+});
+
 const WinRarInstaller: FunctionComponent<AppProps> = ({
   closeWindow,
 }: AppProps) => {
@@ -54,11 +96,20 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
     hasEventFired,
     markEventFired,
     setFlag,
+    setFlags,
     triggerNetVoiceCall,
   } = useGameState();
-  const [phase, setPhase] = useState<InstallerPhase>('installing');
+  const [phase, setPhase] = useState<InstallerPhase>(
+    flags.hasPurchasedWinRar ? 'installing' : 'purchase'
+  );
   const [progress, setProgress] = useState(0);
   const loadingSfxRef = useRef(createLoadingSfxController());
+
+  useEffect(() => {
+    if (flags.hasPurchasedWinRar && phase === 'purchase') {
+      setPhase('installing');
+    }
+  }, [flags.hasPurchasedWinRar, phase]);
 
   useEffect(() => {
     if (phase === 'installing' || phase === 'updating') {
@@ -124,7 +175,7 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
       const step = getErraticProgressStep(
         nextProgress,
         100,
-        INSTALL_PROGRESS_BEHAVIOR
+        UPDATE_PROGRESS_BEHAVIOR
       );
       nextProgress = step.nextProgress;
       setProgress(nextProgress);
@@ -170,6 +221,44 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
 
   return (
     <div style={panelStyle}>
+      {phase === 'purchase' && (
+        <div>
+          <div style={{ fontWeight: 700 }}>WinRAR Download</div>
+          <div style={{ marginTop: '8px' }}>
+            Price: <b>${WINRAR_PRICE}</b>
+          </div>
+          <div style={{ marginTop: '8px' }}>
+            Bank balance: <b>${flags.bankBalance}</b>
+          </div>
+          <div style={{ marginTop: '10px' }}>
+            <button
+              onClick={() => {
+                if (flags.bankBalance < WINRAR_PRICE) return;
+                setFlags({
+                  bankBalance: flags.bankBalance - WINRAR_PRICE,
+                  hasPurchasedWinRar: true,
+                });
+              }}
+              style={
+                flags.bankBalance >= WINRAR_PRICE ? buttonStyle : disabledButtonStyle
+              }
+              disabled={flags.bankBalance < WINRAR_PRICE}
+              type="button"
+            >
+              Buy & Download
+            </button>
+            <button onClick={closeWindow} style={buttonStyle} type="button">
+              Cancel
+            </button>
+          </div>
+          {flags.bankBalance < WINRAR_PRICE && (
+            <div style={{ marginTop: '10px', color: 'maroon' }}>
+              Insufficient funds.
+            </div>
+          )}
+        </div>
+      )}
+
       {phase === 'installing' && (
         <div>
           <div>Installing WinRAR...</div>

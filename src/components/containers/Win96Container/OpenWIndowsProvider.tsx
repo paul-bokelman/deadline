@@ -96,7 +96,7 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
           isDraggable: app.isDraggable ?? true,
           isMinimized: false,
           isMaximized: false,
-          isResizeable: app.isResizeable ?? true,
+          isResizeable: true,
           size: {
             x: app.size ? app.size.width : 300,
             y: app.size ? app.size.height : 300,

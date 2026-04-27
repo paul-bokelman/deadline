@@ -13,6 +13,7 @@ import MalwarePopupManager from '../../../system/malware/MalwarePopupManager';
 import IntrusivePopupManager from '../../../system/intrusivePopups/IntrusivePopupManager';
 import { I18nProvider } from '../../../system/i18n';
 import BluescreenSequence from '../../../stages/transition/BluescreenSequence';
+import WinStageLayer from '../../../stages/win/WinStageLayer';
 import Narrator from '../../../system/narrator/Narrator';
 import WindowsUpdateNag from '../../../system/windowsUpdate/WindowsUpdateNag';
 import BootLoaderScreen from '../../shared/BootLoaderScreen/BootLoaderScreen';
@@ -66,6 +67,7 @@ const Win96Container: FunctionComponent = () => {
                 <WindowsContainer />
                 <DownloadStageLayer />
                 <BluescreenSequence />
+                <WinStageLayer />
                 <MalwarePopupManager />
                 <IntrusivePopupManager />
                 <WindowsUpdateNag />

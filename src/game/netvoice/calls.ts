@@ -1,6 +1,10 @@
 export type NetVoiceCallId =
   | 'intro_assistant'
   | 'password_hint_assistant'
+  | 'password_dump_hint'
+  | 'mom_bailout_1'
+  | 'mom_bailout_2'
+  | 'it_guy_blackjack_roast'
   | 'it_guy_intro'
   | 'it_guy_angry_1'
   | 'assistant_portal_intro'
@@ -9,7 +13,7 @@ export type NetVoiceCallId =
   | 'boss_deadline_reminder'
   | 'boss_post_bluescreen';
 
-export type NetVoiceCallerId = 'alice' | 'greg' | 'boss';
+export type NetVoiceCallerId = 'alice' | 'greg' | 'boss' | 'mom';
 
 export interface NetVoiceCaller {
   id: NetVoiceCallerId;
@@ -44,6 +48,14 @@ export const netVoiceCallers: Record<NetVoiceCallerId, NetVoiceCaller> = {
     role: 'Manager',
     address: '10.0.0.1',
   },
+  mom: {
+    id: 'mom',
+    name: 'Mom',
+    avatar: '/audio/netvoice/mom_profile.png',
+    role: 'Family',
+    warning: 'Please do not answer this at work',
+    address: 'mom@dialup.local',
+  },
 };
 
 export interface NetVoiceCallDefinition {
@@ -69,6 +81,38 @@ export const netVoiceCalls: Record<NetVoiceCallId, NetVoiceCallDefinition> = {
     audioPath: '/audio/netvoice/password_hint_assistant.mp3',
     dialogText:
       "Oh, right, the password's encrypted too. I sent it in a separate email. But I think the password for THAT email is in your IMPORTANT_PASSWORDS.txt file on the desktop. You know, the one with all the passwords.",
+    autoTriggerNextStage: false,
+  },
+  password_dump_hint: {
+    id: 'password_dump_hint',
+    callerId: 'alice',
+    audioPath: '/audio/netvoice/password_hint_assistant.mp3',
+    dialogText:
+      "Heads up: the attachment is encrypted. You should already have a scary-looking passwords document on your desktop. The key is hidden somewhere inside it. Yeah... I know. Sorry. You'll need it now.",
+    autoTriggerNextStage: false,
+  },
+  mom_bailout_1: {
+    id: 'mom_bailout_1',
+    callerId: 'mom',
+    audioPath: '/audio/netvoice/mom_bailout_1.wav',
+    dialogText:
+      "Hey honey uhm… I noticed you have no money in your bank account…. You really need to manage your money better your 43. Me and dad are pretty disappointed in you. Im going to send over $100 to make sure your alright but make sure that lasts\n\n[NOTE: change audio, mom calls and gives you $100]",
+    autoTriggerNextStage: false,
+  },
+  mom_bailout_2: {
+    id: 'mom_bailout_2',
+    callerId: 'mom',
+    audioPath: '/audio/netvoice/mom_bailout_2.wav',
+    dialogText:
+      "ok this is getting ridiculous. I just gave you money a few minutes ago. I’ll send $100 more but your not getting any allowance next month.\n\n[NOTE: change audio, mom calls and gives you $100]",
+    autoTriggerNextStage: false,
+  },
+  it_guy_blackjack_roast: {
+    id: 'it_guy_blackjack_roast',
+    callerId: 'greg',
+    audioPath: '/audio/netvoice/it_guy_blackjack_roast.wav',
+    dialogText:
+      'HAHAHAHA, you actually suck at blackjack. go next budy.\n\n[NOTE: change audio, forced hangup + reboot]',
     autoTriggerNextStage: false,
   },
   it_guy_intro: {

@@ -123,16 +123,20 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
   }, [activeNetVoiceCallId, call, isAccepted]);
 
   const handleHangup = useCallback(() => {
-    if (!isAudioFinished || !call) return;
+    if (!call) return;
     if (hasEndedCallRef.current) return;
 
     hasEndedCallRef.current = true;
+    ringAudioRef.current?.pause();
+    if (ringAudioRef.current) ringAudioRef.current.currentTime = 0;
     callAudioRef.current?.pause();
+    if (callAudioRef.current) callAudioRef.current.currentTime = 0;
+    setIsAudioFinished(true);
     gameEventBus.emit('netvoice:call_ended', {
       callId: call.id,
       autoTriggerNextStage: call.autoTriggerNextStage ?? false,
     });
-  }, [call, isAudioFinished]);
+  }, [call]);
 
   useEffect(() => {
     if (!activeNetVoiceCallId || isAccepted || !call) return;
@@ -215,7 +219,11 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
               </span>
               <span className={style.actionButtonLabel}>Accept</span>
             </button>
-            <button className={style.actionButton} disabled type="button">
+            <button
+              className={style.actionButton}
+              onClick={handleHangup}
+              type="button"
+            >
               <span className={style.iconDecline} aria-hidden="true">
                 {'\u2715'}
               </span>
@@ -232,7 +240,6 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
             </button>
             <button
               className={`${style.actionButton} ${style.actionButtonPrimary}`}
-              disabled={!isAudioFinished}
               onClick={handleHangup}
               type="button"
             >

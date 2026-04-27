@@ -31,6 +31,7 @@ const DownloadDialog: FunctionComponent<DownloadDialogProps> = ({
   const [coords, setCoords] = useState({ x: 230, y: 120 });
   const [confirmDialogState, setConfirmDialogState] =
     useState<ConfirmDialogState>('none');
+  const [containerEl, setContainerEl] = useState<HTMLDivElement | null>(null);
 
   const handleReboot = () => {
     setConfirmDialogState('reboot');
@@ -75,6 +76,7 @@ const DownloadDialog: FunctionComponent<DownloadDialogProps> = ({
 
   return (
     <div
+      ref={setContainerEl}
       style={{
         position: 'absolute',
         inset: 0,
@@ -85,6 +87,7 @@ const DownloadDialog: FunctionComponent<DownloadDialogProps> = ({
       <div style={{ pointerEvents: 'auto' }}>
         <Window
           coords={coords}
+          getBoundingElement={() => containerEl}
           iconId="program"
           isDraggable
           isResizeable={false}

@@ -37,6 +37,8 @@ export type CoreGameEvents = {
     callId: string;
     autoTriggerNextStage: boolean;
   };
+  'blackjack:hand_started': { at: number };
+  'blackjack:hand_finished': { at: number };
 };
 
 type EventHandler<TPayload> = (payload: TPayload) => void;
