@@ -7,7 +7,7 @@ import { FileSystemFile } from '../../types/FileSystem';
 import { FileTypeId } from '../../types/FileType';
 import { ShellItem } from '../../types/Shell';
 
-export const ATTACHMENT_DECRYPTION_KEY_MARKER = '::ZIP_KEY::';
+export const ATTACHMENT_DECRYPTION_KEY_MARKER = 'ENCRYPTION_KEY';
 
 const ATTACHMENT_DECRYPTION_KEY = 'FROG-LASER-1997';
 
@@ -142,6 +142,7 @@ export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
     createAppShellItem('submission-portal', 'portal', 'Submission Portal'),
     createAppShellItem('bank', 'bank', 'America #1 Bank'),
     createAppShellItem('blackjack', 'blackjack', 'Blackjack'),
+    createAppShellItem('world-wide-web', 'worldWideWeb', 'World Wide Web'),
     createFileShellItem(
       'funny-password-dump',
       'notepadDoc',
@@ -158,16 +159,6 @@ export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
         'q3-zip-archive',
         'zipArchive',
         getZipNameForLevel(flags.zipExtractionLevel)
-      )
-    );
-  }
-
-  if (flags.hasZipFile && !flags.hasWinRarInstalled) {
-    dynamicItems.push(
-      createAppShellItem(
-        'winrar-installer',
-        'winRarInstaller',
-        'WinRAR_installer.exe'
       )
     );
   }

@@ -6,6 +6,7 @@ import WalletApp from './wallet/WalletApp';
 import PasswordsFile from './notepad/PasswordsFile';
 import PortalApp from './portal/PortalApp';
 import WinRarExtractor from './winrar/WinRarExtractor';
+import WorldWideWebApp from './worldWideWeb/WorldWideWebApp';
 import WinRarInstaller from '../stages/download/WinRarInstaller';
 import { AppId, AppProps } from '../types/App';
 import MyComputerApp from '../components/apps/MyComputerApp/MyComputerApp';
@@ -70,4 +71,5 @@ export const appComponents: Record<AppId, FunctionComponent<AppProps>> = {
   portal: PortalApp,
   blackjack: BlackjackApp,
   bank: WalletApp,
+  worldWideWeb: WorldWideWebApp,
 };

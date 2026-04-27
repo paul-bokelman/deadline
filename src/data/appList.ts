@@ -252,4 +252,10 @@ export const appList: AppList = {
     name: 'America #1 Bank',
     size: { width: 420, height: 260 },
   },
+  worldWideWeb: {
+    id: 'worldWideWeb',
+    iconId: 'internet',
+    name: 'World Wide Web',
+    size: { width: 760, height: 520 },
+  },
 };

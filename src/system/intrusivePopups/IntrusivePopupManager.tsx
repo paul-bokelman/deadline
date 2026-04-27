@@ -19,6 +19,7 @@ import {
 
 const MIN_STACKED_CLOSE_CLICKS = 1;
 const MAX_STACKED_CLOSE_CLICKS = 3;
+const TASKBAR_HEIGHT_PX = 28;
 
 const clamp = (value: number, min: number, max: number): number =>
   Math.max(min, Math.min(value, max));
@@ -72,7 +73,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
     const rect = boundsRef.current?.getBoundingClientRect();
     return {
       width: rect?.width ?? window.innerWidth,
-      height: rect?.height ?? window.innerHeight,
+      height: rect?.height ?? Math.max(0, window.innerHeight - TASKBAR_HEIGHT_PX),
     };
   }, []);
 

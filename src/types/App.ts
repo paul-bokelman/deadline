@@ -41,6 +41,7 @@ export const appIds = [
   'portal',
   'blackjack',
   'bank',
+  'worldWideWeb',
 ] as const;
 
 export type AppId = typeof appIds[number];
