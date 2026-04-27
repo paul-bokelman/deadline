@@ -1,8 +1,5 @@
 import type { GameFlags } from '../game/state';
-import {
-  PASSWORD_HINT_EMAIL_PASSWORD,
-  Q3_ATTACHMENT_PASSWORD,
-} from './passwords';
+import { Q3_ATTACHMENT_PASSWORD } from './passwords';
 
 export type EmailAccountId = 'corpMail' | 'personalMail' | 'corpMailLegacy';
 export type EmailFolder = 'inbox' | 'promotions' | 'spam' | 'sent' | 'trash';
@@ -527,11 +524,7 @@ const CORP_INBOX_NOISE: EmailRecord[] = [
     subject: 'Password for Q3 Report',
     timestamp: '11:39',
     preview: 'Encrypted message.',
-    body: `Use the password labeled 'Q3 Report Encryption Key' from your password file.\n\nAttachment password: ${Q3_ATTACHMENT_PASSWORD}`,
-    encryptedWithPassword: PASSWORD_HINT_EMAIL_PASSWORD,
-    encryptedLockedBody:
-      "This email is encrypted. Enter the password to view this message's contents.",
-    requiresGameFlag: 'hasReceivedPasswordHintCall',
+    body: `Attachment password: ${Q3_ATTACHMENT_PASSWORD}`,
     deliveryRule: { requiresFlags: ['hasEmailAccess'] },
   },
   {

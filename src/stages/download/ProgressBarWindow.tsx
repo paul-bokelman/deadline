@@ -33,13 +33,14 @@ const trackStyle: JSX.CSSProperties = {
 };
 
 const PROGRESS_BEHAVIOR = {
-  maxDelayMs: 220,
-  maxIncrement: 3.8,
-  maxPauseMs: 3700,
-  minDelayMs: 80,
-  minIncrement: 0.4,
-  minPauseMs: 1200,
-  pauseChance: 0.24,
+  // Tuned to finish ~3x faster than before while preserving some "noisy" feel.
+  maxDelayMs: 85,
+  maxIncrement: 11.2,
+  maxPauseMs: 1200,
+  minDelayMs: 28,
+  minIncrement: 1.2,
+  minPauseMs: 350,
+  pauseChance: 0.08,
 };
 
 const ProgressBarWindow: FunctionComponent<ProgressBarWindowProps> = ({
@@ -54,6 +55,7 @@ const ProgressBarWindow: FunctionComponent<ProgressBarWindowProps> = ({
   const [status, setStatus] = useState('Preparing download...');
   const timeoutIdsRef = useRef<number[]>([]);
   const loadingSfxRef = useRef(createLoadingSfxController());
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const clearProgressTimeouts = () => {
     timeoutIdsRef.current.forEach((timeoutId) =>
@@ -112,7 +114,7 @@ const ProgressBarWindow: FunctionComponent<ProgressBarWindowProps> = ({
               setCycle(cycle === 1 ? 2 : 3);
               setStatus('Downloading...');
               waiting = false;
-            }, 900);
+            }, 250);
           } else {
             setStatus('Download failed.');
             loadingSfxRef.current.stop();
@@ -127,7 +129,7 @@ const ProgressBarWindow: FunctionComponent<ProgressBarWindowProps> = ({
       });
     };
 
-    scheduleNext(350);
+    scheduleNext(120);
 
     return () => {
       clearProgressTimeouts();
@@ -135,10 +137,11 @@ const ProgressBarWindow: FunctionComponent<ProgressBarWindowProps> = ({
   }, [cycle, onFailure]);
 
   return (
-    <div style={containerStyle}>
+    <div ref={containerRef} style={containerStyle}>
       <div style={{ pointerEvents: 'auto' }}>
         <Window
           coords={coords}
+          getBoundingElement={() => containerRef.current}
           iconId="program"
           isDraggable
           isMaximized={isMaximized}

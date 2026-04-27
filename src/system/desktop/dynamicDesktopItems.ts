@@ -7,6 +7,95 @@ import { FileSystemFile } from '../../types/FileSystem';
 import { FileTypeId } from '../../types/FileType';
 import { ShellItem } from '../../types/Shell';
 
+export const ATTACHMENT_DECRYPTION_KEY_MARKER = '::ZIP_KEY::';
+
+const ATTACHMENT_DECRYPTION_KEY = 'FROG-LASER-1997';
+
+const funnySites = [
+  'totallylegitbank.biz',
+  'catfax.example',
+  'hamsterhub.net',
+  'wizardresume.io',
+  'unicorn-auctions.com',
+  'space-lawyers.org',
+  'toaster.social',
+  'passwords-r-us.invalid',
+  'nacho-cloud.app',
+  'spreadsheetsandchill.tv',
+  'mildlyhaunted.house',
+  'sock-tracker.ai',
+  'doomscroll.news',
+  'microwave.finance',
+  'pizza-telemetry.dev',
+  'hotdog-protocol.xyz',
+  'corporate-vibes.biz',
+  'antiques-on-mars.shop',
+  'suspiciouscoupon.click',
+  'keyboarddramaclub.com',
+];
+
+const makePseudoPassword = (n: number): string => {
+  const a = (n * 1103515245 + 12345) >>> 0;
+  const b = (a * 1664525 + 1013904223) >>> 0;
+  const words = [
+    'bananas',
+    'monorail',
+    'spoon',
+    'pickle',
+    'trombone',
+    'glitter',
+    'volcano',
+    'pancake',
+    'wizard',
+    'laser',
+    'sock',
+    'muffin',
+  ];
+  const w1 = words[a % words.length];
+  const w2 = words[b % words.length];
+  const digits = String((a ^ b) % 10000).padStart(4, '0');
+  return `${w1}-${w2}-${digits}!`;
+};
+
+export const generateFunnyPasswordDump = (): string => {
+  const lines: string[] = [];
+  lines.push('PASSWORD VAULT (DO NOT SHARE)\n');
+  lines.push(
+    'Reminder: do not reuse passwords. Also, stop naming files like this.\n'
+  );
+  lines.push('---\n');
+
+  const hiddenIndex = 637; // 1-based entry where the key is "hidden"
+
+  for (let i = 1; i <= 1000; i += 1) {
+    const site = funnySites[i % funnySites.length];
+    const user = `user_${String((i * 97) % 100000).padStart(5, '0')}`;
+    const pass = makePseudoPassword(i);
+
+    if (i === hiddenIndex) {
+      lines.push(
+        `${String(i).padStart(4, '0')} | ${site} | ${user} | ${pass}  ${ATTACHMENT_DECRYPTION_KEY_MARKER}${ATTACHMENT_DECRYPTION_KEY}`
+      );
+      continue;
+    }
+
+    lines.push(`${String(i).padStart(4, '0')} | ${site} | ${user} | ${pass}`);
+  }
+
+  lines.push('\n---\n');
+  lines.push('EOF\n');
+  return lines.join('\n');
+};
+
+export const getAttachmentDecryptionKeyFromDump = (): string => {
+  const dump = generateFunnyPasswordDump();
+  const markerIndex = dump.indexOf(ATTACHMENT_DECRYPTION_KEY_MARKER);
+  if (markerIndex < 0) return '';
+  const after = dump.slice(markerIndex + ATTACHMENT_DECRYPTION_KEY_MARKER.length);
+  const key = after.split(/\s|\n/)[0] ?? '';
+  return key.trim();
+};
+
 const createAppShellItem = (
   id: string,
   appId: AppId,
@@ -49,17 +138,18 @@ const createFileShellItem = (
 export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
   const dynamicItems: ShellItem[] = [
     createAppShellItem('click-me-reset', 'clickMeReset', 'click me'),
+    createAppShellItem('submission-portal', 'portal', 'Submission Portal'),
+    createAppShellItem('bank', 'bank', 'America #1 Bank'),
+    createAppShellItem('blackjack', 'blackjack', 'Blackjack'),
+    createFileShellItem(
+      'funny-password-dump',
+      'notepadDoc',
+      'DO_NOT_OPEN_passwords.txt',
+      generateFunnyPasswordDump()
+    ),
   ];
 
-  if (flags.hasReceivedPasswordHintCall) {
-    dynamicItems.push(
-      createAppShellItem(
-        'important-passwords-file',
-        'importantPasswordsFile',
-        'IMPORTANT_PASSWORDS.txt'
-      )
-    );
-  }
+  // Password hunting is disabled; do not surface the passwords file.
 
   if (flags.hasZipFile) {
     dynamicItems.push(

@@ -1,7 +1,10 @@
 import { h, FunctionComponent } from 'preact';
 
 import EmailClient from './email/EmailClient';
+import BlackjackApp from './blackjack/BlackjackApp';
+import WalletApp from './wallet/WalletApp';
 import PasswordsFile from './notepad/PasswordsFile';
+import PortalApp from './portal/PortalApp';
 import WinRarExtractor from './winrar/WinRarExtractor';
 import WinRarInstaller from '../stages/download/WinRarInstaller';
 import { AppId, AppProps } from '../types/App';
@@ -64,4 +67,7 @@ export const appComponents: Record<AppId, FunctionComponent<AppProps>> = {
   zipArchive: WinRarExtractor,
   volumeControl: VoidApp,
   wordpad: VoidApp,
+  portal: PortalApp,
+  blackjack: BlackjackApp,
+  bank: WalletApp,
 };
