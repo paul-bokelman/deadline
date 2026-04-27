@@ -47,7 +47,7 @@ const WINRAR_PRICE = 300;
 
 type ProgressBehavior = typeof getErraticProgressStep extends (
   ...args: infer A
-) => infer R
+) => infer _R
   ? A[2]
   : never;
 
@@ -72,6 +72,7 @@ const BASE_PROGRESS_BEHAVIOR = {
   minIncrement: 0.6,
   minPauseMs: 1300,
   pauseChance: 0.2,
+  stepSize: 2,
 };
 
 // "55% quicker" => ~45% of original duration.

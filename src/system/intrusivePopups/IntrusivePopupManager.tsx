@@ -27,6 +27,27 @@ const randomFrom = <T,>(items: T[]): T => {
   return items[Math.floor(Math.random() * items.length)];
 };
 
+const randomInt = (min: number, max: number): number =>
+  Math.floor(Math.random() * (max - min + 1)) + min;
+
+const randomAngleVelocity = (
+  speedPxPerSecond: number
+): { x: number; y: number } => {
+  // Avoid "almost horizontal/vertical" angles that feel stuck.
+  for (let i = 0; i < 8; i += 1) {
+    const angle = Math.random() * Math.PI * 2;
+    const x = Math.cos(angle) * speedPxPerSecond;
+    const y = Math.sin(angle) * speedPxPerSecond;
+    if (Math.abs(x) > speedPxPerSecond * 0.25 && Math.abs(y) > speedPxPerSecond * 0.25) {
+      return { x, y };
+    }
+  }
+  return {
+    x: (Math.random() > 0.5 ? 1 : -1) * speedPxPerSecond * 0.7,
+    y: (Math.random() > 0.5 ? 1 : -1) * speedPxPerSecond * 0.7,
+  };
+};
+
 const managerLayerStyle: JSX.CSSProperties = {
   position: 'absolute',
   inset: 0,
@@ -111,10 +132,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
       const speed = config.behavior.bounceSpeedPxPerSecond;
       const velocity =
         typeof speed === 'number' && speed > 0
-          ? {
-              x: (Math.random() > 0.5 ? 1 : -1) * speed,
-              y: (Math.random() > 0.5 ? 1 : -1) * speed,
-            }
+          ? randomAngleVelocity(speed)
           : null;
 
       const stackedCloseClicks = clamp(
@@ -165,6 +183,32 @@ const IntrusivePopupManager: FunctionComponent = () => {
     },
     [spawnPopup]
   );
+
+  const scheduleAmbientSpawn = useCallback(() => {
+    const delayMs = randomInt(20_000, 35_000);
+    const timeoutId = window.setTimeout(() => {
+      const baseConfig = createRandomIntrusivePopupConfig();
+      const dvdMode = Math.random() < 1 / 3;
+      const config = dvdMode
+        ? {
+            ...baseConfig,
+            behavior: {
+              ...baseConfig.behavior,
+              spawnMode: 'random' as const,
+              // "DVD logo" mode: fast bounce + hard-to-close
+              bounceSpeedPxPerSecond: randomInt(260, 420),
+              stackedCloseClicks: 3,
+              scrambledDecorations: true,
+              closeOtherPopupOnCloseClick: true,
+            },
+          }
+        : baseConfig;
+
+      spawnPopup(latestCursorRef.current, config);
+      scheduleAmbientSpawn();
+    }, delayMs);
+    timeoutIdsRef.current.push(timeoutId);
+  }, [spawnPopup]);
 
   const scheduleRecursiveSpawn = useCallback(
     (delayMs: number) => {
@@ -344,6 +388,16 @@ const IntrusivePopupManager: FunctionComponent = () => {
       unsubscribeRebooted();
     };
   }, [spawnRandomPopup]);
+
+  useEffect(() => {
+    scheduleAmbientSpawn();
+    return () => {
+      timeoutIdsRef.current.forEach((timeoutId) => {
+        window.clearTimeout(timeoutId);
+      });
+      timeoutIdsRef.current = [];
+    };
+  }, [scheduleAmbientSpawn]);
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
@@ -553,12 +607,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
   }, [getBounds]);
 
   useEffect(() => {
-    return () => {
-      timeoutIdsRef.current.forEach((timeoutId) => {
-        window.clearTimeout(timeoutId);
-      });
-      timeoutIdsRef.current = [];
-    };
+    return () => undefined;
   }, []);
 
   return (

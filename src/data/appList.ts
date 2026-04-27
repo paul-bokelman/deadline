@@ -243,7 +243,7 @@ export const appList: AppList = {
   blackjack: {
     id: 'blackjack',
     iconId: 'calc',
-    name: 'Blackjack',
+    name: 'Ultimate Casino',
     size: { width: 640, height: 430 },
   },
   bank: {

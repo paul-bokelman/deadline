@@ -12,6 +12,7 @@ import { getBounds, getBoundedOffset } from '../utils/BoundingUtils';
 
 export interface Options {
   getBoundingElt?: () => HTMLElement | null;
+  getDraggedElt?: () => HTMLElement | null;
   initialCoords?: Coords;
   isEnabled?: boolean;
   minCoordsValue?: Coords | null;
@@ -23,6 +24,7 @@ const useDragging = (
   getHandleElt: () => HTMLElement | null,
   {
     getBoundingElt,
+    getDraggedElt,
     initialCoords = { x: 0, y: 0 },
     isEnabled = true,
     minCoordsValue = null,
@@ -34,6 +36,7 @@ const useDragging = (
   const originalMouseCoords = useRef<Coords>({ x: 0, y: 0 });
   const touchId = useRef<number | null>(null);
   const handleEltRef = useRef<HTMLElement | null>();
+  const draggedEltRef = useRef<HTMLElement | null>();
   const boundingEltRef = useRef<HTMLElement | null>();
 
   // const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -42,6 +45,7 @@ const useDragging = (
   useEffect(() => {
     if (!isEnabled) return;
     handleEltRef.current = getHandleElt();
+    draggedEltRef.current = getDraggedElt ? getDraggedElt() : handleEltRef.current ?? null;
     boundingEltRef.current = getBoundingElt ? getBoundingElt() : null;
   });
 
@@ -106,13 +110,14 @@ const useDragging = (
   const applyDragging = debounceWithRequestAnimationFrame(
     (mouseCoords: Coords) => {
       if (!handleEltRef.current) return;
+      if (!draggedEltRef.current) return;
       const mouseOffsetX = mouseCoords.x - originalMouseCoords.current.x;
       const mouseOffsetY = mouseCoords.y - originalMouseCoords.current.y;
       const nextX = originalElementCoords.current.x + mouseOffsetX;
       const nextY = originalElementCoords.current.y + mouseOffsetY;
 
       const bounds = getBounds(
-        handleEltRef.current,
+        draggedEltRef.current,
         boundingEltRef.current,
         minCoordsValue
       );

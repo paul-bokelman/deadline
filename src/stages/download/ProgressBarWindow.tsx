@@ -41,6 +41,7 @@ const PROGRESS_BEHAVIOR = {
   minIncrement: 1.2,
   minPauseMs: 350,
   pauseChance: 0.08,
+  stepSize: 2,
 };
 
 const ProgressBarWindow: FunctionComponent<ProgressBarWindowProps> = ({
@@ -164,7 +165,7 @@ const ProgressBarWindow: FunctionComponent<ProgressBarWindowProps> = ({
                   height: '100%',
                   width: `${progress}%`,
                   backgroundColor: '#000080',
-                  transition: 'width 90ms linear',
+                  transition: 'width 140ms steps(6, end)',
                 }}
               />
             </div>

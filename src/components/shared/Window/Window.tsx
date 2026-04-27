@@ -8,6 +8,7 @@ import style from './Window.module.css';
 type Props = TitleBarProps & {
   children: ComponentChildren;
   coords?: { x: number; y: number };
+  dragHandleMode?: 'titleBar' | 'window';
   getBoundingElement?: () => HTMLElement | null;
   isDraggable?: boolean;
   isResizeable?: boolean;
@@ -25,6 +26,7 @@ const Window: FunctionComponent<Props> = ({
   coords,
   children = null,
   getBoundingElement,
+  dragHandleMode = 'titleBar',
   iconId,
   isDraggable = true,
   isInactive = false,
@@ -60,6 +62,11 @@ const Window: FunctionComponent<Props> = ({
     return titleBarRef.current ?? null;
   };
 
+  const getDragHandleElement = (): HTMLElement | null => {
+    if (dragHandleMode === 'window') return windowRef.current ?? null;
+    return getTitleBarElement();
+  };
+
   const getResizeHandleElement = (): HTMLElement | null => {
     return handleRef.current ?? null;
   };
@@ -72,8 +79,9 @@ const Window: FunctionComponent<Props> = ({
     if (!isMaximized && onResized) onResized(coords);
   };
 
-  const coordsState = useDragging(getTitleBarElement, {
+  const coordsState = useDragging(getDragHandleElement, {
     getBoundingElt: getParentElement,
+    getDraggedElt: () => windowRef.current ?? null,
     initialCoords: coords,
     isEnabled: isDraggable,
     onDragStop: handleOnMoved,

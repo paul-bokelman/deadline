@@ -6,6 +6,7 @@ import maximizeIcon from '../../../assets/img/ui/maximize.svg';
 import restoreIcon from '../../../assets/img/ui/restore.svg';
 
 import style from './NotificationArea.module.css';
+import { getGameDate } from '../../../system/clock/gameClock';
 
 const AUDIO_SOURCE_WEBM = 'https://www.cameronsworld.net/sound/cameronsworld.webm';
 const AUDIO_SOURCE_MP3 = 'https://www.cameronsworld.net/sound/cameronsworld.mp3';
@@ -21,11 +22,11 @@ const NotificationArea: FunctionComponent = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [clockText, setClockText] = useState(formatTrayTime(new Date()));
+  const [clockText, setClockText] = useState(formatTrayTime(getGameDate()));
 
   useEffect(() => {
     const timer = window.setInterval(() => {
-      setClockText(formatTrayTime(new Date()));
+      setClockText(formatTrayTime(getGameDate()));
     }, 1000);
 
     return () => window.clearInterval(timer);

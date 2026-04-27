@@ -58,6 +58,7 @@ const IntrusivePopupWindow: FunctionComponent<Props> = ({
   return (
     <Window
       coords={popup.coords}
+      dragHandleMode="window"
       getBoundingElement={() => boundsRef.current}
       iconId={popup.config.iconId}
       isDraggable

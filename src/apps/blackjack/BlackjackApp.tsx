@@ -37,8 +37,23 @@ const panelStyle: JSX.CSSProperties = {
   gap: '10px',
 };
 
+const headerStyle: JSX.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'baseline',
+  gap: '10px',
+};
+
+const brandStyle: JSX.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  lineHeight: 1.1,
+};
+
 const tableStyle: JSX.CSSProperties = {
   backgroundColor: '#0c5d2a',
+  backgroundImage:
+    'linear-gradient(0deg, rgba(0,0,0,0.18), rgba(0,0,0,0.18)), radial-gradient(circle at 25% 20%, rgba(255,255,255,0.08), transparent 55%)',
   boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
   padding: '10px',
   flex: 1,
@@ -101,6 +116,13 @@ const disabledSmallButtonStyle: JSX.CSSProperties = {
   ...smallButtonStyle,
   color: 'var(--button-shadow)',
   textShadow: '1px 1px 0 var(--button-highlight)',
+};
+
+const dangerSmallButtonStyle: JSX.CSSProperties = {
+  ...smallButtonStyle,
+  backgroundColor: '#7b0000',
+  color: '#ffffff',
+  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
 };
 
 const buttonStyle: JSX.CSSProperties = {
@@ -252,6 +274,8 @@ const BlackjackApp: FunctionComponent<AppProps> = (_props: AppProps) => {
   );
   const canDeposit = depositAmount > 0 && depositAmount <= bank;
   const canWithdraw = withdrawAmount > 0 && withdrawAmount <= table;
+  const canAdjustBet = roundState === 'idle' || roundState === 'done';
+  const canAllIn = canAdjustBet && table > 0;
 
   const handleDeposit = () => {
     if (!canDeposit) return;
@@ -438,8 +462,15 @@ const BlackjackApp: FunctionComponent<AppProps> = (_props: AppProps) => {
 
   return (
     <div style={panelStyle}>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <div style={{ fontWeight: 700 }}>Blackjack</div>
+      <div style={headerStyle}>
+        <div style={brandStyle}>
+          <div style={{ fontWeight: 800, letterSpacing: '0.2px' }}>
+            Ultimate Casino
+          </div>
+          <div style={{ fontFamily: 'monospace', fontSize: '12px' }}>
+            Blackjack table
+          </div>
+        </div>
         <div style={{ fontFamily: 'monospace' }}>
           Bank: ${bank} | Table: ${table}{' '}
           {currentBet !== null ? `| Hand: $${currentBet}` : ''} | Shoe: {deckRemaining}
@@ -529,7 +560,7 @@ const BlackjackApp: FunctionComponent<AppProps> = (_props: AppProps) => {
           <select
             style={selectStyle}
             value={handSize}
-            disabled={roundState !== 'idle' && roundState !== 'done'}
+            disabled={!canAdjustBet}
             onChange={(e) => setHandSize(Number((e.currentTarget as HTMLSelectElement).value))}
           >
             {betOptions.map((b) => (
@@ -538,6 +569,19 @@ const BlackjackApp: FunctionComponent<AppProps> = (_props: AppProps) => {
               </option>
             ))}
           </select>
+          <button
+            type="button"
+            onClick={() => {
+              const next = Math.max(1, Math.floor(table));
+              setHandSize(next);
+              setMessage(`All in. Next bet: $${next}.`);
+            }}
+            style={canAllIn ? dangerSmallButtonStyle : disabledSmallButtonStyle}
+            disabled={!canAllIn}
+            title="Set next bet to your full table balance"
+          >
+            All In
+          </button>
         </div>
       </div>
 

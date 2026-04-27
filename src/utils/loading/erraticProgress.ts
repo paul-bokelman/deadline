@@ -6,6 +6,11 @@ export interface ErraticProgressOptions {
   minIncrement: number;
   minPauseMs: number;
   pauseChance: number;
+  /**
+   * Quantize progress to discrete jumps (in percent points).
+   * Larger values feel more "choppy"/steppy.
+   */
+  stepSize?: number;
 }
 
 export interface ErraticProgressStep {
@@ -39,9 +44,13 @@ export const getErraticProgressStep = (
   }
 
   const increment = randomBetween(options.minIncrement, options.maxIncrement);
+  const stepSize = options.stepSize ?? 1;
+  const rawNext = Math.min(target, currentProgress + increment);
+  const steppedNext =
+    stepSize > 1 ? Math.min(target, Math.ceil(rawNext / stepSize) * stepSize) : rawNext;
   return {
     delayMs: Math.round(randomBetween(options.minDelayMs, options.maxDelayMs)),
-    nextProgress: Math.min(target, currentProgress + increment),
+    nextProgress: steppedNext,
     paused: false,
   };
 };
