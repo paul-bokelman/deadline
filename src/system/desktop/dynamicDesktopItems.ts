@@ -138,6 +138,7 @@ const createFileShellItem = (
 export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
   const dynamicItems: ShellItem[] = [
     createAppShellItem('click-me-reset', 'clickMeReset', 'click me'),
+    createAppShellItem('popup-launcher', 'timer', 'Popup'),
     createAppShellItem('submission-portal', 'portal', 'Submission Portal'),
     createAppShellItem('bank', 'bank', 'America #1 Bank'),
     createAppShellItem('blackjack', 'blackjack', 'Blackjack'),

@@ -10,6 +10,7 @@ import GameScenarioController from '../../../game/scenario/GameScenarioControlle
 import OpenWindowsContext from '../../../context/OpenWindowsContext';
 import DownloadStageLayer from '../../../stages/download/DownloadStageLayer';
 import MalwarePopupManager from '../../../system/malware/MalwarePopupManager';
+import IntrusivePopupManager from '../../../system/intrusivePopups/IntrusivePopupManager';
 import { I18nProvider } from '../../../system/i18n';
 import BluescreenSequence from '../../../stages/transition/BluescreenSequence';
 import WinStageLayer from '../../../stages/win/WinStageLayer';
@@ -68,6 +69,7 @@ const Win96Container: FunctionComponent = () => {
                 <BluescreenSequence />
                 <WinStageLayer />
                 <MalwarePopupManager />
+                <IntrusivePopupManager />
                 <WindowsUpdateNag />
                 <Narrator />
                 <NetVoiceCallWindowSync />

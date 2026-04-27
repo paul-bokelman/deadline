@@ -27,6 +27,7 @@ export type CoreGameEvents = {
     sourceEmailId: string;
     subject: string;
   };
+  'popup:test_spawn_random': { x: number; y: number };
   'popup:closed': { popupId: string };
   'netvoice:call_accepted': {
     callId: string;
