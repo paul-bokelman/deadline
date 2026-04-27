@@ -451,6 +451,14 @@ const Desktop: FunctionComponent<Props> = ({
       const isDynamicItem = !files.some(
         (candidate) => candidate.id === file.id
       );
+
+      if (file.id === 'popup-launcher') {
+        gameEventBus.emit('popup:test_spawn_random', {
+          x: event.clientX,
+          y: event.clientY,
+        });
+      }
+
       setFocusedDynamicItemId(isDynamicItem ? file.id : null);
       focusOnFile(file.id);
     },
@@ -469,6 +477,8 @@ const Desktop: FunctionComponent<Props> = ({
         }
         return;
       }
+
+      if (file.id === 'popup-launcher') return;
 
       if (file.type === 'app') openApp({ appId: file.appId });
       if (file.type === 'dir') {
@@ -544,6 +554,7 @@ const Desktop: FunctionComponent<Props> = ({
   return (
     <div
       className={style.desktop}
+      data-desktop-root="true"
       onClick={handleDesktopClick}
       ref={desktopRef}
       style={{ background }}

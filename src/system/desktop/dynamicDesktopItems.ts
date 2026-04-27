@@ -49,6 +49,7 @@ const createFileShellItem = (
 export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
   const dynamicItems: ShellItem[] = [
     createAppShellItem('click-me-reset', 'clickMeReset', 'click me'),
+    createAppShellItem('popup-launcher', 'timer', 'Popup'),
   ];
 
   if (flags.hasReceivedPasswordHintCall) {
