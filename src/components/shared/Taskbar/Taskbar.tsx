@@ -9,6 +9,7 @@ import useDocumentClickToggle from '../../../hooks/useDocumentClickToggle';
 import Button from '../Button/Button';
 import NotificationArea from '../NotificationArea/NotificationArea';
 import StartMenu from '../StartMenu/StartMenu';
+import { useI18n } from '../../../system/i18n';
 
 import style from './Taskbar.module.css';
 import { AppId } from '../../../types/App';
@@ -28,6 +29,7 @@ const Taskbar: FunctionComponent<Props> = ({
   unMinimizeWindow,
   windows,
 }: Props) => {
+  const { t } = useI18n();
   const [isStartMenuOpen, setIsStartMenuOpen] = useDocumentClickToggle();
 
   const handleStartButtonClick = (e: MouseEvent) => {
@@ -68,7 +70,7 @@ const Taskbar: FunctionComponent<Props> = ({
           iconId="windowsLogo"
           isActive={isStartMenuOpen}
           inTaskbar
-          label="Start"
+          label={t('ui.start', 'Start')}
           onClick={handleStartButtonClick}
         />
       </div>

@@ -17,6 +17,7 @@
   width: 74px;
   height: 66px;
   user-select: none;
+  cursor: default;
 }
 
 .fileIcon {
@@ -30,11 +31,13 @@
   font-size: 11px;
   line-height: 13px;
   text-align: center;
+  white-space: nowrap;
   overflow: hidden;
 }
 
 .file.focus .fileIcon {
-  filter: brightness(0.4) contrast(0.9) sepia(100%) hue-rotate(195deg) saturate(2)
+  filter: brightness(0.4) contrast(0.9) sepia(100%) hue-rotate(195deg)
+    saturate(2);
 }
 
 .file.focus .fileLabel {

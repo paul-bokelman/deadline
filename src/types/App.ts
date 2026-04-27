@@ -28,6 +28,13 @@ export const appIds = [
   'soundRecorder',
   'taskbar',
   'timer',
+  'corpMail',
+  'personalMail',
+  'corpMailLegacy',
+  'skypeCall',
+  'importantPasswordsFile',
+  'winRarInstaller',
+  'zipArchive',
   'volumeControl',
   'wordpad',
 ] as const;

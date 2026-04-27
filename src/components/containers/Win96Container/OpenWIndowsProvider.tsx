@@ -1,5 +1,5 @@
 import { h, FunctionComponent, ComponentChildren } from 'preact';
-import { useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import { v4 as uuid } from 'uuid';
 
 import { App } from '../../../types/App';
@@ -10,12 +10,15 @@ import OpenWindowsContext, {
   OpenWindow,
   OpenWindowsContextType,
 } from '../../../context/OpenWindowsContext';
+import { useGameState } from '../../../game/state';
+import { translateLiteralForLocale } from '../../../system/i18n';
 
 interface Props {
   children: ComponentChildren;
 }
 
 const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
+  const { flags } = useGameState();
   const [openWindows, setOpenWindows] = useState<OpenWindow[]>([
     {
       app: appList.myComputer,
@@ -46,11 +49,16 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
     workingDir?: FileSystemDir,
     workingFile?: FileSystemFile
   ): string => {
+    const translatedAppName = translateLiteralForLocale(
+      flags.language,
+      app.name
+    );
     if (workingFile && workingFile.name) {
-      return `${workingFile.name} - ${app.name}`;
+      return `${workingFile.name} - ${translatedAppName}`;
     }
-    if (workingDir) return workingDir.name;
-    return app.name;
+    if (workingDir)
+      return translateLiteralForLocale(flags.language, workingDir.name);
+    return translatedAppName;
   };
 
   const getWindowIconId = (app: App, workingDir?: FileSystemDir): IconId => {
@@ -169,6 +177,19 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
       );
     });
   };
+
+  useEffect(() => {
+    setOpenWindows((windows) =>
+      windows.map((window) => ({
+        ...window,
+        title: getWindowTitle(
+          window.app,
+          window.workingDir,
+          window.workingFile
+        ),
+      }))
+    );
+  }, [flags.language]);
 
   return (
     <OpenWindowsContext.Provider

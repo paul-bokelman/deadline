@@ -1,6 +1,47 @@
 .desktop {
+  position: relative;
+  z-index: 0;
   width: 100%;
   height: 100%;
-  background: var(--desktop-green) url("../../../assets/img/interface/bliss.png")
-    center center / cover no-repeat;
+  background: var(--desktop-green)
+    url('../../../assets/img/interface/bliss.png') center center / cover
+    no-repeat;
+  overflow: hidden;
+}
+
+.iconLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.iconSlot {
+  position: absolute;
+  width: 78px;
+  height: 74px;
+  pointer-events: auto;
+}
+
+.iconSlot img {
+  -webkit-user-drag: none;
+  user-drag: none;
+  pointer-events: none;
+}
+
+.dragGhost {
+  position: absolute;
+  width: 78px;
+  height: 74px;
+  pointer-events: none;
+  opacity: 0.7;
+  z-index: 10;
+}
+
+.dropTarget {
+  position: absolute;
+  width: 78px;
+  height: 74px;
+  outline: 1px dotted rgba(255, 255, 255, 0.7);
+  outline-offset: -2px;
+  pointer-events: none;
 }

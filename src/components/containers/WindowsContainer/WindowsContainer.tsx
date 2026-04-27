@@ -1,48 +1,13 @@
 import { h, FunctionComponent } from 'preact';
 import { useContext } from 'preact/hooks';
 
-import { AppId, AppProps } from '../../../types/App';
+import { appComponents } from '../../../apps/appComponents';
 import OpenWindowsContext, {
   OpenWindow,
 } from '../../../context/OpenWindowsContext';
-import MyComputerApp from '../../apps/MyComputerApp/MyComputerApp';
-import NotepadApp from '../../apps/NotepadApp/NotepadApp';
-import QuickViewApp from '../../apps/QuickViewApp/QuickViewApp';
-import TimerApp from '../../apps/TimerApp/TimerApp';
-import VoidApp from '../../apps/VoidApp/VoidApp';
 import Window from '../../shared/Window/Window';
 
 import style from './WindowsContainer.module.css';
-
-const components: { [key in AppId]: FunctionComponent<AppProps> } = {
-  calc: VoidApp,
-  cdPlayer: VoidApp,
-  defrag: VoidApp,
-  exchange: VoidApp,
-  explorer: VoidApp,
-  find: VoidApp,
-  findComputer: VoidApp,
-  findMsn: VoidApp,
-  help: VoidApp,
-  hyperterminal: VoidApp,
-  mediaPlayer: VoidApp,
-  msn: VoidApp,
-  msDos: VoidApp,
-  msPaint: VoidApp,
-  myComputer: MyComputerApp,
-  notepad: NotepadApp,
-  phoneDialer: VoidApp,
-  register: VoidApp,
-  quickView: QuickViewApp,
-  run: VoidApp,
-  scandisk: VoidApp,
-  shutdown: VoidApp,
-  soundRecorder: VoidApp,
-  taskbar: VoidApp,
-  timer: TimerApp,
-  volumeControl: VoidApp,
-  wordpad: VoidApp,
-};
 
 const WindowsContainer: FunctionComponent = () => {
   const {
@@ -58,7 +23,7 @@ const WindowsContainer: FunctionComponent = () => {
   } = useContext(OpenWindowsContext);
 
   const getAppComponent = (window: OpenWindow) => {
-    const component = components[window.app.id];
+    const component = appComponents[window.app.id];
     return component
       ? h(component, {
           closeWindow: () => closeWindow(window.id),
@@ -72,8 +37,12 @@ const WindowsContainer: FunctionComponent = () => {
 
   return (
     <div className={style.windowsContainer}>
-      {windows.map((window) =>
-        window.isMinimized ? null : (
+      {windows.map((window) => {
+        if (window.isMinimized) return null;
+
+        const isSkypeCallWindow = window.app.id === 'skypeCall';
+
+        return (
           <Window
             coords={window.coords}
             iconId={window.iconId}
@@ -82,11 +51,15 @@ const WindowsContainer: FunctionComponent = () => {
             isInactive={!window.hasFocus}
             isMaximized={window.isMaximized}
             isResizeable={window.isResizeable}
-            onClickClose={() => closeWindow(window.id)}
+            onClickClose={
+              isSkypeCallWindow ? () => undefined : () => closeWindow(window.id)
+            }
             onClickMaximize={
               window.isResizeable ? () => maximizeWindow(window.id) : undefined
             }
-            onClickMinimize={() => minimizeWindow(window.id)}
+            onClickMinimize={
+              isSkypeCallWindow ? undefined : () => minimizeWindow(window.id)
+            }
             onClickRestore={
               window.isResizeable
                 ? () => unMaximizeWindow(window.id)
@@ -113,8 +86,8 @@ const WindowsContainer: FunctionComponent = () => {
           >
             {getAppComponent(window)}
           </Window>
-        )
-      )}
+        );
+      })}
     </div>
   );
 };

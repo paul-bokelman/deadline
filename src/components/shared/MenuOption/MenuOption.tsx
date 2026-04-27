@@ -5,6 +5,7 @@ import { FileSystemDir, FileSystemFile } from '../../../types/FileSystem';
 import { IconId } from '../../../types/Icon';
 import Icon from '../Icon/Icon';
 import Menu from '../Menu/Menu';
+import { useI18n } from '../../../system/i18n';
 
 import style from './MenuOption.module.css';
 
@@ -32,6 +33,8 @@ const MenuOption: FunctionComponent<Props> = ({
   subMenu,
   value,
 }: Props) => {
+  const { translateLiteral } = useI18n();
+
   const handleOnClick = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -46,7 +49,7 @@ const MenuOption: FunctionComponent<Props> = ({
       <div className={style.menuOptionIcon}>
         {!!iconId && <Icon iconId={iconId} size={isLarge ? 24 : 16} />}
       </div>
-      <div className={style.menuOptionLabel}>{label}</div>
+      <div className={style.menuOptionLabel}>{translateLiteral(label)}</div>
       <div className={style.menuOptionArrow}>
         {!!subMenu && <Icon iconId="menuArrow" size={8} />}
       </div>
