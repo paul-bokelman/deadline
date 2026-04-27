@@ -32,7 +32,7 @@ export interface GameFlags {
   hasDesktopScrambled: boolean;
   narrator: boolean;
   windowsUpdateActive: boolean;
-  nextNagAt: number | null;
+  windowsUpdateRebootAt: number | null;
   isBluescreenSequenceActive: boolean;
   hasFoundCorrectEmail: boolean;
   hasInstalledWinRar: boolean;
@@ -74,7 +74,7 @@ const initialFlags: GameFlags = {
   hasDesktopScrambled: false,
   narrator: false,
   windowsUpdateActive: false,
-  nextNagAt: null,
+  windowsUpdateRebootAt: null,
   isBluescreenSequenceActive: false,
   hasFoundCorrectEmail: false,
   hasInstalledWinRar: false,

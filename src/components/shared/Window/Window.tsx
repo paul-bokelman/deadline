@@ -1,4 +1,4 @@
-import { h, FunctionComponent, ComponentChildren, createRef } from 'preact';
+import { h, FunctionComponent, ComponentChildren, JSX, createRef } from 'preact';
 
 import useDragging from '../../../hooks/useDragging';
 import TitleBar, { Props as TitleBarProps } from '../TitleBar/TitleBar';
@@ -8,6 +8,7 @@ import style from './Window.module.css';
 type Props = TitleBarProps & {
   children: ComponentChildren;
   coords?: { x: number; y: number };
+  getBoundingElement?: () => HTMLElement | null;
   isDraggable?: boolean;
   isResizeable?: boolean;
   onMouseDown?: () => void;
@@ -16,12 +17,14 @@ type Props = TitleBarProps & {
   showCloseButton?: boolean;
   showMaximizeButton?: boolean;
   size?: { x: number; y: number };
+  style?: JSX.CSSProperties;
   zIndex?: number;
 };
 
 const Window: FunctionComponent<Props> = ({
   coords,
   children = null,
+  getBoundingElement,
   iconId,
   isDraggable = true,
   isInactive = false,
@@ -39,6 +42,7 @@ const Window: FunctionComponent<Props> = ({
   showCloseButton,
   showMaximizeButton,
   size = { x: 300, y: 300 },
+  style: inlineStyle,
   title,
   zIndex = 0,
 }: Props) => {
@@ -47,7 +51,9 @@ const Window: FunctionComponent<Props> = ({
   const handleRef = createRef<HTMLDivElement>();
 
   const getParentElement = (): HTMLElement | null => {
-    return windowRef.current?.parentElement ?? null;
+    return getBoundingElement
+      ? getBoundingElement()
+      : windowRef.current?.parentElement ?? null;
   };
 
   const getTitleBarElement = (): HTMLElement | null => {
@@ -88,6 +94,7 @@ const Window: FunctionComponent<Props> = ({
       onTouchStart={onMouseDown}
       ref={windowRef}
       style={{
+        ...inlineStyle,
         height: isMaximized ? '100%' : `${sizeState.y}px`,
         transform: isMaximized
           ? 'none'

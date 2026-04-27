@@ -1,12 +1,12 @@
 import { h, FunctionComponent } from 'preact';
-import { useState } from 'preact/hooks';
+import { useRef, useState } from 'preact/hooks';
 
 import Button from '../../components/shared/Button/Button';
 import Window from '../../components/shared/Window/Window';
 import { useUpdateScheduler } from './useUpdateScheduler';
 
 const formatCountdown = (ms: number): string => {
-  const seconds = Math.max(0, Math.floor(ms / 1000));
+  const seconds = Math.max(0, Math.ceil(ms / 1000));
   const minutesPart = Math.floor(seconds / 60)
     .toString()
     .padStart(1, '0');
@@ -18,9 +18,9 @@ const WindowsUpdateNag: FunctionComponent = () => {
   const {
     countdownMs,
     isNagVisible,
-    onRemindLater,
-    onRestartNow,
+    onRebootNow,
   } = useUpdateScheduler();
+  const boundsRef = useRef<HTMLDivElement>(null);
   const [coords, setCoords] = useState({ x: 420, y: 56 });
 
   if (!isNagVisible) return null;
@@ -34,15 +34,26 @@ const WindowsUpdateNag: FunctionComponent = () => {
         zIndex: 98500,
       }}
     >
-      <div style={{ pointerEvents: 'auto' }}>
+      <div
+        ref={boundsRef}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          pointerEvents: 'none',
+        }}
+      >
         <Window
           coords={coords}
+          getBoundingElement={() => boundsRef.current}
           iconId="warning"
           isDraggable
           isResizeable={false}
-          onClickClose={onRemindLater}
+          onClickClose={() => undefined}
           onMoved={(nextCoords) => setCoords(nextCoords)}
           size={{ x: 340, y: 160 }}
+          showCloseButton={false}
+          showMaximizeButton={false}
+          style={{ pointerEvents: 'auto' }}
           title="Windows Update"
           zIndex={98501}
         >
@@ -54,12 +65,11 @@ const WindowsUpdateNag: FunctionComponent = () => {
                 boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
               }}
             >
-              Windows will restart in {formatCountdown(countdownMs)} to install
+              Windows will reboot in {formatCountdown(countdownMs)} to install
               updates.
             </div>
             <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
-              <Button label="Restart Now" onClick={onRestartNow} />
-              <Button label="Remind me later" onClick={onRemindLater} />
+              <Button label="Reboot Now" onClick={onRebootNow} />
             </div>
           </div>
         </Window>
