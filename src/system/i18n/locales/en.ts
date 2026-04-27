@@ -13,12 +13,13 @@ const en = {
   'menu.Help': 'Help',
   'menu.Search': 'Search',
   'menu.Tools': 'Tools',
+  'menu.Message': 'Message',
   'menu.Programs': 'Programs',
   'menu.Documents': 'Documents',
   'menu.Settings': 'Settings',
   'menu.Find': 'Find',
   'menu.Run': 'Run',
-  'menu.Shutdown...': 'Shutdown...',
+  'menu.Reboot...': 'Reboot...',
 };
 
 export default en;

@@ -1,8 +1,8 @@
 import { h, FunctionComponent } from 'preact';
-import { createRef } from 'preact';
+import { useState } from 'preact/hooks';
 
 import Button from '../../components/shared/Button/Button';
-import useDragging from '../../hooks/useDragging';
+import Window from '../../components/shared/Window/Window';
 import { useUpdateScheduler } from './useUpdateScheduler';
 
 const formatCountdown = (ms: number): string => {
@@ -21,17 +21,7 @@ const WindowsUpdateNag: FunctionComponent = () => {
     onRemindLater,
     onRestartNow,
   } = useUpdateScheduler();
-  const panelRef = createRef<HTMLDivElement>();
-  const dragHandleRef = createRef<HTMLDivElement>();
-
-  const getBoundingElement = () => panelRef.current?.parentElement ?? null;
-  const getDragHandleElement = () => dragHandleRef.current ?? null;
-
-  const coords = useDragging(getDragHandleElement, {
-    getBoundingElt: getBoundingElement,
-    initialCoords: { x: 420, y: 56 },
-    isEnabled: isNagVisible,
-  });
+  const [coords, setCoords] = useState({ x: 420, y: 56 });
 
   if (!isNagVisible) return null;
 
@@ -44,48 +34,35 @@ const WindowsUpdateNag: FunctionComponent = () => {
         zIndex: 98500,
       }}
     >
-      <div
-        ref={panelRef}
-        style={{
-          width: '320px',
-          backgroundColor: 'var(--surface)',
-          boxShadow: 'var(--border-window-outer), var(--border-window-inner)',
-          padding: '3px',
-          position: 'absolute',
-          pointerEvents: 'auto',
-          transform: `translate3d(${coords.x}px, ${coords.y}px, 0)`,
-        }}
-      >
-        <div
-          ref={dragHandleRef}
-          style={{
-            background:
-              'linear-gradient(90deg, var(--dialog-blue) 0%, var(--dialog-gray) 100%)',
-            color: '#ffffff',
-            fontWeight: 'bold',
-            padding: '3px 6px',
-            cursor: 'move',
-          }}
+      <div style={{ pointerEvents: 'auto' }}>
+        <Window
+          coords={coords}
+          iconId="warning"
+          isDraggable
+          isResizeable={false}
+          onClickClose={onRemindLater}
+          onMoved={(nextCoords) => setCoords(nextCoords)}
+          size={{ x: 340, y: 160 }}
+          title="Windows Update"
+          zIndex={98501}
         >
-          Windows Update
-        </div>
-        <div
-          style={{
-            marginTop: '6px',
-            padding: '10px',
-            backgroundColor: 'var(--button-highlight)',
-            boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
-          }}
-        >
-          <div>
-            Windows will restart in {formatCountdown(countdownMs)} to install
-            updates.
+          <div style={{ padding: '8px' }}>
+            <div
+              style={{
+                padding: '10px',
+                backgroundColor: 'var(--button-highlight)',
+                boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+              }}
+            >
+              Windows will restart in {formatCountdown(countdownMs)} to install
+              updates.
+            </div>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+              <Button label="Restart Now" onClick={onRestartNow} />
+              <Button label="Remind me later" onClick={onRemindLater} />
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
-            <Button label="Restart Now" onClick={onRestartNow} />
-            <Button label="Remind me later" onClick={onRemindLater} />
-          </div>
-        </div>
+        </Window>
       </div>
     </div>
   );

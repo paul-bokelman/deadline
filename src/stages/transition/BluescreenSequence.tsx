@@ -66,7 +66,7 @@ const BluescreenSequence: FunctionComponent = () => {
     markEventFired,
     setFlag,
     setStage,
-    triggerSkypeCall,
+    triggerNetVoiceCall,
   } = useGameState();
 
   const [phase, setPhase] = useState<TransitionPhase>('idle');
@@ -82,12 +82,12 @@ const BluescreenSequence: FunctionComponent = () => {
       () => {
         if (hasEventFired(ASSISTANT_CALL_EVENT_ID)) return;
         markEventFired(ASSISTANT_CALL_EVENT_ID);
-        triggerSkypeCall('assistant_portal_intro');
+        triggerNetVoiceCall('assistant_portal_intro');
       }
     );
 
     const unsubscribeCallEnded = gameEventBus.on(
-      'skype:call_ended',
+      'netvoice:call_ended',
       ({ callId }) => {
         if (callId === 'assistant_portal_intro') {
           if (hasEventFired(ASSISTANT_CALL_COMPLETED_EVENT_ID)) return;
@@ -101,7 +101,7 @@ const BluescreenSequence: FunctionComponent = () => {
           cleanupTimerId = window.setTimeout(() => {
             if (hasEventFired(CLEANUP_CALL_EVENT_ID)) return;
             markEventFired(CLEANUP_CALL_EVENT_ID);
-            triggerSkypeCall('it_guy_cleanup');
+            triggerNetVoiceCall('it_guy_cleanup');
           }, 5000);
         }
 
@@ -118,7 +118,7 @@ const BluescreenSequence: FunctionComponent = () => {
       unsubscribeReportOpened();
       unsubscribeCallEnded();
     };
-  }, [hasEventFired, markEventFired, setFlag, triggerSkypeCall]);
+  }, [hasEventFired, markEventFired, setFlag, triggerNetVoiceCall]);
 
   useEffect(() => {
     if (phase !== 'remote') return;

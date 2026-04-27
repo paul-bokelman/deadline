@@ -22,6 +22,24 @@ html, body, button, label, input, textarea, select, option, a {
   cursor: var(--cursor-default);
 }
 
+body,
+body * {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input[type='text'],
+input[type='password'],
+input[type='email'],
+input[type='search'],
+input[type='url'],
+input[type='tel'],
+input[type='number'],
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 button:not(:disabled),
 [role='button']:not([aria-disabled='true']),
 a[href],

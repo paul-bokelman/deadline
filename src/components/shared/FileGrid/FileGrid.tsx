@@ -1,5 +1,5 @@
 import { h, FunctionComponent } from 'preact';
-import { useMemo, useState } from 'preact/hooks';
+import { useState } from 'preact/hooks';
 import { ShellItem } from '../../../types/Shell';
 
 import Icon from '../Icon/Icon';
@@ -17,15 +17,6 @@ interface Props {
   textColor?: 'inherit' | 'white';
 }
 
-const truncateMiddle = (value: string, maxChars = 22): string => {
-  if (value.length <= maxChars) return value;
-  const leftChars = Math.ceil((maxChars - 1) / 2);
-  const rightChars = Math.floor((maxChars - 1) / 2);
-  return `${value.slice(0, leftChars)}…${value.slice(
-    value.length - rightChars
-  )}`;
-};
-
 const FileGrid: FunctionComponent<Props> = ({
   direction = 'row',
   files,
@@ -37,15 +28,6 @@ const FileGrid: FunctionComponent<Props> = ({
   textColor = 'inherit',
 }: Props) => {
   const [draggedFileId, setDraggedFileId] = useState<string | null>(null);
-
-  const displayNameMap = useMemo(
-    () =>
-      files.reduce<Record<string, string>>((acc, file) => {
-        acc[file.id] = truncateMiddle(file.name);
-        return acc;
-      }, {}),
-    [files]
-  );
 
   const handleOnClickFile = (e: MouseEvent, file: ShellItem) => {
     e.preventDefault();
@@ -117,7 +99,7 @@ const FileGrid: FunctionComponent<Props> = ({
             onClick={(e) => handleOnClickFile(e, file)}
             onDblClick={(e) => handleOnDblClickFile(e, file)}
           >
-            {displayNameMap[file.id] ?? file.name}
+            {file.name}
           </div>
         </div>
       ))}

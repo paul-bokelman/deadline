@@ -13,6 +13,8 @@ type Props = TitleBarProps & {
   onMouseDown?: () => void;
   onMoved?: (coords: { x: number; y: number }) => void;
   onResized?: (size: { x: number; y: number }) => void;
+  showCloseButton?: boolean;
+  showMaximizeButton?: boolean;
   size?: { x: number; y: number };
   zIndex?: number;
 };
@@ -34,6 +36,8 @@ const Window: FunctionComponent<Props> = ({
   onMoved,
   onMouseDown,
   onResized,
+  showCloseButton,
+  showMaximizeButton,
   size = { x: 300, y: 300 },
   title,
   zIndex = 0,
@@ -103,6 +107,8 @@ const Window: FunctionComponent<Props> = ({
         onClickHelp={onClickHelp}
         onClickClose={onClickClose}
         onDblClickTitleBar={onDblClickTitleBar}
+        showCloseButton={showCloseButton}
+        showMaximizeButton={showMaximizeButton}
         title={title}
       />
       <div className={style.windowMain}>{children}</div>

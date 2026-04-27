@@ -8,7 +8,7 @@ import { AppId, AppProps } from '../types/App';
 import MyComputerApp from '../components/apps/MyComputerApp/MyComputerApp';
 import NotepadApp from '../components/apps/NotepadApp/NotepadApp';
 import QuickViewApp from '../components/apps/QuickViewApp/QuickViewApp';
-import SkypeCallApp from '../components/apps/SkypeCallApp/SkypeCallApp';
+import NetVoiceCallApp from '../components/apps/NetVoiceCallApp/NetVoiceCallApp';
 import TimerApp from '../components/apps/TimerApp/TimerApp';
 import VoidApp from '../components/apps/VoidApp/VoidApp';
 
@@ -31,6 +31,7 @@ const ImportantPasswordsFileApp: FunctionComponent<AppProps> = () => (
 export const appComponents: Record<AppId, FunctionComponent<AppProps>> = {
   calc: VoidApp,
   cdPlayer: VoidApp,
+  clickMeReset: VoidApp,
   defrag: VoidApp,
   exchange: VoidApp,
   explorer: VoidApp,
@@ -57,7 +58,7 @@ export const appComponents: Record<AppId, FunctionComponent<AppProps>> = {
   corpMail: CorpMailApp,
   personalMail: PersonalMailApp,
   corpMailLegacy: CorpMailLegacyApp,
-  skypeCall: SkypeCallApp,
+  netVoiceCall: NetVoiceCallApp,
   importantPasswordsFile: ImportantPasswordsFileApp,
   winRarInstaller: WinRarInstaller,
   zipArchive: WinRarExtractor,

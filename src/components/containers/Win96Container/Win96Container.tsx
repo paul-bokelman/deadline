@@ -14,40 +14,31 @@ import { I18nProvider } from '../../../system/i18n';
 import BluescreenSequence from '../../../stages/transition/BluescreenSequence';
 import Narrator from '../../../system/narrator/Narrator';
 import WindowsUpdateNag from '../../../system/windowsUpdate/WindowsUpdateNag';
-import BiosScreen from '../../../stages/intro/BiosScreen';
+import BootLoaderScreen from '../../shared/BootLoaderScreen/BootLoaderScreen';
 import { playClickSfx } from '../../../utils/audio/sfx';
 
 import style from './Win96Container.module.css';
 
-const SkypeCallWindowSync: FunctionComponent = () => {
-  const { activeSkypeCallId } = useGameState();
+const NetVoiceCallWindowSync: FunctionComponent = () => {
+  const { activeNetVoiceCallId } = useGameState();
   const { closeWindow, openApp, windows } = useContext(OpenWindowsContext);
 
   useEffect(() => {
-    const skypeWindows = windows.filter(
-      (window) => window.app.id === 'skypeCall'
+    const netVoiceWindows = windows.filter(
+      (window) => window.app.id === 'netVoiceCall'
     );
 
-    if (activeSkypeCallId && skypeWindows.length === 0) {
-      openApp({ appId: 'skypeCall' });
+    if (activeNetVoiceCallId && netVoiceWindows.length === 0) {
+      openApp({ appId: 'netVoiceCall' });
       return;
     }
 
-    if (!activeSkypeCallId && skypeWindows.length > 0) {
-      skypeWindows.forEach((window) => closeWindow(window.id));
+    if (!activeNetVoiceCallId && netVoiceWindows.length > 0) {
+      netVoiceWindows.forEach((window) => closeWindow(window.id));
     }
-  }, [activeSkypeCallId, windows, openApp, closeWindow]);
+  }, [activeNetVoiceCallId, windows, openApp, closeWindow]);
 
   return null;
-};
-
-const InitialBiosLayer: FunctionComponent = () => {
-  const { hasSeenInitialBios, stage, completeInitialBios } = useGameState();
-
-  if (hasSeenInitialBios) return null;
-  if (stage !== 'bios' && stage !== 'boot') return null;
-
-  return <BiosScreen onBoot={completeInitialBios} />;
 };
 
 const Win96Container: FunctionComponent = () => {
@@ -77,13 +68,13 @@ const Win96Container: FunctionComponent = () => {
                 <MalwarePopupManager />
                 <WindowsUpdateNag />
                 <Narrator />
-                <SkypeCallWindowSync />
+                <NetVoiceCallWindowSync />
                 <GameScenarioController />
               </div>
               <div className={style.taskbarView}>
                 <TaskbarContainer />
               </div>
-              <InitialBiosLayer />
+              <BootLoaderScreen />
             </OpenWindowsProvider>
           </I18nProvider>
         </GameStateProvider>

@@ -14,7 +14,7 @@ export const useIntroCallStage = (): void => {
     setFlag,
     setStage,
     stage,
-    triggerSkypeCall,
+    triggerNetVoiceCall,
   } = useGameState();
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export const useIntroCallStage = (): void => {
         if (hasEventFired(INTRO_CALL_TRIGGER_EVENT_ID)) return;
         markEventFired(INTRO_CALL_TRIGGER_EVENT_ID);
         setStage('intro_call');
-        triggerSkypeCall('intro_assistant');
+        triggerNetVoiceCall('intro_assistant');
       }, 2000);
     };
 
@@ -42,7 +42,7 @@ export const useIntroCallStage = (): void => {
     }
 
     const unsubscribeCallEnded = gameEventBus.on(
-      'skype:call_ended',
+      'netvoice:call_ended',
       ({ callId }) => {
         if (callId !== 'intro_assistant') return;
         if (hasEventFired(INTRO_CALL_COMPLETED_EVENT_ID)) return;
@@ -71,7 +71,7 @@ export const useIntroCallStage = (): void => {
     markEventFired,
     setFlag,
     setStage,
-    triggerSkypeCall,
+    triggerNetVoiceCall,
     stage,
   ]);
 };

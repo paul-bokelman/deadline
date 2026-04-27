@@ -36,6 +36,7 @@ const NotificationArea: FunctionComponent = () => {
     audioRef.current = audio;
     audio.loop = true;
     audio.preload = 'auto';
+    audio.volume = 0.15;
 
     const handleCanPlay = () => {
       setIsPlaying(!audio.paused);

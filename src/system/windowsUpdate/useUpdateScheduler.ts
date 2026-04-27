@@ -27,9 +27,9 @@ interface UseUpdateSchedulerResult {
 
 export const useUpdateScheduler = (): UseUpdateSchedulerResult => {
   const {
-    activeSkypeCallId,
+    activeNetVoiceCallId,
     flags,
-    resetGame,
+    rebootGame,
     setFlag,
     stage,
   } = useGameState();
@@ -45,7 +45,7 @@ export const useUpdateScheduler = (): UseUpdateSchedulerResult => {
   const isEligible =
     stageOrder[stage] >=
     stageOrder[systemConfig.windowsUpdate.enabledAfterStage];
-  const isPaused = !!activeSkypeCallId || flags.isBluescreenSequenceActive;
+  const isPaused = !!activeNetVoiceCallId || flags.isBluescreenSequenceActive;
   const isNagVisible = flags.windowsUpdateActive;
 
   const clearNextNagTimeout = () => {
@@ -137,17 +137,17 @@ export const useUpdateScheduler = (): UseUpdateSchedulerResult => {
         const nextMs = Math.max(0, currentMs - 1_000);
         if (nextMs === 0) {
           clearCountdownInterval();
-          resetGame();
+          rebootGame();
         }
         return nextMs;
       });
     }, 1_000);
 
     return clearCountdownInterval;
-  }, [isNagVisible, isPaused, countdownMs, resetGame, setFlag]);
+  }, [isNagVisible, isPaused, countdownMs, rebootGame, setFlag]);
 
   const onRestartNow = () => {
-    resetGame();
+    rebootGame();
   };
 
   const onRemindLater = () => {

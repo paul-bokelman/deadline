@@ -5,6 +5,7 @@ import { appComponents } from '../../../apps/appComponents';
 import OpenWindowsContext, {
   OpenWindow,
 } from '../../../context/OpenWindowsContext';
+import { useGameState } from '../../../game/state';
 import Window from '../../shared/Window/Window';
 
 import style from './WindowsContainer.module.css';
@@ -21,6 +22,7 @@ const WindowsContainer: FunctionComponent = () => {
     unMaximizeWindow,
     windows,
   } = useContext(OpenWindowsContext);
+  const { isNetVoiceCallAccepted } = useGameState();
 
   const getAppComponent = (window: OpenWindow) => {
     const component = appComponents[window.app.id];
@@ -40,7 +42,12 @@ const WindowsContainer: FunctionComponent = () => {
       {windows.map((window) => {
         if (window.isMinimized) return null;
 
-        const isSkypeCallWindow = window.app.id === 'skypeCall';
+        const isNetVoiceCallWindow = window.app.id === 'netVoiceCall';
+        const windowTitle = isNetVoiceCallWindow
+          ? `NetVoice \u2013 ${
+              isNetVoiceCallAccepted ? 'Connected' : 'Incoming Call'
+            }`
+          : window.title;
 
         return (
           <Window
@@ -52,13 +59,15 @@ const WindowsContainer: FunctionComponent = () => {
             isMaximized={window.isMaximized}
             isResizeable={window.isResizeable}
             onClickClose={
-              isSkypeCallWindow ? () => undefined : () => closeWindow(window.id)
+              isNetVoiceCallWindow
+                ? () => undefined
+                : () => closeWindow(window.id)
             }
             onClickMaximize={
               window.isResizeable ? () => maximizeWindow(window.id) : undefined
             }
             onClickMinimize={
-              isSkypeCallWindow ? undefined : () => minimizeWindow(window.id)
+              isNetVoiceCallWindow ? undefined : () => minimizeWindow(window.id)
             }
             onClickRestore={
               window.isResizeable
@@ -80,8 +89,10 @@ const WindowsContainer: FunctionComponent = () => {
             onResized={(size) =>
               window.isResizeable ? resizeWindow(window.id, size) : undefined
             }
+            showCloseButton={!isNetVoiceCallWindow}
+            showMaximizeButton={!isNetVoiceCallWindow}
             size={window.size}
-            title={window.title}
+            title={windowTitle}
             zIndex={window.zIndex}
           >
             {getAppComponent(window)}

@@ -10,6 +10,7 @@ import OpenWindowsContext, {
   OpenWindow,
   OpenWindowsContextType,
 } from '../../../context/OpenWindowsContext';
+import { gameEventBus } from '../../../game/events';
 import { useGameState } from '../../../game/state';
 import { translateLiteralForLocale } from '../../../system/i18n';
 
@@ -17,24 +18,13 @@ interface Props {
   children: ComponentChildren;
 }
 
+const createInitialOpenWindows = (): OpenWindow[] => [];
+
 const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
-  const { flags } = useGameState();
-  const [openWindows, setOpenWindows] = useState<OpenWindow[]>([
-    {
-      app: appList.myComputer,
-      coords: { x: 50, y: 50 },
-      hasFocus: false,
-      iconId: appList.myComputer.iconId,
-      id: uuid(),
-      isDraggable: true,
-      isMaximized: false,
-      isMinimized: false,
-      isResizeable: true,
-      size: { x: 300, y: 300 },
-      title: appList.myComputer.name,
-      zIndex: 2,
-    },
-  ]);
+  const { flags, rebootGame } = useGameState();
+  const [openWindows, setOpenWindows] = useState<OpenWindow[]>(
+    createInitialOpenWindows
+  );
 
   const getBiggestZIndex = (windows: OpenWindow[]): number => {
     if (!windows.length) return -1;
@@ -73,6 +63,16 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
     workingDir,
     workingFile,
   }) => {
+    if (appId === 'shutdown') {
+      rebootGame();
+      return;
+    }
+
+    if (appId === 'clickMeReset') {
+      rebootGame();
+      return;
+    }
+
     setOpenWindows((windows) => {
       const app = appList[appId];
       const iconId = getWindowIconId(app, workingDir);
@@ -190,6 +190,12 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
       }))
     );
   }, [flags.language]);
+
+  useEffect(() => {
+    return gameEventBus.on('game:rebooted', () => {
+      setOpenWindows(createInitialOpenWindows());
+    });
+  }, []);
 
   return (
     <OpenWindowsContext.Provider

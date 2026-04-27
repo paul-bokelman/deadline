@@ -6,6 +6,7 @@ import { createLoadingSfxController } from '../../utils/audio/sfx';
 import { getErraticProgressStep } from '../../utils/loading/erraticProgress';
 
 interface ProgressBarWindowProps {
+  onClose: () => void;
   onFailure: () => void;
 }
 
@@ -42,26 +43,49 @@ const PROGRESS_BEHAVIOR = {
 };
 
 const ProgressBarWindow: FunctionComponent<ProgressBarWindowProps> = ({
+  onClose,
   onFailure,
 }: ProgressBarWindowProps) => {
+  const [coords, setCoords] = useState({ x: 260, y: 190 });
+  const [size, setSize] = useState({ x: 420, y: 160 });
+  const [isMaximized, setIsMaximized] = useState(false);
   const [progress, setProgress] = useState(0);
   const [cycle, setCycle] = useState<1 | 2 | 3>(1);
   const [status, setStatus] = useState('Preparing download...');
+  const timeoutIdsRef = useRef<number[]>([]);
   const loadingSfxRef = useRef(createLoadingSfxController());
 
+  const clearProgressTimeouts = () => {
+    timeoutIdsRef.current.forEach((timeoutId) =>
+      window.clearTimeout(timeoutId)
+    );
+    timeoutIdsRef.current = [];
+  };
+
+  const scheduleProgressTimeout = (callback: () => void, delayMs: number) => {
+    const timeoutId = window.setTimeout(callback, delayMs);
+    timeoutIdsRef.current = [...timeoutIdsRef.current, timeoutId];
+    return timeoutId;
+  };
+
+  const toggleMaximized = () => {
+    setIsMaximized((currentIsMaximized) => !currentIsMaximized);
+  };
+
   useEffect(() => {
-    loadingSfxRef.current.start();
+    const loadingSfx = loadingSfxRef.current;
+
+    loadingSfx.start();
     return () => {
-      loadingSfxRef.current.stop();
+      loadingSfx.stop();
     };
   }, []);
 
   useEffect(() => {
-    let timeoutId: number | null = null;
     let waiting = false;
 
     const scheduleNext = (delayMs: number) => {
-      timeoutId = window.setTimeout(tick, delayMs);
+      scheduleProgressTimeout(tick, delayMs);
     };
 
     const tick = () => {
@@ -83,7 +107,7 @@ const ProgressBarWindow: FunctionComponent<ProgressBarWindowProps> = ({
                 ? 'Connection timed out. Retrying...'
                 : 'Packet checksum mismatch. Restarting...'
             );
-            window.setTimeout(() => {
+            scheduleProgressTimeout(() => {
               setProgress(0);
               setCycle(cycle === 1 ? 2 : 3);
               setStatus('Downloading...');
@@ -92,7 +116,7 @@ const ProgressBarWindow: FunctionComponent<ProgressBarWindowProps> = ({
           } else {
             setStatus('Download failed.');
             loadingSfxRef.current.stop();
-            window.setTimeout(() => onFailure(), 2000);
+            scheduleProgressTimeout(() => onFailure(), 2000);
           }
         } else {
           setStatus(paused ? 'Download paused...' : 'Downloading...');
@@ -106,37 +130,45 @@ const ProgressBarWindow: FunctionComponent<ProgressBarWindowProps> = ({
     scheduleNext(350);
 
     return () => {
-      if (timeoutId !== null) window.clearTimeout(timeoutId);
+      clearProgressTimeouts();
     };
   }, [cycle, onFailure]);
 
   return (
     <div style={containerStyle}>
-      <Window
-        coords={{ x: 260, y: 190 }}
-        iconId="program"
-        isDraggable={false}
-        isResizeable={false}
-        onClickClose={() => undefined}
-        size={{ x: 420, y: 140 }}
-        title="Download Progress"
-        zIndex={99997}
-      >
-        <div style={panelStyle}>
-          <div>{status}</div>
-          <div style={trackStyle}>
-            <div
-              style={{
-                height: '100%',
-                width: `${progress}%`,
-                backgroundColor: '#000080',
-                transition: 'width 90ms linear',
-              }}
-            />
+      <div style={{ pointerEvents: 'auto' }}>
+        <Window
+          coords={coords}
+          iconId="program"
+          isDraggable
+          isMaximized={isMaximized}
+          isResizeable
+          onClickClose={onClose}
+          onClickMaximize={() => setIsMaximized(true)}
+          onClickRestore={() => setIsMaximized(false)}
+          onDblClickTitleBar={toggleMaximized}
+          onMoved={(nextCoords) => setCoords(nextCoords)}
+          onResized={(nextSize) => setSize(nextSize)}
+          size={size}
+          title="Download Progress"
+          zIndex={99997}
+        >
+          <div style={panelStyle}>
+            <div>{status}</div>
+            <div style={trackStyle}>
+              <div
+                style={{
+                  height: '100%',
+                  width: `${progress}%`,
+                  backgroundColor: '#000080',
+                  transition: 'width 90ms linear',
+                }}
+              />
+            </div>
+            <div style={{ marginTop: '6px' }}>{Math.floor(progress)}%</div>
           </div>
-          <div style={{ marginTop: '6px' }}>{Math.floor(progress)}%</div>
-        </div>
-      </Window>
+        </Window>
+      </div>
     </div>
   );
 };

@@ -1,4 +1,4 @@
-# Skype Call Audio Stubs
+# NetVoice Call Audio Stubs
 
 The files in this folder are temporary placeholder voice lines generated with macOS `say`.
 Re-record them later with final voice acting while keeping the same filenames.

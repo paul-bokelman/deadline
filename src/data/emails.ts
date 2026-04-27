@@ -711,7 +711,6 @@ const CORP_PROMOTIONS: EmailRecord[] = [
     preview: 'Per your request, attached is the Q3 report.',
     body:
       'Per your request, attached is the Q3 report. File is encrypted. Password is in a separate email. - [auto-generated]',
-    loadDelayMs: 5000,
     attachments: [
       {
         id: 'corp-promotions-012-real-attachment',

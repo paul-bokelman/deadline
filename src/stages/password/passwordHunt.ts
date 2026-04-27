@@ -11,7 +11,7 @@ export const usePasswordHuntStage = (): void => {
 
   useEffect(() => {
     const unsubscribeCallEnded = gameEventBus.on(
-      'skype:call_ended',
+      'netvoice:call_ended',
       ({ callId }) => {
         if (callId !== 'password_hint_assistant') return;
         if (hasEventFired(PASSWORD_HINT_COMPLETED_EVENT_ID)) return;

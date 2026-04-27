@@ -1,155 +1,322 @@
-.layout {
+.root {
   display: flex;
+  flex-direction: column;
   height: 100%;
-  min-height: 0;
+  width: 100%;
   background: var(--surface);
 }
 
-.sidebar {
-  width: 170px;
-  border-right: 1px solid var(--button-shadow);
-  box-shadow: inset -1px 0 0 var(--button-highlight);
-  padding: 8px 6px;
+/* Toolbar */
+
+.toolbar {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--button-shadow);
+  box-shadow: inset 0 -1px 0 var(--button-highlight);
+}
+
+.toolbarButton {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-}
-
-.accountName {
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-
-.folderButton {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  text-align: left;
-  border: none;
-  padding: 3px 6px;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 56px;
+  padding: 4px 6px 2px;
+  border: 1px solid transparent;
   background: transparent;
   cursor: pointer;
+  color: inherit;
+  font-size: 11px;
+  line-height: 1.1;
 }
 
-.folderButton:hover {
+.toolbarButton:hover {
+  border: 1px solid var(--button-shadow);
+  box-shadow: var(--border-raised-outer), var(--border-raised-inner);
+}
+
+.toolbarButton:active {
+  box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+}
+
+.toolbarButton:disabled {
+  cursor: default;
+  color: var(--button-shadow);
+  text-shadow: 1px 1px 0 var(--button-highlight);
+}
+
+.toolbarButtonLabel {
+  margin-top: 2px;
+}
+
+.toolbarSpacer {
+  flex: 1 1 auto;
+}
+
+.toolbarRight {
+  margin-left: auto;
+}
+
+.toolbarSeparator {
+  width: 1px;
+  margin: 4px 4px;
+  background: var(--button-shadow);
+  box-shadow: 1px 0 0 var(--button-highlight);
+}
+
+/* Main layout */
+
+.layout {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Sidebar */
+
+.sidebar {
+  width: 170px;
+  flex: 0 0 170px;
+  border-right: 1px solid var(--button-shadow);
+  box-shadow: inset -1px 0 0 var(--button-highlight);
+  background: var(--surface);
+  padding: 6px 4px;
+  overflow: auto;
+}
+
+.localFolders {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px;
+  font-weight: bold;
+}
+
+.folderTree {
+  display: flex;
+  flex-direction: column;
+  margin-top: 2px;
+}
+
+.folderItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 3px 6px 3px 22px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 11px;
+  color: inherit;
+}
+
+.folderItem:hover {
   background: rgba(0, 0, 128, 0.08);
 }
 
-.folderButtonActive {
+.folderItemActive {
   color: #ffffff;
   background: var(--dialog-blue);
 }
 
-.mainPane {
+.folderName {
   flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
 }
 
-.listHeader {
-  padding: 6px 8px;
+.folderCount {
+  color: inherit;
+  opacity: 0.85;
+}
+
+.folderItemActive .folderCount {
+  opacity: 1;
+}
+
+/* Right column (list + preview) */
+
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  background: var(--surface);
+}
+
+/* Message list */
+
+.list {
+  flex: 0 0 46%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   border-bottom: 1px solid var(--button-shadow);
   box-shadow: inset 0 -1px 0 var(--button-highlight);
-  background: var(--button-face);
+  background: #ffffff;
+  margin: 4px 4px 0 4px;
+  box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+}
+
+.listHeaderRow {
+  display: grid;
+  grid-template-columns: 24px 24px 1fr 1.4fr 130px;
+  align-items: center;
+  background: var(--surface);
+  border-bottom: 1px solid var(--button-shadow);
+  box-shadow: inset 0 -1px 0 var(--button-highlight);
   font-weight: bold;
+}
+
+.listHeaderCell {
+  padding: 3px 6px;
+  border-right: 1px solid var(--button-shadow);
+  box-shadow: inset -1px 0 0 var(--button-highlight);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.listHeaderCell:last-child {
+  border-right: none;
+  box-shadow: none;
 }
 
 .listBody {
-  flex: 0 0 46%;
+  flex: 1 1 auto;
   overflow: auto;
-  border-bottom: 1px solid var(--button-shadow);
+  background: #ffffff;
 }
 
-.row {
-  padding: 6px 8px;
-  border-bottom: 1px solid #d4d4d4;
+.listRow {
+  display: grid;
+  grid-template-columns: 24px 24px 1fr 1.4fr 130px;
+  align-items: center;
   cursor: pointer;
+  border-bottom: 1px dotted #e2e2e2;
 }
 
-.row:hover {
+.listRow:hover {
   background: rgba(0, 0, 128, 0.06);
 }
 
-.rowActive {
-  background: rgba(0, 0, 128, 0.14);
+.listRowActive {
+  color: #ffffff;
+  background: var(--dialog-blue);
 }
 
-.rowTop {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
+.listRowActive:hover {
+  background: var(--dialog-blue);
+}
+
+.listRowUnread .listCellFrom,
+.listRowUnread .listCellSubject,
+.listRowUnread .listCellReceived {
   font-weight: bold;
 }
 
-.subject {
+.listCell {
+  padding: 3px 6px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.timestamp {
-  color: #474747;
-  font-weight: normal;
+.listCellPriority {
+  display: flex;
+  justify-content: center;
+  color: #c50000;
+  font-weight: bold;
 }
 
-.preview {
-  margin-top: 2px;
-  color: #5a5a5a;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.listRowActive .listCellPriority {
+  color: #ffd0d0;
 }
 
-.messagePane {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: auto;
-  background: #ffffff;
-  box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
-  margin: 8px;
+.listCellIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.listEmpty {
   padding: 10px;
-}
-
-.messageMeta {
-  display: grid;
-  grid-template-columns: 70px 1fr;
-  gap: 4px 8px;
-  margin-bottom: 10px;
-}
-
-.messageBody {
-  white-space: pre-wrap;
-  line-height: 1.4;
-}
-
-.empty {
-  color: #666666;
+  color: #5a5a5a;
   font-style: italic;
 }
 
-.attachments {
-  margin-top: 12px;
-  padding-top: 8px;
-  border-top: 1px solid #d8d8d8;
+/* Preview pane */
+
+.preview {
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  margin: 4px;
+  background: #ffffff;
+  box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+  overflow: hidden;
 }
 
-.attachmentButton {
-  width: fit-content;
+.previewHeader {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  border-bottom: 1px solid #c8c8c8;
+  background: #ffffff;
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  row-gap: 2px;
+  column-gap: 8px;
+}
+
+.previewHeader b {
+  font-weight: bold;
+}
+
+.previewLabel {
+  color: #2a2a2a;
+}
+
+.previewAttachment {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 12px;
+  background: transparent;
   border: none;
-  background: var(--surface);
-  box-shadow: var(--border-raised-outer), var(--border-raised-inner);
-  padding: 4px 8px;
+  padding: 0;
   cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+  font: inherit;
+}
+
+.previewAttachment:hover {
+  text-decoration: underline;
+}
+
+.previewBody {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 10px 14px;
+  white-space: pre-wrap;
+  line-height: 1.45;
+  width: 100%;
+}
+
+.previewEmpty {
+  padding: 16px;
+  color: #666666;
+  font-style: italic;
 }
 
 .loadingContainer {
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 16px;
   color: #2d2d2d;
 }
 
@@ -169,4 +336,49 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.unlockButton {
+  margin-top: 8px;
+  border: none;
+  background: var(--surface);
+  box-shadow: var(--border-raised-outer), var(--border-raised-inner);
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+/* Status bar */
+
+.statusBar {
+  display: flex;
+  height: 21px;
+  padding: 1px;
+  flex: 0 0 auto;
+}
+
+.statusCell {
+  height: 100%;
+  padding: 3px 6px 0 6px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  box-shadow: var(--box-shadow-notification);
+  margin-right: 2px;
+}
+
+.statusCell:last-child {
+  margin-right: 0;
+}
+
+.statusCellLeft {
+  flex: 0 0 220px;
+}
+
+.statusCellMiddle {
+  flex: 1 1 auto;
+}
+
+.statusCellRight {
+  flex: 0 0 220px;
+  text-align: left;
 }

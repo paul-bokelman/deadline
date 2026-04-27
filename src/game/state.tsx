@@ -1,8 +1,9 @@
 import { h, FunctionComponent, ComponentChildren, createContext } from 'preact';
-import { useContext, useEffect, useMemo, useState } from 'preact/hooks';
+import { useContext, useEffect, useState } from 'preact/hooks';
 
+import { triggerBootLoaderScreen } from '../components/shared/BootLoaderScreen/BootLoaderScreen';
 import { gameEventBus } from './events';
-import { SkypeCallId } from './skype/calls';
+import { NetVoiceCallId } from './netvoice/calls';
 
 export type GameStage =
   | 'bios'
@@ -44,15 +45,16 @@ export interface GameStateContextValue {
   flags: GameFlags;
   hasSeenInitialBios: boolean;
   firedEvents: Record<string, true>;
-  activeSkypeCallId: SkypeCallId | null;
+  activeNetVoiceCallId: NetVoiceCallId | null;
+  isNetVoiceCallAccepted: boolean;
   setStage: (stage: GameStage) => void;
   setFlag: <K extends keyof GameFlags>(flag: K, value: GameFlags[K]) => void;
   setFlags: (partialFlags: Partial<GameFlags>) => void;
   markEventFired: (eventId: string) => void;
   hasEventFired: (eventId: string) => boolean;
-  triggerSkypeCall: (callId: SkypeCallId) => void;
+  triggerNetVoiceCall: (callId: NetVoiceCallId) => void;
   completeInitialBios: () => void;
-  resetGame: () => void;
+  rebootGame: () => void;
 }
 
 const initialFlags: GameFlags = {
@@ -81,19 +83,20 @@ const initialFlags: GameFlags = {
 };
 
 const initialContextValue: GameStateContextValue = {
-  stage: 'bios',
+  stage: 'desktop_intro',
   flags: initialFlags,
-  hasSeenInitialBios: false,
+  hasSeenInitialBios: true,
   firedEvents: {},
-  activeSkypeCallId: null,
+  activeNetVoiceCallId: null,
+  isNetVoiceCallAccepted: false,
   setStage: () => undefined,
   setFlag: () => undefined,
   setFlags: () => undefined,
   markEventFired: () => undefined,
   hasEventFired: () => false,
-  triggerSkypeCall: () => undefined,
+  triggerNetVoiceCall: () => undefined,
   completeInitialBios: () => undefined,
-  resetGame: () => undefined,
+  rebootGame: () => undefined,
 };
 
 const GameStateContext = createContext<GameStateContextValue>(
@@ -107,22 +110,52 @@ interface GameStateProviderProps {
 export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
   children,
 }: GameStateProviderProps) => {
-  const [stage, setStage] = useState<GameStage>('bios');
+  const [stage, setStageState] = useState<GameStage>('desktop_intro');
   const [flags, setFlagsState] = useState<GameFlags>(initialFlags);
-  const [hasSeenInitialBios, setHasSeenInitialBios] = useState(false);
+  const [hasSeenInitialBios, setHasSeenInitialBiosState] = useState(true);
   const [firedEvents, setFiredEvents] = useState<Record<string, true>>({});
   const [
-    activeSkypeCallId,
-    setActiveSkypeCallId,
-  ] = useState<SkypeCallId | null>(null);
+    activeNetVoiceCallId,
+    setActiveNetVoiceCallIdState,
+  ] = useState<NetVoiceCallId | null>(null);
+  const [isNetVoiceCallAccepted, setIsNetVoiceCallAcceptedState] = useState(
+    false
+  );
+
+  const emitGameRebooted = () => {
+    gameEventBus.emit('game:rebooted', { at: Date.now() });
+  };
+
+  const applyInitialGameState = () => {
+    setStageState('desktop_intro');
+    setFlagsState(initialFlags);
+    setHasSeenInitialBiosState(true);
+    setFiredEvents({});
+    setActiveNetVoiceCallIdState(null);
+    setIsNetVoiceCallAcceptedState(false);
+  };
 
   useEffect(() => {
-    const unsubscribe = gameEventBus.on('skype:call_ended', () => {
-      setActiveSkypeCallId(null);
+    const unsubscribeAccepted = gameEventBus.on(
+      'netvoice:call_accepted',
+      () => {
+        setIsNetVoiceCallAcceptedState(true);
+      }
+    );
+    const unsubscribeEnded = gameEventBus.on('netvoice:call_ended', () => {
+      setActiveNetVoiceCallIdState(null);
+      setIsNetVoiceCallAcceptedState(false);
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribeAccepted();
+      unsubscribeEnded();
+    };
   }, []);
+
+  const setStage: GameStateContextValue['setStage'] = (nextStage) => {
+    setStageState(nextStage);
+  };
 
   const setFlag: GameStateContextValue['setFlag'] = (flag, value) => {
     setFlagsState((currentFlags) => ({ ...currentFlags, [flag]: value }));
@@ -143,42 +176,41 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
     return firedEvents[eventId] === true;
   };
 
-  const triggerSkypeCall: GameStateContextValue['triggerSkypeCall'] = (
+  const triggerNetVoiceCall: GameStateContextValue['triggerNetVoiceCall'] = (
     callId
   ) => {
-    setActiveSkypeCallId(callId);
+    setActiveNetVoiceCallIdState(callId);
+    setIsNetVoiceCallAcceptedState(false);
   };
 
   const completeInitialBios: GameStateContextValue['completeInitialBios'] = () => {
-    setHasSeenInitialBios(true);
+    setHasSeenInitialBiosState(true);
     setStage('desktop_intro');
   };
 
-  const resetGame: GameStateContextValue['resetGame'] = () => {
-    setStage(hasSeenInitialBios ? 'desktop_intro' : 'bios');
-    setFlagsState(initialFlags);
-    setFiredEvents({});
-    setActiveSkypeCallId(null);
+  const rebootGame: GameStateContextValue['rebootGame'] = () => {
+    setActiveNetVoiceCallIdState(null);
+    setIsNetVoiceCallAcceptedState(false);
+    emitGameRebooted();
+    void triggerBootLoaderScreen().then(() => applyInitialGameState());
   };
 
-  const contextValue = useMemo<GameStateContextValue>(
-    () => ({
-      stage,
-      flags,
-      hasSeenInitialBios,
-      firedEvents,
-      activeSkypeCallId,
-      setStage,
-      setFlag,
-      setFlags,
-      markEventFired,
-      hasEventFired,
-      triggerSkypeCall,
-      completeInitialBios,
-      resetGame,
-    }),
-    [stage, flags, hasSeenInitialBios, firedEvents, activeSkypeCallId]
-  );
+  const contextValue: GameStateContextValue = {
+    stage,
+    flags,
+    hasSeenInitialBios,
+    firedEvents,
+    activeNetVoiceCallId,
+    isNetVoiceCallAccepted,
+    setStage,
+    setFlag,
+    setFlags,
+    markEventFired,
+    hasEventFired,
+    triggerNetVoiceCall,
+    completeInitialBios,
+    rebootGame,
+  };
 
   return (
     <GameStateContext.Provider value={contextValue}>

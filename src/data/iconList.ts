@@ -6,6 +6,7 @@ import {
   iconSizes,
   IconUrls,
 } from '../types/Icon';
+import smileyIcon from '../assets/img/interface/minesweeper_happy.png';
 
 function importIcons(files: Record<string, string>) {
   const importedIcons = {} as IconList;
@@ -25,6 +26,12 @@ function importIcons(files: Record<string, string>) {
       importedIcons[iconId as IconId] = iconUrls;
     }
   });
+  importedIcons.smiley = {
+    8: smileyIcon,
+    16: smileyIcon,
+    24: smileyIcon,
+    32: smileyIcon,
+  };
   const error = iconIds.some((iconId) => {
     if (!importedIcons[iconId])
       console.error(

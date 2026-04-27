@@ -30,6 +30,7 @@ const ICON_PADDING_X = 4;
 const ICON_PADDING_Y = 4;
 const DRAG_THRESHOLD_PX = 4;
 const FALLBACK_MAX_ROWS = 8;
+const FALLBACK_MAX_COLS = 10;
 
 interface IconPosition {
   col: number;
@@ -51,15 +52,6 @@ interface DragState {
 type Props = {
   background?: string;
   openApp: OpenWindowsContextType['openApp'];
-};
-
-const truncateMiddle = (value: string, maxChars = 22): string => {
-  if (value.length <= maxChars) return value;
-  const leftChars = Math.ceil((maxChars - 1) / 2);
-  const rightChars = Math.floor((maxChars - 1) / 2);
-  return `${value.slice(0, leftChars)}…${value.slice(
-    value.length - rightChars
-  )}`;
 };
 
 const cellKey = (col: number, row: number): string => `${col},${row}`;
@@ -108,13 +100,21 @@ const Desktop: FunctionComponent<Props> = ({
     getDirFromPath('C:/Windows/Desktop', myComputerFs),
     false
   );
+  const [focusedDynamicItemId, setFocusedDynamicItemId] = useState<
+    string | null
+  >(null);
   const desktopItems = useMemo<ShellItem[]>(() => {
-    const mergedItems = [...files, ...getDynamicDesktopItems(flags)];
+    const dynamicItems = getDynamicDesktopItems(flags).map((item) =>
+      item.id === focusedDynamicItemId
+        ? { ...item, hasFocus: true, hasSoftFocus: true }
+        : item
+    );
+    const mergedItems = [...files, ...dynamicItems];
     if (flags.hasDesktopScrambled) {
       return scrambleDesktop(mergedItems);
     }
     return mergedItems;
-  }, [files, flags]);
+  }, [files, flags, focusedDynamicItemId]);
 
   const desktopRef = useRef<HTMLDivElement>(null);
   const [iconPositions, setIconPositions] = useState<
@@ -127,6 +127,7 @@ const Desktop: FunctionComponent<Props> = ({
   const pendingPointerEventRef = useRef<{ x: number; y: number } | null>(null);
   const rafIdRef = useRef<number | null>(null);
   const [maxRows, setMaxRows] = useState<number>(FALLBACK_MAX_ROWS);
+  const [maxCols, setMaxCols] = useState<number>(FALLBACK_MAX_COLS);
 
   useLayoutEffect(() => {
     const element = desktopRef.current;
@@ -138,7 +139,12 @@ const Desktop: FunctionComponent<Props> = ({
         1,
         Math.floor((rect.height - ICON_PADDING_Y) / CELL_HEIGHT)
       );
+      const cols = Math.max(
+        1,
+        Math.floor((rect.width - ICON_PADDING_X) / CELL_WIDTH)
+      );
       setMaxRows(rows);
+      setMaxCols(cols);
     };
 
     updateMaxRows();
@@ -160,6 +166,7 @@ const Desktop: FunctionComponent<Props> = ({
         const existing = current[item.id];
         if (
           existing &&
+          existing.col < maxCols &&
           existing.row < maxRows &&
           !occupied.has(cellKey(existing.col, existing.row))
         ) {
@@ -188,7 +195,7 @@ const Desktop: FunctionComponent<Props> = ({
 
       return next;
     });
-  }, [desktopItems, maxRows]);
+  }, [desktopItems, maxCols, maxRows]);
 
   useEffect(() => {
     return () => {
@@ -214,11 +221,11 @@ const Desktop: FunctionComponent<Props> = ({
       const rawCol = (pixelLeft - ICON_PADDING_X) / CELL_WIDTH;
       const rawRow = (pixelTop - ICON_PADDING_Y) / CELL_HEIGHT;
       return {
-        col: Math.max(0, Math.round(rawCol)),
-        row: Math.max(0, Math.round(rawRow)),
+        col: Math.min(maxCols - 1, Math.max(0, Math.round(rawCol))),
+        row: Math.min(maxRows - 1, Math.max(0, Math.round(rawRow))),
       };
     },
-    []
+    [maxCols, maxRows]
   );
 
   const endDrag = useCallback((): void => {
@@ -264,15 +271,26 @@ const Desktop: FunctionComponent<Props> = ({
       Math.abs(dy) > DRAG_THRESHOLD_PX;
     if (!hasMoved) return;
 
+    const maxGhostLeft = ICON_PADDING_X + (maxCols - 1) * CELL_WIDTH;
+    const maxGhostTop = ICON_PADDING_Y + (maxRows - 1) * CELL_HEIGHT;
+    const clampedGhostLeft = Math.min(
+      maxGhostLeft,
+      Math.max(ICON_PADDING_X, current.iconStartLeft + dx)
+    );
+    const clampedGhostTop = Math.min(
+      maxGhostTop,
+      Math.max(ICON_PADDING_Y, current.iconStartTop + dy)
+    );
+
     const updated: DragState = {
       ...current,
       hasMoved: true,
-      ghostLeft: current.iconStartLeft + dx,
-      ghostTop: current.iconStartTop + dy,
+      ghostLeft: clampedGhostLeft,
+      ghostTop: clampedGhostTop,
     };
     dragRef.current = updated;
     setDrag(updated);
-  }, []);
+  }, [maxCols, maxRows]);
 
   const previewDropCell = useMemo<IconPosition | null>(() => {
     if (!drag || !drag.hasMoved) return null;
@@ -412,6 +430,7 @@ const Desktop: FunctionComponent<Props> = ({
       // iconLayer has pointer-events: none, so a click on empty desktop space
       // bubbles here directly. Anything that originated on an icon stops
       // propagation in handleClickFile.
+      setFocusedDynamicItemId(null);
       removeFocus();
     },
     [removeFocus]
@@ -429,9 +448,13 @@ const Desktop: FunctionComponent<Props> = ({
         }
         return;
       }
+      const isDynamicItem = !files.some(
+        (candidate) => candidate.id === file.id
+      );
+      setFocusedDynamicItemId(isDynamicItem ? file.id : null);
       focusOnFile(file.id);
     },
-    [focusOnFile]
+    [files, focusOnFile]
   );
 
   const handleDblClickFile = useCallback(
@@ -510,9 +533,7 @@ const Desktop: FunctionComponent<Props> = ({
         <div className={fileGridStyle.fileIcon} draggable={false}>
           <Icon iconId={file.iconId} size={32} />
         </div>
-        <div className={fileGridStyle.fileLabel}>
-          {truncateMiddle(file.name)}
-        </div>
+        <div className={fileGridStyle.fileLabel}>{file.name}</div>
       </div>
     );
   };

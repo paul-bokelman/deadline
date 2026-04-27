@@ -13,15 +13,15 @@ const DownloadStageLayer: FunctionComponent = () => {
     flags,
     hasEventFired,
     markEventFired,
-    resetGame,
+    rebootGame,
     setFlag,
     setStage,
-    triggerSkypeCall,
+    triggerNetVoiceCall,
   } = useGameState();
 
   useEffect(() => {
     const unsubscribeCallEnded = gameEventBus.on(
-      'skype:call_ended',
+      'netvoice:call_ended',
       ({ callId }) => {
         if (callId === 'it_guy_intro') {
           setFlag('hasZipFile', true);
@@ -50,8 +50,13 @@ const DownloadStageLayer: FunctionComponent = () => {
 
     if (!hasEventFired(IT_GUY_INTRO_TRIGGER_EVENT_ID)) {
       markEventFired(IT_GUY_INTRO_TRIGGER_EVENT_ID);
-      triggerSkypeCall('it_guy_intro');
+      triggerNetVoiceCall('it_guy_intro');
     }
+  };
+
+  const handleCloseProgress = () => {
+    setFlag('hasDownloadStarted', false);
+    setFlag('hasDownloadFailed', false);
   };
 
   const showDownloadDialog =
@@ -62,12 +67,15 @@ const DownloadStageLayer: FunctionComponent = () => {
     <div>
       {showDownloadDialog && (
         <DownloadDialog
-          onReboot={resetGame}
+          onReboot={rebootGame}
           onStartDownload={handleStartDownload}
         />
       )}
       {showProgressBar && (
-        <ProgressBarWindow onFailure={handleProgressFailure} />
+        <ProgressBarWindow
+          onClose={handleCloseProgress}
+          onFailure={handleProgressFailure}
+        />
       )}
     </div>
   );

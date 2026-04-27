@@ -54,7 +54,7 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
     hasEventFired,
     markEventFired,
     setFlag,
-    triggerSkypeCall,
+    triggerNetVoiceCall,
   } = useGameState();
   const [phase, setPhase] = useState<InstallerPhase>('installing');
   const [progress, setProgress] = useState(0);
@@ -139,7 +139,7 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
         if (!hasEventFired('download:it_guy_angry_1:scheduled')) {
           markEventFired('download:it_guy_angry_1:scheduled');
           window.setTimeout(() => {
-            triggerSkypeCall('it_guy_angry_1');
+            triggerNetVoiceCall('it_guy_angry_1');
           }, 3000);
         }
         return;
@@ -157,7 +157,7 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
     hasEventFired,
     markEventFired,
     setFlag,
-    triggerSkypeCall,
+    triggerNetVoiceCall,
   ]);
 
   if (phase === 'done') {

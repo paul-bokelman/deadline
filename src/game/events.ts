@@ -1,5 +1,6 @@
 export type CoreGameEvents = {
   'boot:complete': { at: number };
+  'game:rebooted': { at: number };
   'email:opened': { emailId: string };
   'email:delivered': { emailId: string };
   'file:real_report_opened': {
@@ -27,11 +28,11 @@ export type CoreGameEvents = {
     subject: string;
   };
   'popup:closed': { popupId: string };
-  'skype:call_accepted': {
+  'netvoice:call_accepted': {
     callId: string;
     autoTriggerNextStage: boolean;
   };
-  'skype:call_ended': {
+  'netvoice:call_ended': {
     callId: string;
     autoTriggerNextStage: boolean;
   };

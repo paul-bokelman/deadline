@@ -15,6 +15,13 @@ export const appList: AppList = {
     name: 'CD Player',
     size: { width: 400, height: 177 },
   },
+  clickMeReset: {
+    id: 'clickMeReset',
+    iconId: 'smiley',
+    isResizeable: false,
+    name: 'click me',
+    size: { width: 400, height: 177 },
+  },
   defrag: {
     id: 'defrag',
     iconId: 'defrag',
@@ -153,7 +160,7 @@ export const appList: AppList = {
     id: 'shutdown',
     iconId: 'shutdown',
     isResizeable: false,
-    name: 'Shutdown...',
+    name: 'Reboot...',
     size: { width: 400, height: 177 },
   },
   taskbar: {
@@ -172,28 +179,28 @@ export const appList: AppList = {
   },
   corpMail: {
     id: 'corpMail',
-    iconId: 'msMail',
+    iconId: 'mailEnvelope',
     name: 'CorpMail',
     size: { width: 760, height: 520 },
   },
   personalMail: {
     id: 'personalMail',
-    iconId: 'exchange',
+    iconId: 'mailEnvelope',
     name: 'PersonalMail',
     size: { width: 760, height: 520 },
   },
   corpMailLegacy: {
     id: 'corpMailLegacy',
-    iconId: 'msMail',
+    iconId: 'mailEnvelope',
     name: 'CorpMail 2',
     size: { width: 760, height: 520 },
   },
-  skypeCall: {
-    id: 'skypeCall',
+  netVoiceCall: {
+    id: 'netVoiceCall',
     iconId: 'msn',
-    name: 'Skype Call',
+    name: 'NetVoice',
     isResizeable: false,
-    size: { width: 420, height: 250 },
+    size: { width: 480, height: 280 },
   },
   importantPasswordsFile: {
     id: 'importantPasswordsFile',

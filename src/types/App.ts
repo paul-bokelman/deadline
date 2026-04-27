@@ -5,6 +5,7 @@ import { OpenWindowsContextType } from '../context/OpenWindowsContext';
 export const appIds = [
   'calc',
   'cdPlayer',
+  'clickMeReset',
   'defrag',
   'exchange',
   'explorer',
@@ -31,7 +32,7 @@ export const appIds = [
   'corpMail',
   'personalMail',
   'corpMailLegacy',
-  'skypeCall',
+  'netVoiceCall',
   'importantPasswordsFile',
   'winRarInstaller',
   'zipArchive',

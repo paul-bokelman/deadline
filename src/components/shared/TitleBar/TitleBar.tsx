@@ -15,6 +15,8 @@ export interface Props {
   onClickHelp?: () => void;
   onClickClose: () => void;
   onDblClickTitleBar?: () => void;
+  showCloseButton?: boolean;
+  showMaximizeButton?: boolean;
   innerRef?: RefObject<HTMLDivElement>;
   title: string;
 }
@@ -29,6 +31,8 @@ const TitleBar: FunctionComponent<Props> = ({
   onClickHelp,
   onClickClose,
   onDblClickTitleBar,
+  showCloseButton = true,
+  showMaximizeButton = true,
   innerRef,
   title,
 }: Props) => {
@@ -53,7 +57,7 @@ const TitleBar: FunctionComponent<Props> = ({
             onMouseDown={handleOnMouseDownButton}
           />
         )}
-        {!isMaximized && (
+        {showMaximizeButton && !isMaximized && (
           <Button
             disabled={!onClickMaximize}
             label={<div className={style.maximize} />}
@@ -71,11 +75,13 @@ const TitleBar: FunctionComponent<Props> = ({
         {onClickHelp && (
           <Button onClick={onClickHelp} onMouseDown={handleOnMouseDownButton} />
         )}
-        <Button
-          label={<div className={style.close} />}
-          onClick={onClickClose}
-          onMouseDown={handleOnMouseDownButton}
-        />
+        {showCloseButton && (
+          <Button
+            label={<div className={style.close} />}
+            onClick={onClickClose}
+            onMouseDown={handleOnMouseDownButton}
+          />
+        )}
       </div>
     </div>
   );
