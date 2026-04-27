@@ -11,9 +11,9 @@ import {
   EmailRecord,
   getEmailsForAccount,
 } from '../../data/emails';
-import { Q3_ATTACHMENT_PASSWORD } from '../../data/passwords';
 import { gameEventBus } from '../../game/events';
 import { useGameState } from '../../game/state';
+import { getAttachmentDecryptionKeyFromDump } from '../../system/desktop/dynamicDesktopItems';
 import { IconId } from '../../types/Icon';
 
 import style from './EmailClient.module.css';
@@ -52,7 +52,7 @@ type PasswordDialogContext =
   | { mode: 'email'; emailId: string }
   | null;
 
-const PASSWORD_HINT_CALL_TRIGGER_EVENT_ID = 'password_hint_call:triggered';
+const PASSWORD_DUMP_HINT_CALL_TRIGGER_EVENT_ID = 'password_dump_hint_call:triggered';
 
 const accountToAddressMap: Record<EmailAccountId, string> = {
   corpMail: 'me <you@corp.internal>',
@@ -65,9 +65,6 @@ const accountServerMap: Record<EmailAccountId, string> = {
   personalMail: 'POP3: personalmail.com',
   corpMailLegacy: 'POP3: legacy.corp.internal',
 };
-
-const normalizePassword = (value: string): string =>
-  value.trim().toLowerCase().replace(/\s+/g, '');
 
 interface ToolbarButtonProps {
   label: string;
@@ -107,17 +104,13 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
   const [selectedFolder, setSelectedFolder] = useState<EmailFolder>('inbox');
   const [selectedEmail, setSelectedEmail] = useState<EmailRecord | null>(null);
   const [isLoadingEmail, setIsLoadingEmail] = useState(false);
-  const [passwordDialogContext, setPasswordDialogContext] = useState<
-    PasswordDialogContext
-  >(null);
+  const [passwordDialogContext, setPasswordDialogContext] =
+    useState<PasswordDialogContext>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [unlockedEmailMap, setUnlockedEmailMap] = useState<
-    Record<string, true>
-  >({});
   const [readEmailMap, setReadEmailMap] = useState<Record<string, true>>({});
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const loadEmailTimerRef = useRef<number | null>(null);
-  const passwordHintTimerRef = useRef<number | null>(null);
+  const attachmentUnlockKeyRef = useRef(getAttachmentDecryptionKeyFromDump());
 
   const accountEmails = useMemo(() => getEmailsForAccount(accountId, flags), [
     accountId,
@@ -158,9 +151,6 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
       if (loadEmailTimerRef.current !== null) {
         window.clearTimeout(loadEmailTimerRef.current);
       }
-      if (passwordHintTimerRef.current !== null) {
-        window.clearTimeout(passwordHintTimerRef.current);
-      }
     };
   }, []);
 
@@ -185,11 +175,10 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
     });
   };
 
-  const triggerPasswordHintCall = () => {
-    if (flags.hasReceivedPasswordHintCall) return;
-    if (hasEventFired(PASSWORD_HINT_CALL_TRIGGER_EVENT_ID)) return;
-    markEventFired(PASSWORD_HINT_CALL_TRIGGER_EVENT_ID);
-    triggerNetVoiceCall('password_hint_assistant');
+  const triggerPasswordDumpHintCall = () => {
+    if (hasEventFired(PASSWORD_DUMP_HINT_CALL_TRIGGER_EVENT_ID)) return;
+    markEventFired(PASSWORD_DUMP_HINT_CALL_TRIGGER_EVENT_ID);
+    triggerNetVoiceCall('password_dump_hint');
   };
 
   const markEmailRead = (emailId: string) => {
@@ -228,27 +217,12 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
   };
 
   const openAttachmentPasswordDialog = (email: EmailRecord) => {
-    setStage('password_hunt');
     setPasswordError(null);
     setPasswordDialogContext({ mode: 'attachment', emailId: email.id });
     gameEventBus.emit('email:attachment_password_prompt_opened', {
       accountId,
       emailId: email.id,
     });
-
-    if (flags.hasReceivedPasswordHintCall) return;
-    if (passwordHintTimerRef.current !== null) {
-      window.clearTimeout(passwordHintTimerRef.current);
-    }
-    passwordHintTimerRef.current = window.setTimeout(() => {
-      passwordHintTimerRef.current = null;
-      triggerPasswordHintCall();
-    }, 10000);
-  };
-
-  const openEmailPasswordDialog = (email: EmailRecord) => {
-    setPasswordError(null);
-    setPasswordDialogContext({ mode: 'email', emailId: email.id });
   };
 
   const closePasswordDialog = () => {
@@ -262,56 +236,26 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
         accountId,
         emailId: context.emailId,
       });
-      if (passwordHintTimerRef.current !== null) {
-        window.clearTimeout(passwordHintTimerRef.current);
-        passwordHintTimerRef.current = null;
-      }
-      triggerPasswordHintCall();
     }
   };
 
   const submitPasswordDialog = (password: string) => {
     if (!passwordDialogContext) return;
-    const normalizedInputPassword = normalizePassword(password);
-
     if (passwordDialogContext.mode === 'attachment') {
-      if (
-        normalizedInputPassword !== normalizePassword(Q3_ATTACHMENT_PASSWORD)
-      ) {
-        setPasswordError('Incorrect password. Try again.');
+      const expected = (attachmentUnlockKeyRef.current ?? '').trim();
+      const got = password.trim();
+      if (!expected || got !== expected) {
+        setPasswordError('Incorrect password. Check the desktop password dump.');
         return;
       }
 
       setFlag('hasUnlockedAttachment', true);
       setStage('download');
-      if (passwordHintTimerRef.current !== null) {
-        window.clearTimeout(passwordHintTimerRef.current);
-        passwordHintTimerRef.current = null;
-      }
       setPasswordDialogContext(null);
       setPasswordError(null);
       return;
     }
 
-    const email = accountEmails.find(
-      (item) => item.id === passwordDialogContext.emailId
-    );
-    if (!email || !email.encryptedWithPassword) {
-      setPasswordDialogContext(null);
-      return;
-    }
-
-    if (
-      normalizedInputPassword !== normalizePassword(email.encryptedWithPassword)
-    ) {
-      setPasswordError('Incorrect password. Try again.');
-      return;
-    }
-
-    setUnlockedEmailMap((currentMap) => ({
-      ...currentMap,
-      [email.id]: true,
-    }));
     setPasswordDialogContext(null);
     setPasswordError(null);
   };
@@ -334,6 +278,14 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
         attachmentId: attachment.id,
       });
       setFlag('hasFoundRealEmail', true);
+      if (flags.hasUnlockedAttachment) {
+        setStage('download');
+        return;
+      }
+
+      // Right before the password is required, tell the player
+      // about the passwords document on the desktop.
+      triggerPasswordDumpHintCall();
       openAttachmentPasswordDialog(email);
     }
   };
@@ -344,17 +296,8 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
     setSelectedEmail(null);
   };
 
-  const selectedEmailIsLocked =
-    !!selectedEmail?.encryptedWithPassword &&
-    !unlockedEmailMap[selectedEmail.id];
-  const selectedEmailBody = selectedEmailIsLocked
-    ? selectedEmail?.encryptedLockedBody ??
-      'This email is encrypted. Enter a password to unlock it.'
-    : selectedEmail?.body;
-  const passwordDialogPrompt =
-    passwordDialogContext?.mode === 'email'
-      ? 'This email is encrypted. Enter password:'
-      : 'This file is encrypted. Enter password:';
+  const selectedEmailIsLocked = false;
+  const selectedEmailBody = selectedEmail?.body;
 
   return (
     <WindowContent
@@ -550,17 +493,6 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
                     </div>
                     <div className={style.previewBody}>
                       {selectedEmailBody}
-                      {selectedEmailIsLocked && (
-                        <div>
-                          <button
-                            className={style.unlockButton}
-                            onClick={() => openEmailPasswordDialog(selectedEmail)}
-                            type="button"
-                          >
-                            Enter Password
-                          </button>
-                        </div>
-                      )}
                     </div>
                   </Fragment>
                 )}
@@ -586,7 +518,7 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
             isOpen={passwordDialogContext !== null}
             onClose={closePasswordDialog}
             onSubmit={submitPasswordDialog}
-            prompt={passwordDialogPrompt}
+            prompt="This attachment is encrypted. Enter password:"
           />
         </div>
       }
