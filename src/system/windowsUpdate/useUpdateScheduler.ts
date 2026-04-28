@@ -61,15 +61,19 @@ export const useUpdateScheduler = (): UseUpdateSchedulerResult => {
     });
   }, [setFlags]);
 
+  const deactivateWindowsUpdate = useCallback(() => {
+    setFlags({
+      windowsUpdateActive: false,
+      windowsUpdateRebootAt: null,
+    });
+  }, [setFlags]);
+
   useEffect(() => {
     if (!isEligible) {
       clearCountdownInterval();
       hasTriggeredRebootRef.current = false;
       if (flags.windowsUpdateActive || flags.windowsUpdateRebootAt !== null) {
-        setFlags({
-          windowsUpdateActive: false,
-          windowsUpdateRebootAt: null,
-        });
+        deactivateWindowsUpdate();
       }
       return;
     }
@@ -82,7 +86,7 @@ export const useUpdateScheduler = (): UseUpdateSchedulerResult => {
     flags.windowsUpdateActive,
     flags.windowsUpdateRebootAt,
     clearCountdownInterval,
-    setFlags,
+    deactivateWindowsUpdate,
     startRebootTimer,
   ]);
 
@@ -101,10 +105,7 @@ export const useUpdateScheduler = (): UseUpdateSchedulerResult => {
 
       hasTriggeredRebootRef.current = true;
       clearCountdownInterval();
-      setFlags({
-        windowsUpdateActive: false,
-        windowsUpdateRebootAt: null,
-      });
+      deactivateWindowsUpdate();
       rebootGame();
     };
 
@@ -115,18 +116,15 @@ export const useUpdateScheduler = (): UseUpdateSchedulerResult => {
     isNagVisible,
     flags.windowsUpdateRebootAt,
     clearCountdownInterval,
+    deactivateWindowsUpdate,
     rebootGame,
-    setFlags,
   ]);
 
   const onRebootNow = useCallback(() => {
     hasTriggeredRebootRef.current = true;
-    setFlags({
-      windowsUpdateActive: false,
-      windowsUpdateRebootAt: null,
-    });
+    deactivateWindowsUpdate();
     rebootGame();
-  }, [rebootGame, setFlags]);
+  }, [deactivateWindowsUpdate, rebootGame]);
 
   const onRemindLater = useCallback(() => {
     setSnoozedUntil(Date.now() + REMIND_LATER_MS);
