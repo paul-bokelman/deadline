@@ -225,13 +225,13 @@ const buildPersonalEmails = (): EmailRecord[] => {
         : folder === 'spam'
           ? `notice@${malwareDomains[id % malwareDomains.length]}`
           : personalSenders[id % personalSenders.length];
+    const isMalware = folder === 'spam' || id % 9 === 0;
     const subject =
-      folder === 'spam'
+      isMalware
         ? `ALERT: verify account package #${4000 + id}`
         : folder === 'promotions'
           ? `Limited offer ${30 + (id % 60)}% off`
           : personalSubjects[id % personalSubjects.length];
-    const isMalware = folder === 'spam';
     const malwareUrl = `http://cdn.${malwareDomains[id % malwareDomains.length]}/patch_${id}.exe`;
     const paragraphs = isMalware
       ? [
@@ -357,14 +357,14 @@ const CORP_INBOX_NOISE: EmailRecord[] = [
     accountId: 'corpMail',
     folder: 'inbox',
     sender: 'records@corp.internal',
-    subject: 'Password for Q3 Report',
+    subject: 'Encryption key for Q3 Report',
     timestamp: '11:39',
     preview: 'Encrypted message.',
-    body: `Attachment password: ${Q3_ATTACHMENT_PASSWORD}`,
+    body: `Attachment encryption key: ${Q3_ATTACHMENT_PASSWORD}`,
     bodyHtml: richBody(
       [
         'You requested the decryption key for the encrypted Q3 attachment because nothing can ever be simple.',
-        `Password: <b>${Q3_ATTACHMENT_PASSWORD}</b>`,
+        `Encryption key: <b>${Q3_ATTACHMENT_PASSWORD}</b>`,
       ],
       [
         'Use key only on trusted sender attachment, not random inbox jump scares.',

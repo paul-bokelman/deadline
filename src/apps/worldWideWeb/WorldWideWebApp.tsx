@@ -202,6 +202,10 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
   };
 
   useEffect(() => {
+    gameEventBus.emit('audio:resume_requested', { source: 'web_open' });
+  }, []);
+
+  useEffect(() => {
     return gameEventBus.on('browser:url_requested', ({ url }) => {
       setTypedAddress(url);
       navigateForUrl(url);

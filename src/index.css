@@ -215,3 +215,15 @@ code, code * {
   width: 16px;
   background-image: url("./assets/img/ui/button-right.svg");
 }
+
+@keyframes malwareFlash {
+  0% {
+    filter: saturate(1);
+  }
+  50% {
+    filter: saturate(1.6) brightness(1.1);
+  }
+  100% {
+    filter: saturate(1);
+  }
+}

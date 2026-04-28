@@ -71,7 +71,13 @@ const WalletApp: FunctionComponent<AppProps> = (_props: AppProps) => {
         <div style={{ fontWeight: 700, marginBottom: '6px' }}>
           Recent Activity
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '4px 10px' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr auto',
+            gap: '4px 10px',
+          }}
+        >
           <div>ATM Withdrawal (probably)</div>
           <div>-$20</div>
           <div>Blackjack Table Transfer</div>
@@ -92,7 +98,8 @@ const WalletApp: FunctionComponent<AppProps> = (_props: AppProps) => {
             Security Tip of the Day
           </div>
           <div>
-            Do not store 1000 passwords in a file named <b>DO_NOT_OPEN_passwords.txt</b>.
+            Do not store 1000 passwords in a file named{' '}
+            <b>IMPORTANT_PASSWORDS_DON&apos;T_LOSE.txt</b>.
           </div>
         </div>
       </div>
@@ -101,4 +108,3 @@ const WalletApp: FunctionComponent<AppProps> = (_props: AppProps) => {
 };
 
 export default WalletApp;
-

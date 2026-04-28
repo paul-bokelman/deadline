@@ -6,7 +6,7 @@ import { useGameState } from '../../game/state';
 const INTRO_CALL_TRIGGER_EVENT_ID = 'intro_call:triggered';
 const INTRO_CALL_COMPLETED_EVENT_ID = 'intro_call:completed';
 const INTRO_EMAIL_ID = 'corp-promotions-012-real';
-const INTRO_CALL_DELAY_MS = 6000;
+const INTRO_CALL_DELAY_MS = 8000;
 const INTRO_EMAIL_DELIVERY_DELAY_MS = 1000;
 
 export const useIntroCallStage = (): void => {

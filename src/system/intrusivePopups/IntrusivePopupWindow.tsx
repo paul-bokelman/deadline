@@ -7,17 +7,14 @@ import {
 } from 'preact';
 
 import Window from '../../components/shared/Window/Window';
-import { ActiveIntrusivePopup, IntrusivePopupDecorationAction } from './types';
+import { ActiveIntrusivePopup } from './types';
 
 interface Props {
   boundsRef: RefObject<HTMLDivElement>;
   children?: ComponentChildren;
-  onDecorationAction: (
-    popupId: string,
-    action: IntrusivePopupDecorationAction
-  ) => void;
-  onDecorationHover: () => void;
+  onClose: (popupId: string) => void;
   onMoved: (popupId: string, coords: { x: number; y: number }) => void;
+  onToggleMaximize: (popupId: string) => void;
   onPopupMouseDown: (popupId: string, event: MouseEvent) => void;
   popup: ActiveIntrusivePopup;
 }
@@ -31,14 +28,8 @@ const shellStyle: JSX.CSSProperties = {
   overflow: 'hidden',
 };
 
-const decorationLayerStyle: JSX.CSSProperties = {
-  position: 'relative',
-  height: '20px',
-  margin: '4px 4px 0 4px',
-};
-
 const bodyStyle: JSX.CSSProperties = {
-  margin: '2px 6px 6px 6px',
+  margin: '8px',
   padding: 0,
   flex: 1,
   backgroundColor: 'transparent',
@@ -49,24 +40,24 @@ const bodyStyle: JSX.CSSProperties = {
 const IntrusivePopupWindow: FunctionComponent<Props> = ({
   boundsRef,
   children,
-  onDecorationAction,
-  onDecorationHover,
+  onClose,
   onMoved,
+  onToggleMaximize,
   onPopupMouseDown,
   popup,
 }: Props) => {
   return (
     <Window
       coords={popup.coords}
-      dragHandleMode="window"
       getBoundingElement={() => boundsRef.current}
       iconId={popup.config.iconId}
       isDraggable
+      isMaximized={popup.isMaximized}
       isResizeable={false}
-      onClickClose={() => undefined}
+      onClickClose={() => onClose(popup.id)}
+      onClickMaximize={() => onToggleMaximize(popup.id)}
+      onClickRestore={() => onToggleMaximize(popup.id)}
       onMoved={(coords) => onMoved(popup.id, coords)}
-      showCloseButton={false}
-      showMaximizeButton={false}
       size={{ x: popup.config.size.width, y: popup.config.size.height }}
       style={{ pointerEvents: 'auto' }}
       title={popup.config.title}
@@ -88,38 +79,9 @@ const IntrusivePopupWindow: FunctionComponent<Props> = ({
           backgroundPosition: popup.config.backgroundImageUrl
             ? 'center'
             : undefined,
+          animation: 'malwareFlash 0.8s steps(2, jump-none) infinite',
         }}
       >
-        <div style={decorationLayerStyle}>
-          {popup.controls.map((control) => (
-            <button
-              key={`${popup.id}-${control.action}-${control.left}`}
-              onMouseEnter={onDecorationHover}
-              onClick={(event) => {
-                event.stopPropagation();
-                onDecorationAction(popup.id, control.action);
-              }}
-              onMouseDown={(event) => event.stopPropagation()}
-              style={{
-                position: 'absolute',
-                left: `${control.left}px`,
-                top: `${control.top}px`,
-                width: '16px',
-                height: '14px',
-                lineHeight: '12px',
-                fontSize: '11px',
-                border: 'none',
-                backgroundColor: 'var(--surface)',
-                boxShadow:
-                  'var(--border-raised-outer), var(--border-raised-inner)',
-                padding: 0,
-                textAlign: 'center',
-              }}
-            >
-              {control.symbol}
-            </button>
-          ))}
-        </div>
         <div style={bodyStyle}>{children ?? null}</div>
       </div>
     </Window>

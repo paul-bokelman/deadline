@@ -4,8 +4,8 @@ import { allEmails, getEmailsForAccount } from '../../data/emails';
 import { gameEventBus } from '../../game/events';
 import { useGameState } from '../../game/state';
 
-const MIN_DELAY_MS = 10_000;
-const MAX_DELAY_MS = 30_000;
+const MIN_DELAY_MS = 20_000;
+const MAX_DELAY_MS = 60_000;
 
 const randomBetween = (min: number, max: number): number =>
   Math.floor(min + Math.random() * (max - min + 1));

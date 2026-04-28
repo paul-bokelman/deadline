@@ -8,13 +8,18 @@ export interface DeliveredEmailInstance {
 }
 
 type MailboxListener = () => void;
+const EVENT_DELIVERED_ONLY_EMAIL_IDS = new Set<string>([
+  'corp-promotions-012-real',
+]);
 
 const seedInstances = (): DeliveredEmailInstance[] =>
-  allEmails.map((email, index) => ({
-    instanceId: `seed-${email.id}-${index}`,
-    emailId: email.id,
-    deliveredAt: index,
-  }));
+  allEmails
+    .filter((email) => !EVENT_DELIVERED_ONLY_EMAIL_IDS.has(email.id))
+    .map((email, index) => ({
+      instanceId: `seed-${email.id}-${index}`,
+      emailId: email.id,
+      deliveredAt: index,
+    }));
 
 let deliveredInstances: DeliveredEmailInstance[] = seedInstances();
 const listeners = new Set<MailboxListener>();

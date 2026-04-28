@@ -13,7 +13,10 @@ export const ATTACHMENT_DECRYPTION_KEY_MARKER = '::ENCRYPTION_KEY::';
 const createRandomAttachmentKey = (): string => {
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const chunk = () =>
-    Array.from({ length: 4 }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join('');
+    Array.from(
+      { length: 4 },
+      () => alphabet[Math.floor(Math.random() * alphabet.length)]
+    ).join('');
   return `${chunk()}-${chunk()}-${chunk()}-${chunk()}`;
 };
 
@@ -92,7 +95,10 @@ export const generateFunnyPasswordDump = (): string => {
 
     if (i === hiddenIndex) {
       lines.push(
-        `${String(i).padStart(4, '0')} | ${site} | ${user} | ${pass}  ${ATTACHMENT_DECRYPTION_KEY_MARKER}${attachmentDecryptionKey}`
+        `${String(i).padStart(
+          4,
+          '0'
+        )} | ${site} | ${user} | ${pass}  ${ATTACHMENT_DECRYPTION_KEY_MARKER}${attachmentDecryptionKey}`
       );
       continue;
     }
@@ -110,7 +116,9 @@ export const getAttachmentDecryptionKeyFromDump = (): string => {
   const dump = generateFunnyPasswordDump();
   const markerIndex = dump.indexOf(ATTACHMENT_DECRYPTION_KEY_MARKER);
   if (markerIndex < 0) return '';
-  const after = dump.slice(markerIndex + ATTACHMENT_DECRYPTION_KEY_MARKER.length);
+  const after = dump.slice(
+    markerIndex + ATTACHMENT_DECRYPTION_KEY_MARKER.length
+  );
   const key = after.split(/\s|\n/)[0] ?? '';
   return key.trim();
 };
@@ -165,7 +173,7 @@ export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
     createFileShellItem(
       'funny-password-dump',
       'notepadDoc',
-      'DO_NOT_OPEN_passwords.txt',
+      "IMPORTANT_PASSWORDS_DON'T_LOSE.txt",
       generateFunnyPasswordDump()
     ),
   ];

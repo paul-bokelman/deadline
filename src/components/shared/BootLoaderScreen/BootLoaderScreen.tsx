@@ -18,8 +18,14 @@ const BOOT_LINES: BootLine[] = [
   { prefix: 'BL1', text: 'Boot Loader Version 1.10 for RZV2MA' },
   { prefix: 'BL1', text: 'Build: r01.10.04-secure-boot-2026.04.19' },
   { prefix: 'BL1', text: 'Silicon ID: 0x8472A90C, lot A6K-14, wafer 09' },
-  { prefix: 'BL1', text: 'Cold reset source: WDT_SYS0 + RTC domain brownout latch' },
-  { prefix: 'BL1', text: 'Boot mode strap pins: MD[3:0]=0010, secure monitor enabled' },
+  {
+    prefix: 'BL1',
+    text: 'Cold reset source: WDT_SYS0 + RTC domain brownout latch',
+  },
+  {
+    prefix: 'BL1',
+    text: 'Boot mode strap pins: MD[3:0]=0010, secure monitor enabled',
+  },
   { prefix: 'BL1', text: 'CPU0: ARM Cortex-A55 @ 1.20GHz, rev r2p0' },
   { prefix: 'BL1', text: 'CPU1: ARM Cortex-A55 @ 1.20GHz, rev r2p0 parked' },
   { prefix: 'BL1', text: 'CPU2: ARM Cortex-A55 @ 1.20GHz, rev r2p0 parked' },
@@ -62,14 +68,38 @@ const BOOT_LINES: BootLine[] = [
   { prefix: 'BL1', text: 'Boot partition select: mmcblk0boot0' },
   { prefix: 'BL1', text: 'Reading partition table from mmcblk0...' },
   { prefix: 'BL1', text: 'GPT header CRC32 0x6C03AC11 [OK]' },
-  { prefix: 'BL1', text: 'Partition 00: bootparam_a  offset 0x00000800 size 0x00000400' },
-  { prefix: 'BL1', text: 'Partition 01: bootparam_b  offset 0x00000C00 size 0x00000400' },
-  { prefix: 'BL1', text: 'Partition 02: loader_a     offset 0x00001000 size 0x00080000' },
-  { prefix: 'BL1', text: 'Partition 03: loader_b     offset 0x00081000 size 0x00080000' },
-  { prefix: 'BL1', text: 'Partition 04: u-boot_a     offset 0x00140000 size 0x00200000' },
-  { prefix: 'BL1', text: 'Partition 05: u-boot_b     offset 0x00340000 size 0x00200000' },
-  { prefix: 'BL1', text: 'Partition 06: env          offset 0x00540000 size 0x00020000' },
-  { prefix: 'BL1', text: 'A/B slot metadata: active=A, retry_count=1, successful=0' },
+  {
+    prefix: 'BL1',
+    text: 'Partition 00: bootparam_a  offset 0x00000800 size 0x00000400',
+  },
+  {
+    prefix: 'BL1',
+    text: 'Partition 01: bootparam_b  offset 0x00000C00 size 0x00000400',
+  },
+  {
+    prefix: 'BL1',
+    text: 'Partition 02: loader_a     offset 0x00001000 size 0x00080000',
+  },
+  {
+    prefix: 'BL1',
+    text: 'Partition 03: loader_b     offset 0x00081000 size 0x00080000',
+  },
+  {
+    prefix: 'BL1',
+    text: 'Partition 04: u-boot_a     offset 0x00140000 size 0x00200000',
+  },
+  {
+    prefix: 'BL1',
+    text: 'Partition 05: u-boot_b     offset 0x00340000 size 0x00200000',
+  },
+  {
+    prefix: 'BL1',
+    text: 'Partition 06: env          offset 0x00540000 size 0x00020000',
+  },
+  {
+    prefix: 'BL1',
+    text: 'A/B slot metadata: active=A, retry_count=1, successful=0',
+  },
   { prefix: 'BL1', text: 'Loaded the boot parameter for 2nd boot' },
   { prefix: 'BL1', text: 'bootparam_a magic 0x42504152 version 3' },
   { prefix: 'BL1', text: 'bootparam_a nonce 8C:62:19:A4:31:E9:00:7D' },
@@ -118,17 +148,44 @@ const BOOT_LINES: BootLine[] = [
   { prefix: 'BL2', text: 'PHY lane 2 write leveling delay 0x10' },
   { prefix: 'BL2', text: 'PHY lane 3 write leveling delay 0x12' },
   { prefix: 'BL2', text: 'PHY training pass 2/3 ... done' },
-  { prefix: 'BL2', text: 'Read eye margin lane0: left=41 right=39 center=0x6A' },
-  { prefix: 'BL2', text: 'Read eye margin lane1: left=37 right=42 center=0x68' },
-  { prefix: 'BL2', text: 'Read eye margin lane2: left=40 right=40 center=0x69' },
-  { prefix: 'BL2', text: 'Read eye margin lane3: left=38 right=41 center=0x67' },
+  {
+    prefix: 'BL2',
+    text: 'Read eye margin lane0: left=41 right=39 center=0x6A',
+  },
+  {
+    prefix: 'BL2',
+    text: 'Read eye margin lane1: left=37 right=42 center=0x68',
+  },
+  {
+    prefix: 'BL2',
+    text: 'Read eye margin lane2: left=40 right=40 center=0x69',
+  },
+  {
+    prefix: 'BL2',
+    text: 'Read eye margin lane3: left=38 right=41 center=0x67',
+  },
   { prefix: 'BL2', text: 'PHY training pass 3/3 ... done' },
-  { prefix: 'BL2', text: 'Write eye margin lane0: left=34 right=36 center=0x72' },
-  { prefix: 'BL2', text: 'Write eye margin lane1: left=35 right=35 center=0x71' },
-  { prefix: 'BL2', text: 'Write eye margin lane2: left=33 right=38 center=0x73' },
-  { prefix: 'BL2', text: 'Write eye margin lane3: left=36 right=34 center=0x70' },
+  {
+    prefix: 'BL2',
+    text: 'Write eye margin lane0: left=34 right=36 center=0x72',
+  },
+  {
+    prefix: 'BL2',
+    text: 'Write eye margin lane1: left=35 right=35 center=0x71',
+  },
+  {
+    prefix: 'BL2',
+    text: 'Write eye margin lane2: left=33 right=38 center=0x73',
+  },
+  {
+    prefix: 'BL2',
+    text: 'Write eye margin lane3: left=36 right=34 center=0x70',
+  },
   { prefix: 'BL2', text: 'DDR initialization completed_A' },
-  { prefix: 'BL2', text: 'DDR controller: ECC scrub start 0x40000000 length 0x01000000' },
+  {
+    prefix: 'BL2',
+    text: 'DDR controller: ECC scrub start 0x40000000 length 0x01000000',
+  },
   { prefix: 'BL2', text: 'DDR controller: ECC scrub progress 25%' },
   { prefix: 'BL2', text: 'DDR controller: ECC scrub progress 50%' },
   { prefix: 'BL2', text: 'DDR controller: ECC scrub progress 75%' },
@@ -136,7 +193,10 @@ const BOOT_LINES: BootLine[] = [
   { prefix: 'BL2', text: 'DDR self-test region 0x40000000-0x80000000 ... OK' },
   { prefix: 'BL2', text: 'Walking ones test bank0 row0 col0 ... OK' },
   { prefix: 'BL2', text: 'Walking zeros test bank0 row0 col0 ... OK' },
-  { prefix: 'BL2', text: 'March C- sample window 0x40000000-0x400FFFFF ... OK' },
+  {
+    prefix: 'BL2',
+    text: 'March C- sample window 0x40000000-0x400FFFFF ... OK',
+  },
   { prefix: 'BL2', text: 'Address bus inversion test ... OK' },
   { prefix: 'BL2', text: 'Coherent interconnect CCI-500 enabled' },
   { prefix: 'BL2', text: 'SMMU stream table base 0x43F00000' },
@@ -144,7 +204,10 @@ const BOOT_LINES: BootLine[] = [
   { prefix: 'BL2', text: 'PCIe PHY PLL lock [OK]' },
   { prefix: 'BL2', text: 'Ethernet MAC address source: OTP' },
   { prefix: 'BL2', text: 'Ethernet MAC0 02:17:8B:43:91:C0' },
-  { prefix: 'BL2', text: 'Frame buffer handoff disabled: headless recovery mode' },
+  {
+    prefix: 'BL2',
+    text: 'Frame buffer handoff disabled: headless recovery mode',
+  },
   { prefix: 'BL2', text: 'Thermal zone cpu-thermal: 42.8C' },
   { prefix: 'BL2', text: 'Thermal trip critical: 105.0C' },
   { prefix: 'BL2', text: 'Loading secure monitor BL31 from loader capsule' },
@@ -174,10 +237,16 @@ const BOOT_LINES: BootLine[] = [
   { prefix: 'BL2', text: 'Parsing FIT image /images/uboot' },
   { prefix: 'BL2', text: 'FIT config: conf-rzv2ma-corp-terminal.dtb' },
   { prefix: 'BL2', text: 'Hash node sha256: verified' },
-  { prefix: 'BL2', text: 'FDT node /memory reg = <0x0 0x40000000 0x0 0x80000000>' },
+  {
+    prefix: 'BL2',
+    text: 'FDT node /memory reg = <0x0 0x40000000 0x0 0x80000000>',
+  },
   { prefix: 'BL2', text: 'FDT chosen stdout-path = serial0:115200n8' },
   { prefix: 'BL2', text: 'FDT reserved-memory: optee@43e00000 skipped' },
-  { prefix: 'BL2', text: 'Environment sector redundant copy selected: primary' },
+  {
+    prefix: 'BL2',
+    text: 'Environment sector redundant copy selected: primary',
+  },
   { prefix: 'BL2', text: 'env: bootdelay=0' },
   { prefix: 'BL2', text: 'env: verify=yes' },
   { prefix: 'BL2', text: 'env: panic_timeout=0' },
@@ -185,18 +254,54 @@ const BOOT_LINES: BootLine[] = [
   { prefix: 'BL2', text: 'env: deadline_mode=urgent' },
   { prefix: 'BL2', text: 'env: last_known_good=slot_b' },
   { prefix: 'BL2', text: 'Loading U-Boot image from eMMC offset 0x140000' },
-  { prefix: 'BL2', text: 'Calculating U-Boot payload checksum over 0x001C82A0 bytes' },
-  { prefix: 'BL2', text: 'Checksum window 0x50000000-0x5003FFFF ... 0x29D1B733' },
-  { prefix: 'BL2', text: 'Checksum window 0x50040000-0x5007FFFF ... 0xC701991E' },
-  { prefix: 'BL2', text: 'Checksum window 0x50080000-0x500BFFFF ... 0x1880AC42' },
-  { prefix: 'BL2', text: 'Checksum window 0x500C0000-0x500FFFFF ... 0x7AA41102' },
-  { prefix: 'BL2', text: 'Checksum window 0x50100000-0x5013FFFF ... 0xDEAD10AD' },
-  { prefix: 'BL2', text: 'Checksum window 0x50140000-0x5017FFFF ... 0x00391B20' },
-  { prefix: 'BL2', text: 'Checksum window 0x50180000-0x501C82A0 ... 0x00000000' },
-  { prefix: 'BL2', text: 'Header checksum: stored 0x9F32A1C4, calculated 0x00000000' },
-  { prefix: 'BL2', text: 'Slot A validation failed, decrementing retry counter' },
-  { prefix: 'BL2', text: 'Attempting fallback policy: slot_b allowed=0 reason=rollback' },
-  { prefix: 'BL2', text: 'Recovery vector not armed; console intervention disabled' },
+  {
+    prefix: 'BL2',
+    text: 'Calculating U-Boot payload checksum over 0x001C82A0 bytes',
+  },
+  {
+    prefix: 'BL2',
+    text: 'Checksum window 0x50000000-0x5003FFFF ... 0x29D1B733',
+  },
+  {
+    prefix: 'BL2',
+    text: 'Checksum window 0x50040000-0x5007FFFF ... 0xC701991E',
+  },
+  {
+    prefix: 'BL2',
+    text: 'Checksum window 0x50080000-0x500BFFFF ... 0x1880AC42',
+  },
+  {
+    prefix: 'BL2',
+    text: 'Checksum window 0x500C0000-0x500FFFFF ... 0x7AA41102',
+  },
+  {
+    prefix: 'BL2',
+    text: 'Checksum window 0x50100000-0x5013FFFF ... 0xDEAD10AD',
+  },
+  {
+    prefix: 'BL2',
+    text: 'Checksum window 0x50140000-0x5017FFFF ... 0x00391B20',
+  },
+  {
+    prefix: 'BL2',
+    text: 'Checksum window 0x50180000-0x501C82A0 ... 0x00000000',
+  },
+  {
+    prefix: 'BL2',
+    text: 'Header checksum: stored 0x9F32A1C4, calculated 0x00000000',
+  },
+  {
+    prefix: 'BL2',
+    text: 'Slot A validation failed, decrementing retry counter',
+  },
+  {
+    prefix: 'BL2',
+    text: 'Attempting fallback policy: slot_b allowed=0 reason=rollback',
+  },
+  {
+    prefix: 'BL2',
+    text: 'Recovery vector not armed; console intervention disabled',
+  },
   {
     prefix: 'BL2',
     text: '[Error] sum_check() for U-Boot',
@@ -234,8 +339,7 @@ const containerStyle: JSX.CSSProperties = {
   inset: 0,
   backgroundColor: '#000000',
   color: '#d8d8d8',
-  fontFamily:
-    '"VT323", "Courier New", "Lucida Console", Consolas, monospace',
+  fontFamily: '"VT323", "Courier New", "Lucida Console", Consolas, monospace',
   fontSize: '17px',
   lineHeight: 1.25,
   padding: '14px 18px',
@@ -345,7 +449,62 @@ const BootLoaderScreen: FunctionComponent = () => {
             return;
           }
           setIsActive(false);
-          playStartupSfx();
+          let hasSettledStartupFlow = false;
+          let startupRetryTimeoutId: number | null = null;
+          let resumeStartupFromInteraction = (): void => undefined;
+
+          const clearStartupInteractionRetries = () => {
+            window.removeEventListener(
+              'pointerdown',
+              resumeStartupFromInteraction
+            );
+            window.removeEventListener('keydown', resumeStartupFromInteraction);
+            if (startupRetryTimeoutId !== null) {
+              window.clearTimeout(startupRetryTimeoutId);
+              startupRetryTimeoutId = null;
+            }
+          };
+
+          const settleStartupFlow = () => {
+            if (hasSettledStartupFlow) return;
+            hasSettledStartupFlow = true;
+            if (tokenRef.current !== myToken) return;
+            clearStartupInteractionRetries();
+            gameEventBus.emit('startup_sfx:ended', { at: Date.now() });
+          };
+
+          const tryPlayStartupAndFinalize = () => {
+            void playStartupSfx()
+              .then(({ durationMs, didStart }) => {
+                if (tokenRef.current !== myToken) return;
+                if (!didStart) return;
+                clearStartupInteractionRetries();
+                window.setTimeout(settleStartupFlow, durationMs);
+              })
+              .catch(() => {
+                if (tokenRef.current !== myToken) return;
+                settleStartupFlow();
+              });
+          };
+
+          tryPlayStartupAndFinalize();
+
+          resumeStartupFromInteraction = () => {
+            if (tokenRef.current !== myToken) return;
+            tryPlayStartupAndFinalize();
+          };
+
+          window.addEventListener('pointerdown', resumeStartupFromInteraction, {
+            passive: true,
+          });
+          window.addEventListener('keydown', resumeStartupFromInteraction, {
+            passive: true,
+          });
+
+          startupRetryTimeoutId = window.setTimeout(() => {
+            clearStartupInteractionRetries();
+          }, 10_000);
+
           fadeDurationMsRef.current = postFadeMs;
           setOverlayOpacity(0);
           window.setTimeout(() => {

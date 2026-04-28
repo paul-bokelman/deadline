@@ -18,6 +18,11 @@ interface Props {
   focusOnWindow: OpenWindowsContextType['focusOnWindow'];
   minimizeWindow: OpenWindowsContextType['minimizeWindow'];
   openApp: OpenWindowsContextType['openApp'];
+  projectDeadlineTab?: {
+    isActive: boolean;
+    label: string;
+    onClick: () => void;
+  } | null;
   unMinimizeWindow: OpenWindowsContextType['unMinimizeWindow'];
   windows: OpenWindowsContextType['windows'];
 }
@@ -26,6 +31,7 @@ const Taskbar: FunctionComponent<Props> = ({
   focusOnWindow,
   minimizeWindow,
   openApp,
+  projectDeadlineTab = null,
   unMinimizeWindow,
   windows,
 }: Props) => {
@@ -87,6 +93,17 @@ const Taskbar: FunctionComponent<Props> = ({
             textAlign="left"
           />
         ))}
+        {projectDeadlineTab && (
+          <Button
+            iconId="warning"
+            label={projectDeadlineTab.label}
+            inTaskbar
+            isActive={projectDeadlineTab.isActive}
+            noOutline
+            onClick={projectDeadlineTab.onClick}
+            textAlign="left"
+          />
+        )}
       </div>
       <div className={style.notificationAreaWrapper}>
         <NotificationArea />

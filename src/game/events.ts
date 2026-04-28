@@ -2,6 +2,7 @@ export type CoreGameEvents = {
   'boot:complete': { at: number };
   'bootloader:started': { at: number };
   'bootloader:ended': { at: number };
+  'startup_sfx:ended': { at: number };
   'game:rebooted': { at: number };
   'email:opened': { emailId: string };
   'email:delivered': { emailId: string };
@@ -37,8 +38,17 @@ export type CoreGameEvents = {
   'browser:url_requested': {
     url: string;
   };
+  'audio:resume_requested': {
+    source: 'web_open' | 'bootloader_end' | 'user_interaction';
+  };
   'popup:test_spawn_random': { x: number; y: number };
   'popup:closed': { popupId: string };
+  'windows_update:tab_state': {
+    isActive: boolean;
+    isVisible: boolean;
+    label: string;
+  };
+  'windows_update:restore': Record<string, never>;
   'netvoice:call_accepted': {
     callId: string;
     autoTriggerNextStage: boolean;

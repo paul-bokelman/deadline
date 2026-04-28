@@ -30,16 +30,14 @@ const WinRarExtractor: FunctionComponent<AppProps> = () => {
   const { flags, setFlag } = useGameState();
 
   const handleFakeProgram = (program: string) => {
-    window.alert(`${program} cannot open this archive.`);
+    window.alert(
+      `${program} says this archive uses AES-256 encryption.\nInstall WinRAR to read it.`
+    );
   };
 
   const handleExtract = () => {
-    gameEventBus.emit('malware:popup', {
-      accountId: 'corpMail',
-      source: 'attachment_open',
-      sourceEmailId: 'zip-extract',
-      subject: 'Zip extraction side effects',
-    });
+    gameEventBus.emit('popup:test_spawn_random', { x: 180, y: 120 });
+    gameEventBus.emit('popup:test_spawn_random', { x: 240, y: 180 });
 
     if (flags.zipExtractionLevel <= 1) {
       setFlag('zipExtractionLevel', 2);
@@ -63,7 +61,7 @@ const WinRarExtractor: FunctionComponent<AppProps> = () => {
       <div style={panelStyle}>
         <div>What program should open this file?</div>
         <div>
-          {['Notepad', 'Paint', 'Internet Explorer', 'Solitaire'].map(
+          {['Media Player', 'Paint 98', 'Hex Viewer', 'Minesweeper', 'WordPad'].map(
             (program) => (
               <button
                 key={program}

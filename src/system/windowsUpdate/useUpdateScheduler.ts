@@ -12,13 +12,17 @@ const stageOrder: Record<GameStage, number> = {
   password_hunt: 5,
   download: 6,
   post_bluescreen: 7,
+  win: 8,
 };
 
 interface UseUpdateSchedulerResult {
   countdownMs: number;
   isNagVisible: boolean;
+  onRemindLater: () => void;
   onRebootNow: () => void;
 }
+
+const REMIND_LATER_MS = 45_000;
 
 export const useUpdateScheduler = (): UseUpdateSchedulerResult => {
   const {
@@ -30,6 +34,7 @@ export const useUpdateScheduler = (): UseUpdateSchedulerResult => {
   const [countdownMs, setCountdownMs] = useState(
     systemConfig.windowsUpdate.countdownMs
   );
+  const [snoozedUntil, setSnoozedUntil] = useState<number>(0);
 
   const countdownIntervalRef = useRef<number | null>(null);
   const hasTriggeredRebootRef = useRef(false);
@@ -37,7 +42,7 @@ export const useUpdateScheduler = (): UseUpdateSchedulerResult => {
   const isEligible =
     stageOrder[stage] >=
     stageOrder[systemConfig.windowsUpdate.enabledAfterStage];
-  const isNagVisible = flags.windowsUpdateActive;
+  const isNagVisible = flags.windowsUpdateActive && Date.now() >= snoozedUntil;
 
   const clearCountdownInterval = useCallback(() => {
     if (countdownIntervalRef.current !== null) {
@@ -123,6 +128,10 @@ export const useUpdateScheduler = (): UseUpdateSchedulerResult => {
     rebootGame();
   }, [rebootGame, setFlags]);
 
+  const onRemindLater = useCallback(() => {
+    setSnoozedUntil(Date.now() + REMIND_LATER_MS);
+  }, []);
+
   useEffect(() => {
     return () => {
       clearCountdownInterval();
@@ -133,8 +142,9 @@ export const useUpdateScheduler = (): UseUpdateSchedulerResult => {
     () => ({
       countdownMs,
       isNagVisible,
+      onRemindLater,
       onRebootNow,
     }),
-    [countdownMs, isNagVisible, onRebootNow]
+    [countdownMs, isNagVisible, onRemindLater, onRebootNow]
   );
 };

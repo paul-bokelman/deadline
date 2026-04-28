@@ -43,11 +43,10 @@ export interface IntrusivePopupDecorationButton {
 }
 
 export interface ActiveIntrusivePopup {
-  closeClicksRemaining: number;
   config: IntrusivePopupConfig;
-  controls: IntrusivePopupDecorationButton[];
   coords: { x: number; y: number };
   id: string;
+  isMaximized: boolean;
   nextAutoSpawnAt: number | null;
   nextSpontaneousAt: number | null;
   shouldSnapOnNextClick: boolean;

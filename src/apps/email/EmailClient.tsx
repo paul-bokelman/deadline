@@ -196,15 +196,16 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
   }, [selectedFolder, accountId]);
 
   const triggerMalwareEvent = (
-    sourceEmail: EmailRecord,
+    _sourceEmail: EmailRecord,
     source: 'email_open' | 'attachment_open'
   ) => {
-    gameEventBus.emit('malware:popup', {
-      accountId,
-      source,
-      sourceEmailId: sourceEmail.id,
-      subject: sourceEmail.subject,
-    });
+    const burstCount = source === 'attachment_open' ? 3 : 2;
+    for (let i = 0; i < burstCount; i += 1) {
+      gameEventBus.emit('popup:test_spawn_random', {
+        x: 140 + i * 80,
+        y: 80 + i * 56,
+      });
+    }
   };
 
   const triggerPasswordDumpHintCall = () => {
@@ -278,7 +279,9 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
       const expected = (attachmentUnlockKeyRef.current ?? '').trim();
       const got = password.trim();
       if (!expected || got !== expected) {
-        setPasswordError('Incorrect password. Check the desktop password dump.');
+        setPasswordError(
+          'Incorrect encryption key. Check the desktop password dump.'
+        );
         return;
       }
 
@@ -582,7 +585,7 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
             isOpen={passwordDialogContext !== null}
             onClose={closePasswordDialog}
             onSubmit={submitPasswordDialog}
-            prompt="This attachment is encrypted. Enter password:"
+            prompt="This attachment is encrypted. Enter encryption key:"
           />
         </div>
       }

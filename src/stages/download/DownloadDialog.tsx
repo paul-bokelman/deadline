@@ -22,57 +22,12 @@ const actionsStyle: JSX.CSSProperties = {
   justifyContent: 'center',
 };
 
-type ConfirmDialogState = 'none' | 'reboot' | 'cancel-first' | 'cancel-second';
-
 const DownloadDialog: FunctionComponent<DownloadDialogProps> = ({
   onReboot,
   onStartDownload,
 }: DownloadDialogProps) => {
   const [coords, setCoords] = useState({ x: 230, y: 120 });
-  const [confirmDialogState, setConfirmDialogState] =
-    useState<ConfirmDialogState>('none');
   const [containerEl, setContainerEl] = useState<HTMLDivElement | null>(null);
-
-  const handleReboot = () => {
-    setConfirmDialogState('reboot');
-  };
-
-  const handleClose = () => {
-    setConfirmDialogState('cancel-first');
-  };
-
-  const handleConfirmYes = () => {
-    if (confirmDialogState === 'reboot') {
-      setConfirmDialogState('none');
-      onReboot();
-      return;
-    }
-
-    if (confirmDialogState === 'cancel-first') {
-      setConfirmDialogState('cancel-second');
-      return;
-    }
-
-    if (confirmDialogState === 'cancel-second') {
-      setConfirmDialogState('none');
-      onStartDownload();
-    }
-  };
-
-  const getConfirmMessage = (): string => {
-    if (confirmDialogState === 'reboot') {
-      return 'Are you sure you want to reboot? Unsaved progress will be lost.';
-    }
-    if (confirmDialogState === 'cancel-first') {
-      return 'Are you sure you want to cancel?';
-    }
-    return 'Really cancel? Your download will be lost.';
-  };
-
-  const getConfirmYesLabel = (): string => {
-    if (confirmDialogState === 'cancel-second') return 'Yes, cancel';
-    return 'Yes';
-  };
 
   return (
     <div
@@ -91,7 +46,7 @@ const DownloadDialog: FunctionComponent<DownloadDialogProps> = ({
           iconId="program"
           isDraggable
           isResizeable={false}
-          onClickClose={handleClose}
+          onClickClose={onStartDownload}
           onMoved={(nextCoords) => setCoords(nextCoords)}
           size={{ x: 360, y: 170 }}
           title="Download File"
@@ -102,40 +57,12 @@ const DownloadDialog: FunctionComponent<DownloadDialogProps> = ({
               Download request received. Choose an action to continue.
             </div>
             <div style={actionsStyle}>
-              <Button label="Download" onClick={handleReboot} />
-              <Button label="Reboot" onClick={handleReboot} />
+              <Button label="Download" onClick={onStartDownload} />
+              <Button label="Reboot" onClick={onReboot} />
             </div>
           </div>
         </Window>
       </div>
-      {confirmDialogState !== 'none' && (
-        <div style={{ pointerEvents: 'auto' }}>
-          <Window
-            coords={{ x: 280, y: 180 }}
-            iconId="warning"
-            isDraggable={false}
-            isResizeable={false}
-            onClickClose={() => setConfirmDialogState('none')}
-            size={{ x: 360, y: 145 }}
-            title="Confirm"
-            zIndex={99999}
-          >
-            <div style={{ padding: '8px' }}>
-              <div style={bodyStyle}>{getConfirmMessage()}</div>
-              <div style={actionsStyle}>
-                <Button
-                  label={getConfirmYesLabel()}
-                  onClick={() => handleConfirmYes()}
-                />
-                <Button
-                  label="No"
-                  onClick={() => setConfirmDialogState('none')}
-                />
-              </div>
-            </div>
-          </Window>
-        </div>
-      )}
     </div>
   );
 };

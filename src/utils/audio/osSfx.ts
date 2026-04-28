@@ -17,9 +17,12 @@ const createAudio = (src: string, volume: number): HTMLAudioElement => {
   return audio;
 };
 
-const playOneShot = (src: string, volume: number): void => {
+const playOneShot = (src: string, volume: number): Promise<boolean> => {
   const audio = createAudio(src, volume);
-  audio.play().catch(() => undefined);
+  return audio
+    .play()
+    .then(() => true)
+    .catch(() => false);
 };
 
 const getAudioDurationMs = (
@@ -55,21 +58,32 @@ const getAudioDurationMs = (
 };
 
 let rebootDurationMsPromise: Promise<number> | null = null;
+let startupDurationMsPromise: Promise<number> | null = null;
 
 export const playRebootSfx = (): Promise<number> => {
   if (!rebootDurationMsPromise) {
     rebootDurationMsPromise = getAudioDurationMs(SFX_PATHS.reboot, 3200);
   }
-  playOneShot(SFX_PATHS.reboot, 0.6);
+  void playOneShot(SFX_PATHS.reboot, 0.6);
   return rebootDurationMsPromise;
 };
 
-export const playStartupSfx = (): void => {
-  playOneShot(SFX_PATHS.startup, 0.55);
+export const playStartupSfx = async (): Promise<{
+  durationMs: number;
+  didStart: boolean;
+}> => {
+  if (!startupDurationMsPromise) {
+    startupDurationMsPromise = getAudioDurationMs(SFX_PATHS.startup, 1800);
+  }
+  const [durationMs, didStart] = await Promise.all([
+    startupDurationMsPromise,
+    playOneShot(SFX_PATHS.startup, 0.55),
+  ]);
+  return { durationMs, didStart };
 };
 
 export const playHangupSfx = (): void => {
-  playOneShot(SFX_PATHS.hangup, 0.6);
+  void playOneShot(SFX_PATHS.hangup, 0.6);
 };
 
 export const playIncomingCallSfxLoop = (): HTMLAudioElement => {
@@ -79,7 +93,7 @@ export const playIncomingCallSfxLoop = (): HTMLAudioElement => {
 };
 
 export const playYouGotMailSfx = (): void => {
-  playOneShot(SFX_PATHS.youGotMail, 0.55);
+  void playOneShot(SFX_PATHS.youGotMail, 0.55);
 };
 
 export const playCallOverSfx = (): HTMLAudioElement => {
