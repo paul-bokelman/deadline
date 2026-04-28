@@ -44,6 +44,7 @@ export interface GameFlags {
   blackjackHandsInProgress: number;
   blackjackBailoutCount: 0 | 1 | 2 | 3;
   hasPurchasedWinRar: boolean;
+  hasReceivedWinRarLinkEmail: boolean;
   language: 'en' | 'zh';
 }
 
@@ -92,6 +93,7 @@ const initialFlags: GameFlags = {
   blackjackHandsInProgress: 0,
   blackjackBailoutCount: 0,
   hasPurchasedWinRar: false,
+  hasReceivedWinRarLinkEmail: false,
   language: 'en',
 };
 

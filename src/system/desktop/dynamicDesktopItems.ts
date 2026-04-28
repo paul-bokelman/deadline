@@ -1,15 +1,32 @@
 import { appList } from '../../data/appList';
 import fileTypeList from '../../data/fileTypeList';
 import { getZipNameForLevel } from '../../game/download/archive';
+import { gameEventBus } from '../../game/events';
 import { GameFlags } from '../../game/state';
 import { AppId } from '../../types/App';
 import { FileSystemFile } from '../../types/FileSystem';
 import { FileTypeId } from '../../types/FileType';
 import { ShellItem } from '../../types/Shell';
 
-export const ATTACHMENT_DECRYPTION_KEY_MARKER = 'ENCRYPTION_KEY';
+export const ATTACHMENT_DECRYPTION_KEY_MARKER = '::ENCRYPTION_KEY::';
 
-const ATTACHMENT_DECRYPTION_KEY = 'FROG-LASER-1997';
+const createRandomAttachmentKey = (): string => {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const chunk = () =>
+    Array.from({ length: 4 }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join('');
+  return `${chunk()}-${chunk()}-${chunk()}-${chunk()}`;
+};
+
+let attachmentDecryptionKey = createRandomAttachmentKey();
+let hasRebootHook = false;
+
+const ensureRebootKeyRefresh = (): void => {
+  if (hasRebootHook) return;
+  hasRebootHook = true;
+  gameEventBus.on('game:rebooted', () => {
+    attachmentDecryptionKey = createRandomAttachmentKey();
+  });
+};
 
 const funnySites = [
   'totallylegitbank.biz',
@@ -58,6 +75,7 @@ const makePseudoPassword = (n: number): string => {
 };
 
 export const generateFunnyPasswordDump = (): string => {
+  ensureRebootKeyRefresh();
   const lines: string[] = [];
   lines.push('PASSWORD VAULT (DO NOT SHARE)\n');
   lines.push(
@@ -74,7 +92,7 @@ export const generateFunnyPasswordDump = (): string => {
 
     if (i === hiddenIndex) {
       lines.push(
-        `${String(i).padStart(4, '0')} | ${site} | ${user} | ${pass}  ${ATTACHMENT_DECRYPTION_KEY_MARKER}${ATTACHMENT_DECRYPTION_KEY}`
+        `${String(i).padStart(4, '0')} | ${site} | ${user} | ${pass}  ${ATTACHMENT_DECRYPTION_KEY_MARKER}${attachmentDecryptionKey}`
       );
       continue;
     }
@@ -88,6 +106,7 @@ export const generateFunnyPasswordDump = (): string => {
 };
 
 export const getAttachmentDecryptionKeyFromDump = (): string => {
+  ensureRebootKeyRefresh();
   const dump = generateFunnyPasswordDump();
   const markerIndex = dump.indexOf(ATTACHMENT_DECRYPTION_KEY_MARKER);
   if (markerIndex < 0) return '';

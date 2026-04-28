@@ -540,6 +540,19 @@ const CORP_INBOX_NOISE: EmailRecord[] = [
     requiresGameFlag: 'hasReceivedPortalIntroCall',
     deliveryRule: { requiresFlags: ['hasEmailAccess'] },
   },
+  {
+    id: 'corp-winrar-download-link',
+    accountId: 'corpMail',
+    folder: 'inbox',
+    sender: 'it-helpdesk@corp.internal',
+    subject: 'WinRAR download link',
+    timestamp: '12:11',
+    preview: 'Use this link to download WinRAR for the zip.',
+    body:
+      'Use the following URL to download WinRAR:\nhttp://download.winrar-online.example/\n\nOpen World Wide Web and paste/search this link. Then run WinRAR_installer.exe.',
+    requiresGameFlag: 'hasReceivedWinRarLinkEmail',
+    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
+  },
 ];
 
 const q3SpamSenders = [

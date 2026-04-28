@@ -6,6 +6,7 @@ export type NetVoiceCallId =
   | 'mom_bailout_2'
   | 'it_guy_blackjack_roast'
   | 'it_guy_intro'
+  | 'it_guy_winrar_link'
   | 'it_guy_angry_1'
   | 'assistant_portal_intro'
   | 'it_guy_cleanup'
@@ -121,6 +122,14 @@ export const netVoiceCalls: Record<NetVoiceCallId, NetVoiceCallDefinition> = {
     audioPath: '/audio/netvoice/it_guy_intro.mp3',
     dialogText:
       "Hey, I saw your download fail. I'm gonna remote in and just drop the file on your desktop as a zip. Just extract it, easy. Give me a sec.",
+    autoTriggerNextStage: false,
+  },
+  it_guy_winrar_link: {
+    id: 'it_guy_winrar_link',
+    callerId: 'greg',
+    audioPath: '/audio/netvoice/it_guy_intro.mp3',
+    dialogText:
+      "Zip's on your desktop now. You still need WinRAR to open it. I'm emailing you the download link right now.",
     autoTriggerNextStage: false,
   },
   it_guy_angry_1: {
