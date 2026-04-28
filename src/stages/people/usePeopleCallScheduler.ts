@@ -4,14 +4,14 @@ import { systemConfig } from '../../data/systemConfig';
 import { NetVoiceCallId } from '../../game/netvoice/calls';
 import { useGameState } from '../../game/state';
 
-const HALF_WAY_CALL_EVENT_ID = 'people:alice_halfway:triggered';
+const ALICE_HALFWAY_CALL_EVENT_ID = 'people:alice_halfway:triggered';
 const RANDOM_CALL_POOL: NetVoiceCallId[] = [
   'alice_greg_warning',
   'mom_www_issues',
   'mom_maryjane',
 ];
 
-const randomFrom = <T,>(items: T[]): T => {
+const pickRandomItem = <T,>(items: T[]): T => {
   return items[Math.floor(Math.random() * items.length)];
 };
 
@@ -46,8 +46,8 @@ export const usePeopleCallScheduler = (): void => {
 
       const halfWayMs = Math.floor(systemConfig.windowsUpdate.countdownMs / 2);
       const hasReachedHalfWay = Date.now() - introStartedAt >= halfWayMs;
-      if (hasReachedHalfWay && !hasEventFired(HALF_WAY_CALL_EVENT_ID)) {
-        markEventFired(HALF_WAY_CALL_EVENT_ID);
+      if (hasReachedHalfWay && !hasEventFired(ALICE_HALFWAY_CALL_EVENT_ID)) {
+        markEventFired(ALICE_HALFWAY_CALL_EVENT_ID);
         triggerNetVoiceCall('alice_halfway');
         return;
       }
@@ -60,7 +60,7 @@ export const usePeopleCallScheduler = (): void => {
       // Small recurring chance while idle keeps this feeling organic.
       if (Math.random() >= 0.18) return;
 
-      const selectedCallId = randomFrom(availableRandomCalls);
+      const selectedCallId = pickRandomItem(availableRandomCalls);
       markEventFired(`people:random:${selectedCallId}:triggered`);
       triggerNetVoiceCall(selectedCallId);
     }, 12000);
