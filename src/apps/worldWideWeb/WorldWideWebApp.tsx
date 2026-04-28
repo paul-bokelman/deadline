@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 
 import { AppProps } from '../../types/App';
 import { gameEventBus } from '../../game/events';
+import { setPortalPassword } from '../../system/portalAuth/portalAuth';
 
 const rootStyle: JSX.CSSProperties = {
   height: '100%',
@@ -63,7 +64,122 @@ type BrowserPage =
   | 'sports'
   | 'history'
   | 'search'
-  | 'winrarDownload';
+  | 'winrarDownload'
+  | 'portalResetPassword';
+
+type PasswordRuleResult = {
+  id: string;
+  label: string;
+  passed: boolean;
+};
+
+const forbiddenFat32Chars = /[\\/:*?"<>|]/;
+
+const getSignedNumbers = (input: string): number[] => {
+  return (input.match(/[+-]?\d+(?:\.\d+)?/g) ?? [])
+    .map((raw) => Number(raw))
+    .filter((value) => Number.isFinite(value));
+};
+
+const isTwentyPercentMarkup = (first: number, second: number): boolean => {
+  const expected = first * 1.2;
+  const tolerance = Math.max(1e-8, Math.abs(expected) * 1e-6);
+  return Math.abs(second - expected) <= tolerance;
+};
+
+const evaluatePasswordRules = (value: string): PasswordRuleResult[] => {
+  const trimmed = value.trim();
+  const numbers = getSignedNumbers(trimmed);
+  const specialChars = (trimmed.match(/[^A-Za-z0-9\s]/g) ?? []).filter(
+    (char) => !forbiddenFat32Chars.test(char)
+  );
+  const distinctSpecialChars = new Set(specialChars);
+  const hasUppercaseLetter = /[A-Z]/.test(trimmed);
+  const hasLowercaseLetter = /[a-z]/.test(trimmed);
+
+  const hasArbitragePair = (() => {
+    const regex = /([+-]?\d+(?:\.\d+)?)[A-Za-z]([+-]?\d+(?:\.\d+)?)/g;
+    let match: RegExpExecArray | null;
+    while ((match = regex.exec(trimmed)) !== null) {
+      const first = Number(match[1] ?? NaN);
+      const second = Number(match[2] ?? NaN);
+      if (!Number.isFinite(first) || !Number.isFinite(second)) continue;
+      if (isTwentyPercentMarkup(first, second)) return true;
+    }
+    return false;
+  })();
+
+  const vowelSet = new Set(['a', 'e', 'i', 'o', 'u']);
+  const hasCaseParadox = (() => {
+    for (const char of trimmed) {
+      if (!/[A-Za-z]/.test(char)) continue;
+      const lower = char.toLowerCase();
+      if (vowelSet.has(lower)) {
+        if (char !== lower) return false;
+      } else if (char !== char.toUpperCase()) {
+        return false;
+      }
+    }
+    return true;
+  })();
+
+  const hasNoThreeCharPalindrome = (() => {
+    for (let i = 0; i <= trimmed.length - 3; i += 1) {
+      if (trimmed[i] === trimmed[i + 2]) return false;
+    }
+    return true;
+  })();
+
+  return [
+    {
+      id: 'min-10',
+      label: 'Minimum 10 characters',
+      passed: trimmed.length >= 10,
+    },
+    {
+      id: 'two-specials',
+      label: 'Must contain at least 2 different special characters.',
+      passed: distinctSpecialChars.size >= 2,
+    },
+    {
+      id: 'mixed-case',
+      label: 'Must contain both uppercase and lowercase letters.',
+      passed: hasUppercaseLetter && hasLowercaseLetter,
+    },
+    {
+      id: 'zero-sum-ledger',
+      label:
+        'The numbers in your password must represent a perfectly hedged position: all digits used must sum to exactly zero.',
+      passed:
+        numbers.length === 0 ||
+        Math.abs(numbers.reduce((sum, current) => sum + current, 0)) < 1e-9,
+    },
+    {
+      id: 'arbitrage',
+      label:
+        'Must contain two numbers separated by a letter, where the second number is exactly a 20% markup of the first.',
+      passed: hasArbitragePair,
+    },
+    {
+      id: 'illegal-chars',
+      label:
+        'Must contain a special character, but cannot contain FAT32 restricted characters.',
+      passed:
+        /[^A-Za-z0-9]/.test(trimmed) && !forbiddenFat32Chars.test(trimmed),
+    },
+    {
+      id: 'case-paradox',
+      label:
+        'All consonants must be uppercase. All vowels must be lowercase.',
+      passed: hasCaseParadox,
+    },
+    {
+      id: 'palindrome-penalty',
+      label: 'Password cannot contain any 3-character palindrome (e.g. ABA or 121).',
+      passed: hasNoThreeCharPalindrome,
+    },
+  ];
+};
 
 const sectionCardStyle: JSX.CSSProperties = {
   padding: '10px',
@@ -146,7 +262,14 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
   const [historyIndex, setHistoryIndex] = useState(0);
   const [typedAddress, setTypedAddress] = useState('http://worldwideweb.home/');
   const [searchQuery, setSearchQuery] = useState('');
+  const [resetPasswordInput, setResetPasswordInput] = useState('');
+  const [resetStatus, setResetStatus] = useState<string | null>(null);
+  const [maxVisibleRuleCount, setMaxVisibleRuleCount] = useState(1);
   const page = historyStack[historyIndex] ?? 'home';
+  const resetRuleResults = useMemo(
+    () => evaluatePasswordRules(resetPasswordInput),
+    [resetPasswordInput]
+  );
 
   const navigateTo = (nextPage: BrowserPage) => {
     setHistoryStack((current) => [...current.slice(0, historyIndex + 1), nextPage]);
@@ -161,6 +284,7 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
     if (q.includes('stocks')) return navigateTo('stocks');
     if (q.includes('sports')) return navigateTo('sports');
     if (q.includes('history')) return navigateTo('history');
+    if (q.includes('reset-password')) return navigateTo('portalResetPassword');
     if (q.includes('home')) return navigateTo('home');
     if (
       q.includes('win-rar.com') ||
@@ -182,6 +306,7 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
     if (page === 'history') return 'worldwideweb://history';
     if (page === 'search') return `worldwideweb://search?q=${encodeURIComponent(searchQuery)}`;
     if (page === 'winrarDownload') return 'http://download.winrar-online.example/';
+    if (page === 'portalResetPassword') return 'http://identity.corp.internal/reset-password';
     return 'http://worldwideweb.home/';
   }, [page, searchQuery]);
 
@@ -211,6 +336,16 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
       navigateForUrl(url);
     });
   }, []);
+
+  useEffect(() => {
+    if (page !== 'portalResetPassword') return;
+    const firstFailedIdx = resetRuleResults.findIndex((rule) => !rule.passed);
+    const progressiveVisibleCount =
+      firstFailedIdx === -1 ? resetRuleResults.length : firstFailedIdx + 1;
+    setMaxVisibleRuleCount((current) =>
+      Math.max(current, progressiveVisibleCount)
+    );
+  }, [page, resetRuleResults]);
 
   const renderPage = (): JSX.Element => {
     if (page === 'news') {
@@ -482,6 +617,129 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
           >
             Download WinRAR Installer
           </button>
+        </div>
+      );
+    }
+
+    if (page === 'portalResetPassword') {
+      const allPassed = resetRuleResults.every((rule) => rule.passed);
+      const visibleRuleCount = Math.min(
+        resetRuleResults.length,
+        maxVisibleRuleCount
+      );
+      const visibleRules = resetRuleResults.slice(0, visibleRuleCount);
+
+      return (
+        <div
+          style={{
+            lineHeight: 1.55,
+            backgroundColor: 'var(--surface)',
+            padding: '8px',
+            boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+          }}
+        >
+          <div
+            style={{
+              background:
+                'linear-gradient(90deg, var(--dialog-blue) 0%, var(--dialog-gray) 100%)',
+              color: '#ffffff',
+              fontWeight: 700,
+              padding: '4px 8px',
+              boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+            }}
+          >
+            Identity Services - Password Reset Wizard
+          </div>
+          <div
+            style={{
+              marginTop: '8px',
+              backgroundColor: 'var(--button-highlight)',
+              boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+              padding: '10px',
+            }}
+          >
+            Enter a new password. As soon as one requirement is satisfied, another
+            requirement is unlocked.
+          </div>
+          <div
+            style={{
+              marginTop: '8px',
+              backgroundColor: '#ffffff',
+              boxShadow: 'var(--border-field)',
+              padding: '10px',
+              display: 'flex',
+              gap: '8px',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
+            <input
+              type="text"
+              value={resetPasswordInput}
+              onInput={(event) => {
+                setResetPasswordInput((event.currentTarget as HTMLInputElement).value);
+                setResetStatus(null);
+              }}
+              style={{
+                ...addressInputStyle,
+                maxWidth: '430px',
+              }}
+              placeholder="New password..."
+            />
+            <button
+              type="button"
+              style={browserButtonStyle}
+              onClick={() => {
+                if (!allPassed) {
+                  setResetStatus('Password does not satisfy all current requirements.');
+                  return;
+                }
+                setPortalPassword(resetPasswordInput);
+                setResetStatus(
+                  'Password updated. Return to Submission Portal and sign in.'
+                );
+              }}
+            >
+              Set Password
+            </button>
+          </div>
+          <div
+            style={{
+              marginTop: '8px',
+              backgroundColor: '#ffffff',
+              boxShadow: 'var(--border-field)',
+              padding: '10px',
+            }}
+          >
+            <div style={{ fontWeight: 700, marginBottom: '6px' }}>
+              Password requirements
+            </div>
+            <ul style={{ margin: '0 0 0 18px', padding: 0 }}>
+              {visibleRules.map((rule) => (
+                <li
+                  key={rule.id}
+                  style={{
+                    color: rule.passed ? '#006800' : '#8b0000',
+                    marginBottom: '4px',
+                  }}
+                >
+                  {rule.label}
+                </li>
+              ))}
+            </ul>
+          </div>
+          {resetStatus && (
+            <div
+              style={{
+                marginTop: '8px',
+                backgroundColor: 'var(--button-highlight)',
+                boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+                padding: '8px 10px',
+              }}
+            >
+              {resetStatus}
+            </div>
+          )}
         </div>
       );
     }

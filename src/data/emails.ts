@@ -442,6 +442,28 @@ const CORP_SPAM_FAKE_Q3: EmailRecord[] = Array.from(
   }
 );
 
+const CORP_PORTAL_PASSWORD_RESET_SPAM: EmailRecord = {
+  id: 'corp-password-reset-link',
+  accountId: 'corpMail',
+  folder: 'spam',
+  sender: 'noreply@identity.corp.internal',
+  subject: 'Password reset requested',
+  timestamp: '13:58',
+  preview: 'Reset request received. Follow the secure link to set a new password.',
+  body: 'Reset your password: http://identity.corp.internal/reset-password',
+  bodyHtml: richBody(
+    [
+      'A password reset was requested for the Submission Portal account.',
+      'If this was you, continue with the secure reset flow below.',
+    ],
+    [
+      '<a href="http://identity.corp.internal/reset-password">Reset portal password</a>',
+      'This email landed in spam because enterprise filters are having a day.',
+    ]
+  ),
+  deliveryRule: EMAIL_ACCESS_RULE,
+};
+
 const CORP_PROMOTIONS: EmailRecord[] = [
   ...Array.from({ length: 24 }, (_, index): EmailRecord => {
     const id = index + 1;
@@ -504,6 +526,7 @@ export const allEmails: EmailRecord[] = [
   ...LEGACY_CORP_MAIL,
   ...CORP_INBOX_NOISE,
   ...CORP_SPAM_FAKE_Q3,
+  CORP_PORTAL_PASSWORD_RESET_SPAM,
   ...CORP_PROMOTIONS,
 ];
 

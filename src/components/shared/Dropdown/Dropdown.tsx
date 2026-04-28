@@ -1,4 +1,5 @@
-import { h, FunctionComponent, Fragment } from 'preact';
+import { h, FunctionComponent } from 'preact';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
 import style from './Dropdown.module.css';
 
@@ -13,7 +14,7 @@ interface Props {
   id: string;
   label?: string;
   options: Option[];
-  onChange: (e: Event) => void;
+  onChange: (value: string) => void;
   selected: string;
 }
 
@@ -24,27 +25,76 @@ const Dropdown: FunctionComponent<Props> = ({
   onChange,
   options,
   selected,
-}: Props) => (
-  <Fragment>
-    {label && <label htmlFor={id}>{label}</label>}
-    <select
-      className={style.dropdown}
-      disabled={disabled}
-      id={id}
-      onChange={onChange}
-    >
-      {options.map((option, i) => (
-        <option
-          disabled={option.disabled}
-          key={i + option.label}
-          selected={option.value === selected}
-          value={option.value}
-        >
-          {option.label}
-        </option>
-      ))}
-    </select>
-  </Fragment>
-);
+}: Props) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  const selectedOption = useMemo(
+    () => options.find((option) => option.value === selected) ?? null,
+    [options, selected]
+  );
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onPointerDown = (event: PointerEvent): void => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (rootRef.current?.contains(target)) return;
+      setIsOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') setIsOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isOpen]);
+
+  return (
+    <div className={style.root} ref={rootRef}>
+      {label && <label htmlFor={id}>{label}</label>}
+      <button
+        aria-controls={`${id}-menu`}
+        aria-expanded={isOpen}
+        className={style.trigger}
+        disabled={disabled}
+        id={id}
+        onClick={() => setIsOpen((current) => !current)}
+        type="button"
+      >
+        <span className={style.triggerLabel}>
+          {selectedOption?.label ?? '(select)'}
+        </span>
+        <span className={style.triggerArrow}>▼</span>
+      </button>
+      {isOpen && !disabled && (
+        <div className={style.menu} id={`${id}-menu`} role="listbox">
+          {options.map((option) => {
+            const isSelected = option.value === selected;
+            return (
+              <button
+                className={`${style.option} ${isSelected ? style.optionSelected : ''}`}
+                disabled={option.disabled}
+                key={`${id}-${option.value}`}
+                onClick={() => {
+                  if (option.disabled) return;
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+                role="option"
+                type="button"
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default Dropdown;

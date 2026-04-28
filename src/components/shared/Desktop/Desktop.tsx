@@ -58,6 +58,13 @@ interface SelectionBoxState {
   isActive: boolean;
 }
 
+interface IconRect {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
 type Props = {
   background?: string;
   openApp: OpenWindowsContextType['openApp'];
@@ -66,11 +73,25 @@ type Props = {
 const clamp = (value: number, min: number, max: number): number =>
   Math.min(max, Math.max(min, value));
 
+const iconRectFromPosition = (
+  position: IconPosition,
+  width = 78,
+  height = 74
+): IconRect => ({
+  left: position.left,
+  top: position.top,
+  right: position.left + width,
+  bottom: position.top + height,
+});
+
+const rectsIntersect = (a: IconRect, b: IconRect): boolean =>
+  !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom);
+
 const Desktop: FunctionComponent<Props> = ({
   background = '',
   openApp,
 }: Props) => {
-  const { flags } = useGameState();
+  const { flags, setFlags } = useGameState();
   const { files, focusOnFile, removeFocus } = useShellFilesState(
     getDirFromPath('C:/Windows/Desktop', myComputerFs),
     false
@@ -81,7 +102,15 @@ const Desktop: FunctionComponent<Props> = ({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const desktopItems = useMemo<ShellItem[]>(() => {
     const dynamicItems = getDynamicDesktopItems(flags);
-    const mergedItems = [...files, ...dynamicItems].map((item) => {
+    const recycledItemIds = flags.recycledDesktopApps ?? {};
+    const mergedItems = [...files, ...dynamicItems]
+      .filter((item) => {
+        const isRecycleBin =
+          item.type === 'dir' && item.fileSystemDir.dirType === 'recycleBin';
+        if (isRecycleBin) return true;
+        return !recycledItemIds[item.id];
+      })
+      .map((item) => {
       const isSelected = selectedIds.has(item.id);
       const isFocusedDynamic = item.id === focusedDynamicItemId;
       if (isSelected || isFocusedDynamic) {
@@ -94,6 +123,13 @@ const Desktop: FunctionComponent<Props> = ({
     }
     return mergedItems;
   }, [files, flags, focusedDynamicItemId, selectedIds]);
+  const recycleBinItem = useMemo(
+    () =>
+      desktopItems.find(
+        (item) => item.type === 'dir' && item.fileSystemDir.dirType === 'recycleBin'
+      ) ?? null,
+    [desktopItems]
+  );
 
   const desktopRef = useRef<HTMLDivElement>(null);
   const [iconPositions, setIconPositions] = useState<
@@ -113,6 +149,7 @@ const Desktop: FunctionComponent<Props> = ({
     w: FALLBACK_DESKTOP_W,
     h: FALLBACK_DESKTOP_H,
   });
+  const [isRecycleBinDropHover, setIsRecycleBinDropHover] = useState(false);
 
   useLayoutEffect(() => {
     const element = desktopRef.current;
@@ -189,6 +226,57 @@ const Desktop: FunctionComponent<Props> = ({
     };
   }, []);
 
+  const recycleDesktopItems = useCallback(
+    (items: ShellItem[]): boolean => {
+      const selectedItems = items.filter((item) => {
+        if (item.type === 'dir' && item.fileSystemDir.dirType === 'recycleBin') {
+          return false;
+        }
+        return true;
+      });
+      if (selectedItems.length === 0) return false;
+      const nextRecycledItems = { ...(flags.recycledDesktopApps ?? {}) };
+      selectedItems.forEach((item) => {
+        nextRecycledItems[item.id] = item.name;
+      });
+      setFlags({ recycledDesktopApps: nextRecycledItems });
+      setFocusedDynamicItemId(null);
+      setSelectedIds(new Set());
+      removeFocus();
+      return true;
+    },
+    [flags.recycledDesktopApps, removeFocus, setFlags]
+  );
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key !== 'Delete' && event.key !== 'Backspace') return;
+      if (selectedIds.size === 0) return;
+
+      const activeElement = document.activeElement as HTMLElement | null;
+      if (activeElement) {
+        const tagName = activeElement.tagName;
+        const isTextInput =
+          tagName === 'INPUT' ||
+          tagName === 'TEXTAREA' ||
+          activeElement.isContentEditable;
+        if (isTextInput) return;
+      }
+
+      const selectedItems = desktopItems.filter((item) =>
+        selectedIds.has(item.id)
+      );
+      if (selectedItems.length === 0) return;
+
+      if (recycleDesktopItems(selectedItems)) {
+        event.preventDefault();
+      }
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [desktopItems, recycleDesktopItems, selectedIds]);
+
   const clampToDesktop = useCallback(
     (left: number, top: number): { left: number; top: number } => {
       const ICON_W = CELL_WIDTH;
@@ -206,6 +294,7 @@ const Desktop: FunctionComponent<Props> = ({
   const endDrag = useCallback((): void => {
     dragRef.current = null;
     pendingPointerEventRef.current = null;
+    setIsRecycleBinDropHover(false);
     if (rafIdRef.current !== null) {
       cancelAnimationFrame(rafIdRef.current);
       rafIdRef.current = null;
@@ -286,7 +375,40 @@ const Desktop: FunctionComponent<Props> = ({
     };
     dragRef.current = updated;
     setDrag(updated);
-  }, [desktopSize.h, desktopSize.w]);
+
+    if (!recycleBinItem) {
+      setIsRecycleBinDropHover(false);
+      return;
+    }
+    const recycleBinPosition = iconPositions[recycleBinItem.id];
+    if (!recycleBinPosition) {
+      setIsRecycleBinDropHover(false);
+      return;
+    }
+    const recycleRect = iconRectFromPosition(recycleBinPosition);
+    const hover = updated.draggedFileIds.some((id) => {
+      const draggedItem = desktopItems.find((item) => item.id === id);
+      if (!draggedItem) return false;
+      if (
+        draggedItem.type === 'dir' &&
+        draggedItem.fileSystemDir.dirType === 'recycleBin'
+      ) {
+        return false;
+      }
+      const startPos = updated.startPositions[id];
+      if (!startPos) return false;
+      const nextPos = clampToDesktop(startPos.left + dx, startPos.top + dy);
+      return rectsIntersect(iconRectFromPosition(nextPos), recycleRect);
+    });
+    setIsRecycleBinDropHover(hover);
+  }, [
+    clampToDesktop,
+    desktopItems,
+    desktopSize.h,
+    desktopSize.w,
+    iconPositions,
+    recycleBinItem,
+  ]);
 
   const computeSelection = useCallback(
     (box: SelectionBoxState): Set<string> => {
@@ -480,6 +602,39 @@ const Desktop: FunctionComponent<Props> = ({
 
       armSuppressClick();
 
+      if (recycleBinItem) {
+        const recycleBinPosition = iconPositions[recycleBinItem.id];
+        if (recycleBinPosition) {
+          const binRect = iconRectFromPosition(recycleBinPosition);
+
+          const draggedItems = desktopItems.filter((item) =>
+            finalState.draggedFileIds.includes(item.id)
+          );
+          const eligibleDraggedItems = draggedItems.filter((item) => {
+            if (
+              item.type === 'dir' &&
+              item.fileSystemDir.dirType === 'recycleBin'
+            ) {
+              return false;
+            }
+            return true;
+          });
+          const isDroppedOnRecycleBin = eligibleDraggedItems.some((item) => {
+            const startPos = finalState.startPositions[item.id];
+            if (!startPos) return false;
+            const nextPos = clampToDesktop(
+              startPos.left + finalState.deltaX,
+              startPos.top + finalState.deltaY
+            );
+            return rectsIntersect(iconRectFromPosition(nextPos), binRect);
+          });
+          if (isDroppedOnRecycleBin && recycleDesktopItems(eligibleDraggedItems)) {
+            endDrag();
+            return;
+          }
+        }
+      }
+
       setIconPositions((currentPositions) => {
         let changed = false;
         const next: Record<string, IconPosition> = { ...currentPositions };
@@ -501,7 +656,16 @@ const Desktop: FunctionComponent<Props> = ({
       });
       endDrag();
     },
-    [armSuppressClick, clampToDesktop, endDrag, flushPointerMove]
+    [
+      armSuppressClick,
+      clampToDesktop,
+      desktopItems,
+      endDrag,
+      flushPointerMove,
+      iconPositions,
+      recycleDesktopItems,
+      recycleBinItem,
+    ]
   );
 
   const handlePointerCancel = useCallback(
@@ -588,6 +752,10 @@ const Desktop: FunctionComponent<Props> = ({
 
       if (file.type === 'app') openApp({ appId: file.appId });
       if (file.type === 'dir') {
+        if (file.fileSystemDir.dirType === 'recycleBin') {
+          openApp({ appId: 'recycleBinViewer' });
+          return;
+        }
         openApp({ appId: 'myComputer', workingDir: file.fileSystemDir });
       }
       if (file.type === 'file') {
@@ -627,13 +795,19 @@ const Desktop: FunctionComponent<Props> = ({
         : position;
     const isPrimaryDragged =
       !!drag && drag.hasMoved && drag.primaryFileId === file.id;
+    const isRecycleBinHighlighted =
+      file.type === 'dir' &&
+      file.fileSystemDir.dirType === 'recycleBin' &&
+      isRecycleBinDropHover;
 
     return (
       <div
         key={file.id}
         className={`${style.iconSlot} ${fileGridStyle.file} ${
           file.hasFocus ? fileGridStyle.focus : ''
-        } ${file.hasSoftFocus ? fileGridStyle.softFocus : ''}`}
+        } ${file.hasSoftFocus ? fileGridStyle.softFocus : ''} ${
+          isRecycleBinHighlighted ? `${fileGridStyle.focus} ${fileGridStyle.softFocus}` : ''
+        }`}
         draggable={false}
         onClick={(event) => handleClickFile(event, file)}
         onDblClick={(event) => handleDblClickFile(event, file)}

@@ -4,6 +4,7 @@ import { useMemo, useState } from 'preact/hooks';
 import Button from '../../components/shared/Button/Button';
 import Window from '../../components/shared/Window/Window';
 import { useGameState } from '../../game/state';
+import { getSubmittedElapsedMs } from '../../system/runTimer/runTimer';
 
 const containerStyle: JSX.CSSProperties = {
   position: 'absolute',
@@ -31,6 +32,15 @@ const WinStageLayer: FunctionComponent = () => {
 
   const isVisible = stage === 'win';
 
+  const elapsedMs = getSubmittedElapsedMs();
+  const elapsedLabel = useMemo(() => {
+    if (elapsedMs === null) return '--:--';
+    const totalSeconds = Math.max(0, Math.floor(elapsedMs / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${String(seconds).padStart(2, '0')}`;
+  }, [elapsedMs]);
+
   const message = useMemo(
     () =>
       'Submission received. Congratulations — you delivered the report before the deadline.',
@@ -49,12 +59,17 @@ const WinStageLayer: FunctionComponent = () => {
           isResizeable={false}
           onClickClose={rebootGame}
           onMoved={(nextCoords) => setCoords(nextCoords)}
-          size={{ x: 520, y: 190 }}
+          size={{ x: 520, y: 220 }}
           title="Success"
           zIndex={99999}
         >
           <div style={{ padding: '8px' }}>
-            <div style={bodyStyle}>{message}</div>
+            <div style={bodyStyle}>
+              <div>{message}</div>
+              <div style={{ marginTop: '8px', fontFamily: 'monospace' }}>
+                Submission time: <b>{elapsedLabel}</b>
+              </div>
+            </div>
             <div style={actionsStyle}>
               <Button label="Play Again" onClick={rebootGame} />
             </div>

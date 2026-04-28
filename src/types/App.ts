@@ -5,7 +5,9 @@ import { OpenWindowsContextType } from '../context/OpenWindowsContext';
 export const appIds = [
   'antiVirus',
   'draftDocumentLink',
+  'eula',
   'fileConverter',
+  'tipOfDay',
   'calc',
   'cdPlayer',
   'clickMeReset',
@@ -26,6 +28,7 @@ export const appIds = [
   'phoneDialer',
   'register',
   'quickView',
+  'recycleBinViewer',
   'run',
   'scandisk',
   'shutdown',

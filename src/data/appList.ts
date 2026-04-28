@@ -15,12 +15,26 @@ export const appList: AppList = {
     name: 'Draft.Document.lnk',
     size: { width: 320, height: 120 },
   },
+  eula: {
+    id: 'eula',
+    iconId: 'helpFile',
+    isResizeable: true,
+    name: 'End User License Agreement',
+    size: { width: 900, height: 600 },
+  },
   fileConverter: {
     id: 'fileConverter',
     iconId: 'quickView',
     isResizeable: false,
     name: 'File Converter',
     size: { width: 540, height: 340 },
+  },
+  tipOfDay: {
+    id: 'tipOfDay',
+    iconId: 'help',
+    isResizeable: true,
+    name: 'Tip of the Day',
+    size: { width: 430, height: 220 },
   },
   calc: {
     id: 'calc',
@@ -149,6 +163,12 @@ export const appList: AppList = {
     iconId: 'quickView',
     name: 'Quick View',
   },
+  recycleBinViewer: {
+    id: 'recycleBinViewer',
+    iconId: 'binEmpty',
+    name: 'Recycle Bin',
+    size: { width: 420, height: 280 },
+  },
   register: {
     id: 'register',
     iconId: 'register',
@@ -196,7 +216,7 @@ export const appList: AppList = {
     iconId: 'program',
     isResizeable: true,
     name: 'Project Deadline',
-    size: { width: 360, height: 200 },
+    size: { width: 200, height: 150 },
   },
   corpMail: {
     id: 'corpMail',
@@ -238,8 +258,9 @@ export const appList: AppList = {
   zipArchive: {
     id: 'zipArchive',
     iconId: 'program',
+    isResizeable: true,
     name: 'Archive.zip',
-    size: { width: 480, height: 260 },
+    size: { width: 560, height: 360 },
   },
   volumeControl: {
     id: 'volumeControl',

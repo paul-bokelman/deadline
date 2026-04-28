@@ -2,12 +2,15 @@ import { h, FunctionComponent } from 'preact';
 
 import AntiVirusApp from './antiVirus/AntiVirusApp';
 import DraftDocumentLinkApp from './draftDocumentLink/DraftDocumentLinkApp';
+import EulaApp from './eula/EulaApp';
 import FileConverterApp from './fileConverter/FileConverterApp';
+import TipOfDayApp from './tipOfDay/TipOfDayApp';
 import EmailClient from './email/EmailClient';
 import BlackjackApp from './blackjack/BlackjackApp';
 import WalletApp from './wallet/WalletApp';
 import PasswordsFile from './notepad/PasswordsFile';
 import PortalApp from './portal/PortalApp';
+import RecycleBinApp from './recycleBin/RecycleBinApp';
 import WinRarExtractor from './winrar/WinRarExtractor';
 import WorldWideWebApp from './worldWideWeb/WorldWideWebApp';
 import WinRarInstaller from '../stages/download/WinRarInstaller';
@@ -38,7 +41,9 @@ const ImportantPasswordsFileApp: FunctionComponent<AppProps> = () => (
 export const appComponents: Record<AppId, FunctionComponent<AppProps>> = {
   antiVirus: AntiVirusApp,
   draftDocumentLink: DraftDocumentLinkApp,
+  eula: EulaApp,
   fileConverter: FileConverterApp,
+  tipOfDay: TipOfDayApp,
   calc: VoidApp,
   cdPlayer: VoidApp,
   clickMeReset: VoidApp,
@@ -59,6 +64,7 @@ export const appComponents: Record<AppId, FunctionComponent<AppProps>> = {
   phoneDialer: VoidApp,
   register: VoidApp,
   quickView: QuickViewApp,
+  recycleBinViewer: RecycleBinApp,
   run: VoidApp,
   scandisk: VoidApp,
   shutdown: VoidApp,

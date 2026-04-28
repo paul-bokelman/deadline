@@ -1,6 +1,7 @@
 import { h, FunctionComponent, JSX } from 'preact';
-import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
 
+import Dropdown from '../../components/shared/Dropdown/Dropdown';
 import { AppProps } from '../../types/App';
 import { useGameState } from '../../game/state';
 import { gameEventBus } from '../../game/events';
@@ -32,9 +33,12 @@ const panelStyle: JSX.CSSProperties = {
   backgroundColor: 'var(--button-highlight)',
   boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
   height: 'calc(100% - 16px)',
+  boxSizing: 'border-box',
   display: 'flex',
   flexDirection: 'column',
   gap: '10px',
+  minHeight: 0,
+  overflowY: 'auto',
 };
 
 const headerStyle: JSX.CSSProperties = {
@@ -56,10 +60,26 @@ const tableStyle: JSX.CSSProperties = {
     'linear-gradient(0deg, rgba(0,0,0,0.18), rgba(0,0,0,0.18)), radial-gradient(circle at 25% 20%, rgba(255,255,255,0.08), transparent 55%)',
   boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
   padding: '10px',
-  flex: 1,
+  flex: '1 1 160px',
+  minHeight: 140,
   display: 'flex',
   flexDirection: 'column',
   gap: '10px',
+  overflow: 'hidden',
+};
+
+const statusStripStyle: JSX.CSSProperties = {
+  display: 'flex',
+  gap: '8px',
+  flexWrap: 'wrap',
+};
+
+const statusPillStyle: JSX.CSSProperties = {
+  padding: '2px 8px',
+  backgroundColor: 'var(--surface)',
+  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+  fontFamily: 'monospace',
+  fontSize: '12px',
 };
 
 const rowStyle: JSX.CSSProperties = {
@@ -138,14 +158,6 @@ const disabledButtonStyle: JSX.CSSProperties = {
   textShadow: '1px 1px 0 var(--button-highlight)',
 };
 
-const selectStyle: JSX.CSSProperties = {
-  border: 'none',
-  backgroundColor: '#ffffff',
-  boxShadow: 'var(--border-field)',
-  padding: '3px 6px',
-  fontFamily: 'monospace',
-};
-
 const inputStyle: JSX.CSSProperties = {
   border: 'none',
   backgroundColor: '#ffffff',
@@ -204,6 +216,7 @@ const scoreHand = (hand: Card[]): number => {
 
 const BlackjackApp: FunctionComponent<AppProps> = () => {
   const { flags, setFlags } = useGameState();
+  const panelRef = useRef<HTMLDivElement>(null);
   const seedRef = useRef<number>(Date.now());
   const deckRef = useRef<Card[]>(buildDeck(seedRef.current));
   const discardRef = useRef<Card[]>([]);
@@ -220,9 +233,42 @@ const BlackjackApp: FunctionComponent<AppProps> = () => {
   const [currentBet, setCurrentBet] = useState<number | null>(null);
   const [depositInput, setDepositInput] = useState('10');
   const [withdrawInput, setWithdrawInput] = useState('10');
+  const [layoutScale, setLayoutScale] = useState(1);
 
   const bank = flags.bankBalance;
   const table = flags.blackjackBalance;
+  const currentMood =
+    outcome === 'blackjack' || outcome === 'win'
+      ? 'Hot Streak'
+      : outcome === 'lose'
+      ? 'Dealer Advantage'
+      : roundState === 'playerTurn'
+      ? 'Decision Time'
+      : 'Open Table';
+
+  useLayoutEffect(() => {
+    const element = panelRef.current;
+    if (!element) return undefined;
+    const BASE_WIDTH = 700;
+    const BASE_HEIGHT = 520;
+    const updateScale = (): void => {
+      const rect = element.getBoundingClientRect();
+      const nextScale = Math.max(
+        0.62,
+        Math.min(1, Math.min(rect.width / BASE_WIDTH, rect.height / BASE_HEIGHT))
+      );
+      setLayoutScale(nextScale);
+    };
+    updateScale();
+    const observer = new ResizeObserver(updateScale);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  const cardWidth = Math.max(34, Math.round(54 * layoutScale));
+  const cardHeight = Math.max(46, Math.round(72 * layoutScale));
+  const cardPadding = Math.max(2, Math.round(4 * layoutScale));
+  const cardFontSize = Math.max(9, Math.round(12 * layoutScale));
 
   useEffect(() => {
     const inProgress = roundState === 'playerTurn' || roundState === 'dealerTurn';
@@ -251,8 +297,6 @@ const BlackjackApp: FunctionComponent<AppProps> = () => {
     () => scoreHand(hideDealerHole ? dealerHand.slice(0, 1) : dealerHand),
     [dealerHand, hideDealerHole]
   );
-
-  const deckRemaining = deckRef.current.length;
 
   const betOptions = useMemo(() => {
     const base = [5, 10, 25, 50, 100];
@@ -446,8 +490,23 @@ const BlackjackApp: FunctionComponent<AppProps> = () => {
 
   const renderCard = (card: Card): JSX.Element => {
     const red = isRedSuit(card.suit);
+    const scaledCardStyle: JSX.CSSProperties = {
+      width: `${cardWidth}px`,
+      height: `${cardHeight}px`,
+      backgroundColor: '#ffffff',
+      boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+      padding: `${cardPadding}px`,
+      fontFamily: 'monospace',
+      fontSize: `${cardFontSize}px`,
+      userSelect: 'none',
+      boxSizing: 'border-box',
+      flex: '0 0 auto',
+    };
     return (
-      <div key={card.id} style={cardStyle}>
+      <div key={card.id} style={scaledCardStyle}>
         <div style={{ color: red ? '#a00000' : '#000000' }}>
           {card.rank}
           {card.suit}
@@ -461,7 +520,7 @@ const BlackjackApp: FunctionComponent<AppProps> = () => {
   };
 
   return (
-    <div style={panelStyle}>
+    <div ref={panelRef} style={panelStyle}>
       <div style={headerStyle}>
         <div style={brandStyle}>
           <div style={{ fontWeight: 800, letterSpacing: '0.2px' }}>
@@ -473,20 +532,36 @@ const BlackjackApp: FunctionComponent<AppProps> = () => {
         </div>
         <div style={{ fontFamily: 'monospace' }}>
           Bank: ${bank} | Table: ${table}{' '}
-          {currentBet !== null ? `| Hand: $${currentBet}` : ''} | Shoe: {deckRemaining}
+          {currentBet !== null ? `| Hand: $${currentBet}` : ''}
         </div>
       </div>
+      <div style={statusStripStyle}>
+        <div style={statusPillStyle}>Table Mood: {currentMood}</div>
+        <div style={statusPillStyle}>Round: {roundState}</div>
+        {outcome && <div style={statusPillStyle}>Last: {outcome.toUpperCase()}</div>}
+      </div>
 
-      <div style={tableStyle}>
+      <div style={{ ...tableStyle, padding: `${Math.max(6, Math.round(10 * layoutScale))}px` }}>
         <div style={rowStyle}>
           <div style={{ color: '#ffffff', fontWeight: 700 }}>
             Dealer {hideDealerHole ? `(showing ${dealerScore})` : `(${scoreHand(dealerHand)})`}
           </div>
-          <div style={handStyle}>
+          <div style={{ ...handStyle, gap: `${Math.max(3, Math.round(6 * layoutScale))}px` }}>
             {dealerHand.map((c, idx) => {
               if (idx === 1 && hideDealerHole && roundState !== 'done') {
                 return (
-                  <div key={c.id} style={cardBackStyle}>
+                  <div
+                    key={c.id}
+                    style={{
+                      ...cardBackStyle,
+                      width: `${cardWidth}px`,
+                      height: `${cardHeight}px`,
+                      fontSize: `${cardFontSize}px`,
+                      padding: `${cardPadding}px`,
+                      boxSizing: 'border-box',
+                      flex: '0 0 auto',
+                    }}
+                  >
                     ##
                   </div>
                 );
@@ -500,11 +575,24 @@ const BlackjackApp: FunctionComponent<AppProps> = () => {
           <div style={{ color: '#ffffff', fontWeight: 700 }}>
             You ({playerScore})
           </div>
-          <div style={handStyle}>{playerHand.map(renderCard)}</div>
+          <div style={{ ...handStyle, gap: `${Math.max(3, Math.round(6 * layoutScale))}px` }}>
+            {playerHand.map(renderCard)}
+          </div>
         </div>
       </div>
 
-      <div style={{ textAlign: 'center', minHeight: '18px' }}>{message}</div>
+      <div
+        style={{
+          textAlign: 'center',
+          minHeight: '18px',
+          background: 'var(--surface)',
+          boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+          padding: '4px 8px',
+          fontFamily: 'monospace',
+        }}
+      >
+        {message}
+      </div>
 
       <div
         style={{
@@ -557,18 +645,18 @@ const BlackjackApp: FunctionComponent<AppProps> = () => {
       <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ fontFamily: 'monospace' }}>Hand size:</span>
-          <select
-            style={selectStyle}
-            value={handSize}
-            disabled={!canAdjustBet}
-            onChange={(e) => setHandSize(Number((e.currentTarget as HTMLSelectElement).value))}
-          >
-            {betOptions.map((b) => (
-              <option key={b} value={b}>
-                ${b}
-              </option>
-            ))}
-          </select>
+          <div style={{ width: '110px' }}>
+            <Dropdown
+              id="blackjack-hand-size"
+              selected={String(handSize)}
+              disabled={!canAdjustBet}
+              onChange={(value) => setHandSize(Number(value))}
+              options={betOptions.map((b) => ({
+                value: String(b),
+                label: `$${b}`,
+              }))}
+            />
+          </div>
           <button
             type="button"
             onClick={() => {

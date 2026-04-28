@@ -87,7 +87,7 @@ const WindowsContainer: FunctionComponent = () => {
               }
             }}
             onMouseDown={() => {
-              if (!window.isMaximized) focusOnWindow(window.id);
+              focusOnWindow(window.id);
             }}
             onMoved={(coords) => moveWindow(window.id, coords)}
             onResized={(size) =>

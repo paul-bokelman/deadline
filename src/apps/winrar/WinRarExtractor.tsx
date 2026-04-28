@@ -1,4 +1,5 @@
 import { h, FunctionComponent, JSX } from 'preact';
+import { useMemo, useState } from 'preact/hooks';
 
 import { AppProps } from '../../types/App';
 import { gameEventBus } from '../../game/events';
@@ -10,6 +11,20 @@ const panelStyle: JSX.CSSProperties = {
   padding: '10px',
   backgroundColor: 'var(--button-highlight)',
   boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+  height: 'calc(100% - 16px)',
+  boxSizing: 'border-box',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
+  minHeight: 0,
+  overflowY: 'auto',
+};
+
+const groupStyle: JSX.CSSProperties = {
+  backgroundColor: 'var(--surface)',
+  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+  padding: '8px',
+  minHeight: 0,
 };
 
 const buttonStyle: JSX.CSSProperties = {
@@ -26,12 +41,64 @@ const disabledStyle: JSX.CSSProperties = {
   textShadow: '1px 1px 0 var(--button-highlight)',
 };
 
+const pickerListStyle: JSX.CSSProperties = {
+  marginTop: '6px',
+  flex: 1,
+  minHeight: 80,
+  overflowY: 'auto',
+  backgroundColor: '#ffffff',
+  boxShadow: 'var(--border-field)',
+  padding: '4px',
+};
+
+const pickerRowStyle = (isSelected: boolean): JSX.CSSProperties => ({
+  width: '100%',
+  border: 'none',
+  textAlign: 'left',
+  padding: '4px 6px',
+  marginBottom: '2px',
+  backgroundColor: isSelected ? 'var(--dialog-blue)' : 'transparent',
+  color: isSelected ? '#ffffff' : 'inherit',
+});
+
+type ProgramOption = {
+  id: string;
+  label: string;
+  requiresInstall?: boolean;
+  isExtractor?: boolean;
+};
+
 const WinRarExtractor: FunctionComponent<AppProps> = () => {
   const { flags, setFlag } = useGameState();
+  const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
+  const [hasConfirmedProgram, setHasConfirmedProgram] = useState(false);
+  const [uiStatusMessage, setUiStatusMessage] = useState<string | null>(null);
+
+  const programOptions = useMemo<ProgramOption[]>(
+    () => [
+      { id: 'media-player', label: 'Media Player' },
+      { id: 'paint-98', label: 'Paint 98' },
+      { id: 'hex-viewer', label: 'Hex Viewer' },
+      { id: 'minesweeper', label: 'Minesweeper' },
+      { id: 'wordpad', label: 'WordPad' },
+      {
+        id: 'winrar',
+        label: flags.hasWinRarInstalled ? 'WinRAR' : 'WinRAR (not installed)',
+        requiresInstall: true,
+        isExtractor: true,
+      },
+    ],
+    [flags.hasWinRarInstalled]
+  );
+
+  const selectedProgram = useMemo(
+    () => programOptions.find((option) => option.id === selectedProgramId) ?? null,
+    [programOptions, selectedProgramId]
+  );
 
   const handleFakeProgram = (program: string) => {
-    window.alert(
-      `${program} says this archive uses AES-256 encryption.\nInstall WinRAR to read it.`
+    setUiStatusMessage(
+      `${program} cannot open this archive. Install WinRAR to continue.`
     );
   };
 
@@ -56,48 +123,107 @@ const WinRarExtractor: FunctionComponent<AppProps> = () => {
     setFlag('hasFinalReportFile', true);
   };
 
-  if (!flags.hasWinRarInstalled) {
-    return (
-      <div style={panelStyle}>
-        <div>What program should open this file?</div>
-        <div>
-          {['Media Player', 'Paint 98', 'Hex Viewer', 'Minesweeper', 'WordPad'].map(
-            (program) => (
-              <button
-                key={program}
-                onClick={() => handleFakeProgram(program)}
-                style={buttonStyle}
-                type="button"
-              >
-                {program}
-              </button>
-            )
-          )}
-        </div>
-        <div style={{ marginTop: '8px' }}>
-          <button disabled style={disabledStyle} type="button">
-            WinRAR (not installed)
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const confirmProgramSelection = () => {
+    if (!selectedProgram) return;
+    if (selectedProgram.id !== 'winrar') {
+      handleFakeProgram(selectedProgram.label);
+      setHasConfirmedProgram(false);
+      return;
+    }
+    if (!flags.hasWinRarInstalled) {
+      setUiStatusMessage('WinRAR is not installed yet.');
+      setHasConfirmedProgram(false);
+      return;
+    }
+    setUiStatusMessage('WinRAR selected. Ready to extract.');
+    setHasConfirmedProgram(true);
+  };
 
   return (
     <div style={panelStyle}>
-      <div>Archive: {getZipNameForLevel(flags.zipExtractionLevel)}</div>
-      <div style={{ marginTop: '8px' }}>
-        {flags.hasZipFile ? (
-          <button onClick={handleExtract} style={buttonStyle} type="button">
-            Extract to Desktop
+      <div style={{ fontWeight: 700 }}>Open With</div>
+      <div style={{ marginTop: '6px' }}>
+        Choose the program to open:
+        <span style={{ fontFamily: 'monospace', marginLeft: '6px' }}>
+          {getZipNameForLevel(flags.zipExtractionLevel)}
+        </span>
+      </div>
+      <div
+        style={{
+          ...groupStyle,
+          display: 'flex',
+          flexDirection: 'column',
+          flex: '1 1 180px',
+        }}
+      >
+        <div style={pickerListStyle}>
+          {programOptions.map((option) => (
+            <button
+              key={option.id}
+              style={pickerRowStyle(option.id === selectedProgramId)}
+              type="button"
+              onClick={() => {
+                setSelectedProgramId(option.id);
+                setHasConfirmedProgram(false);
+                setUiStatusMessage(null);
+              }}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <div style={{ marginTop: '8px' }}>
+          <button
+            type="button"
+            style={selectedProgram ? buttonStyle : disabledStyle}
+            disabled={!selectedProgram}
+            onClick={confirmProgramSelection}
+          >
+            Use selected program
           </button>
+        </div>
+      </div>
+      <div style={groupStyle}>
+        {hasConfirmedProgram && selectedProgram?.isExtractor ? (
+          <div>
+            <div style={{ marginBottom: '8px' }}>
+              WinRAR selected for extraction.
+            </div>
+            {flags.hasZipFile ? (
+              <button onClick={handleExtract} style={buttonStyle} type="button">
+                Extract to Desktop
+              </button>
+            ) : (
+              <div>No archive is currently available.</div>
+            )}
+          </div>
         ) : (
-          <div>No archive is currently available.</div>
+          <div style={{ color: 'var(--button-shadow)' }}>
+            Select and confirm WinRAR to enable extraction.
+          </div>
         )}
       </div>
       {flags.hasFinalReportFile && (
         <div style={{ marginTop: '10px' }}>
           Extraction complete. Final report files are now on the desktop.
+        </div>
+      )}
+      {!flags.hasWinRarInstalled && (
+        <div style={{ marginTop: '8px', color: 'maroon' }}>
+          WinRAR must be installed first.
+        </div>
+      )}
+      {uiStatusMessage && (
+        <div
+          style={{
+            marginTop: '8px',
+            backgroundColor: 'var(--surface)',
+            boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+            padding: '6px 8px',
+            fontFamily: 'monospace',
+          }}
+        >
+          {uiStatusMessage}
         </div>
       )}
     </div>

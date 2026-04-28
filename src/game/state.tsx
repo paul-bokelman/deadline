@@ -6,6 +6,7 @@ import { gameEventBus } from './events';
 import { NetVoiceCallId } from './netvoice/calls';
 import { playRebootSfx, playYouGotMailSfx } from '../utils/audio/osSfx';
 import { FileTypeId } from '../types/FileType';
+import { resetRunTimer } from '../system/runTimer/runTimer';
 
 export type GameStage =
   | 'bios'
@@ -49,6 +50,7 @@ export interface GameFlags {
   hasReceivedWinRarLinkEmail: boolean;
   dynamicFileTypeOverrides: Partial<Record<string, FileTypeId>>;
   dynamicFileNameOverrides: Partial<Record<string, string>>;
+  recycledDesktopApps: Partial<Record<string, string>>;
   language: 'en' | 'zh';
 }
 
@@ -100,6 +102,7 @@ const initialFlags: GameFlags = {
   hasReceivedWinRarLinkEmail: false,
   dynamicFileTypeOverrides: {},
   dynamicFileNameOverrides: {},
+  recycledDesktopApps: {},
   language: 'en',
 };
 
@@ -154,6 +157,7 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
     setFiredEvents({});
     setActiveNetVoiceCallIdState(null);
     setIsNetVoiceCallAcceptedState(false);
+    resetRunTimer();
   };
 
   useEffect(() => {
@@ -203,6 +207,7 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
   }, []);
 
   useEffect(() => {
+    if (flags.hasPurchasedWinRar) return undefined;
     const isBrokeNow = flags.bankBalance <= 0 && flags.blackjackBalance <= 0;
     if (!isBrokeNow) return undefined;
     if (activeNetVoiceCallId !== null) return undefined;
@@ -239,6 +244,7 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
     flags.blackjackBalance,
     flags.blackjackHandsInProgress,
     flags.blackjackBailoutCount,
+    flags.hasPurchasedWinRar,
   ]);
 
   useEffect(() => {

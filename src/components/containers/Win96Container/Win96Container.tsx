@@ -62,6 +62,43 @@ const BrowserNavigationSync: FunctionComponent = () => {
   return null;
 };
 
+const SaveHotkeyTrap: FunctionComponent = () => {
+  const { focusOnWindow, openApp, unMinimizeWindow, windows } = useContext(
+    OpenWindowsContext
+  );
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const isSaveShortcut =
+        (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's';
+      if (!isSaveShortcut) return;
+      if (event.repeat) return;
+      event.preventDefault();
+      event.stopPropagation();
+
+      const existingEulaWindow = windows.find(
+        (window) => window.app.id === 'eula'
+      );
+      if (!existingEulaWindow) {
+        openApp({ appId: 'eula' });
+        return;
+      }
+      if (existingEulaWindow.isMinimized) {
+        unMinimizeWindow(existingEulaWindow.id);
+      } else {
+        focusOnWindow(existingEulaWindow.id);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown, true);
+    };
+  }, [focusOnWindow, openApp, unMinimizeWindow, windows]);
+
+  return null;
+};
+
 const Win96Container: FunctionComponent = () => {
   useEffect(() => {
     void triggerBootLoaderScreen();
@@ -95,6 +132,7 @@ const Win96Container: FunctionComponent = () => {
                 <IntrusivePopupManager />
                 <WindowsUpdateNag />
                 <Narrator />
+                <SaveHotkeyTrap />
                 <NetVoiceCallWindowSync />
                 <BrowserNavigationSync />
                 <GameScenarioController />

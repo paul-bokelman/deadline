@@ -39,6 +39,14 @@ const TitleBar: FunctionComponent<Props> = ({
   const handleOnMouseDownButton = (e: MouseEvent | TouchEvent) => {
     e.stopPropagation();
   };
+
+  const handleOnMouseDownCloseButton = (e: MouseEvent | TouchEvent) => {
+    // Close immediately on press so moving windows/popups still close reliably.
+    e.preventDefault();
+    e.stopPropagation();
+    onClickClose();
+  };
+
   return (
     <div
       className={`${style.titleBar} ${isInactive ? style.inactive : ''}`}
@@ -79,7 +87,7 @@ const TitleBar: FunctionComponent<Props> = ({
           <Button
             label={<div className={style.close} />}
             onClick={onClickClose}
-            onMouseDown={handleOnMouseDownButton}
+            onMouseDown={handleOnMouseDownCloseButton}
           />
         )}
       </div>

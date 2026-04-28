@@ -18,6 +18,9 @@ interface Props {
   children: ComponentChildren;
 }
 
+const TASKBAR_DOCK_HEIGHT = 34;
+const MIN_WINDOW_HEIGHT = 150;
+
 const createInitialOpenWindows = (): OpenWindow[] => {
   const timerApp = appList.timer;
   return [
@@ -98,12 +101,19 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
       return;
     }
     const isProjectDeadlineWindow = appId === 'timer';
+    const isEulaWindow = appId === 'eula';
 
     setOpenWindows((windows) => {
       const app = appList[appId];
       const iconId = getWindowIconId(app, workingDir);
       const title = getWindowTitle(app, workingDir, workingFile);
       const zIndex = getBiggestZIndex(windows) + 1;
+      const eulaWidth = Math.round(window.innerWidth * 0.75);
+      const eulaHeight = Math.round(window.innerHeight * 0.75);
+      const eulaCoords = {
+        x: Math.max(0, Math.round((window.innerWidth - eulaWidth) / 2)),
+        y: Math.max(0, Math.round((window.innerHeight - eulaHeight) / 2)),
+      };
       const existingWindows = windows.map((window) => ({
         ...window,
         hasFocus: false,
@@ -114,26 +124,32 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
           app,
           canMaximize: isProjectDeadlineWindow
             ? true
+            : isEulaWindow
+            ? false
             : app.isResizeable ?? true,
-          canMinimize: true,
+          canMinimize: isEulaWindow ? false : true,
           iconId,
           id: uuid(),
-          coords: {
-            x: 50 + Math.round(Math.random() * 200),
-            y: 50 + Math.round(Math.random() * 200),
-          },
+          coords: isEulaWindow
+            ? eulaCoords
+            : {
+                x: 50 + Math.round(Math.random() * 200),
+                y: 50 + Math.round(Math.random() * 200),
+              },
           hasFocus: true,
           isDraggable: app.isDraggable ?? true,
           isMinimized: false,
           isMaximized: false,
-          isResizeable: isProjectDeadlineWindow
+          isResizeable: isEulaWindow
+            ? false
+            : isProjectDeadlineWindow
             ? true
             : app.isResizeable ?? true,
-          showCloseButton: !isProjectDeadlineWindow,
-          showMaximizeButton: true,
+          showCloseButton: isEulaWindow ? false : !isProjectDeadlineWindow,
+          showMaximizeButton: isEulaWindow ? false : true,
           size: {
-            x: app.size ? app.size.width : 300,
-            y: app.size ? app.size.height : 300,
+            x: isEulaWindow ? eulaWidth : app.size ? app.size.width : 300,
+            y: isEulaWindow ? eulaHeight : app.size ? app.size.height : 300,
           },
           title,
           workingDir,
@@ -179,17 +195,41 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
 
   const moveWindow = (id: string, coords: { x: number; y: number }) => {
     setOpenWindows((windows) => {
-      return windows.map((window) =>
-        window.id === id && !window.isMaximized ? { ...window, coords } : window
-      );
+      return windows.map((window) => {
+        if (window.id !== id || window.isMaximized) return window;
+        const maxY =
+          globalThis.innerHeight - TASKBAR_DOCK_HEIGHT - MIN_WINDOW_HEIGHT;
+        return {
+          ...window,
+          coords: {
+            ...coords,
+            y: Math.min(coords.y, maxY),
+          },
+        };
+      });
     });
   };
 
   const resizeWindow = (id: string, size: { x: number; y: number }) => {
     setOpenWindows((windows) => {
-      return windows.map((window) =>
-        window.id === id && !window.isMaximized ? { ...window, size } : window
-      );
+      return windows.map((window) => {
+        if (window.id !== id || window.isMaximized) return window;
+        const maxAllowedHeight = Math.max(
+          MIN_WINDOW_HEIGHT,
+          globalThis.innerHeight - TASKBAR_DOCK_HEIGHT - window.coords.y
+        );
+        const clampedHeight = Math.max(
+          MIN_WINDOW_HEIGHT,
+          Math.min(size.y, maxAllowedHeight)
+        );
+        return {
+          ...window,
+          size: {
+            ...size,
+            y: clampedHeight,
+          },
+        };
+      });
     });
   };
 

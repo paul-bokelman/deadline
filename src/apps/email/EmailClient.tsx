@@ -61,9 +61,9 @@ interface VisibleEmailItem {
 }
 
 const accountToAddressMap: Record<EmailAccountId, string> = {
-  corpMail: 'me <you@corp.internal>',
-  personalMail: 'me <you@personalmail.com>',
-  corpMailLegacy: 'me <you@legacy.corp.internal>',
+  corpMail: 'conner.work@aol.com',
+  personalMail: 'connerdabeast@aol.com',
+  corpMailLegacy: 'you@legacy.corp.internal',
 };
 
 const accountServerMap: Record<EmailAccountId, string> = {
@@ -111,6 +111,9 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
     useState<PasswordDialogContext>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [readEmailMap, setReadEmailMap] = useState<Record<string, true>>({});
+  const [movedToTrashMap, setMovedToTrashMap] = useState<Record<string, true>>(
+    {}
+  );
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [mailboxVersion, setMailboxVersion] = useState(0);
   const loadEmailTimerRef = useRef<number | null>(null);
@@ -139,8 +142,14 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
   }, [eligibleEmailMap, mailboxVersion]);
 
   const folderEmails = useMemo(
-    () => accountEmails.filter((item) => item.email.folder === selectedFolder),
-    [accountEmails, selectedFolder]
+    () =>
+      accountEmails.filter((item) => {
+        const effectiveFolder = movedToTrashMap[item.instanceId]
+          ? 'trash'
+          : item.email.folder;
+        return effectiveFolder === selectedFolder;
+      }),
+    [accountEmails, movedToTrashMap, selectedFolder]
   );
 
   const folderCounts = useMemo(() => {
@@ -152,11 +161,18 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
       trash: 0,
     };
     accountEmails.forEach((item) => {
+      const effectiveFolder = movedToTrashMap[item.instanceId]
+        ? 'trash'
+        : item.email.folder;
+      if (effectiveFolder === 'trash') {
+        counts.trash = (counts.trash ?? 0) + 1;
+        return;
+      }
       if (readEmailMap[item.instanceId]) return;
-      counts[item.email.folder] = (counts[item.email.folder] ?? 0) + 1;
+      counts[effectiveFolder] = (counts[effectiveFolder] ?? 0) + 1;
     });
     return counts;
-  }, [accountEmails, readEmailMap]);
+  }, [accountEmails, movedToTrashMap, readEmailMap]);
 
   const unreadInCurrentFolderCount = useMemo(
     () =>
@@ -309,6 +325,10 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
   const handleDeleteSelected = () => {
     if (!selectedEmail) return;
     markEmailRead(selectedEmail.instanceId);
+    setMovedToTrashMap((current) => ({
+      ...current,
+      [selectedEmail.instanceId]: true,
+    }));
     setSelectedEmail(null);
   };
 
@@ -549,11 +569,10 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
 
           <div className={style.statusBar}>
             <div className={`${style.statusCell} ${style.statusCellLeft}`}>
-              {folderEmails.length} message{folderEmails.length === 1 ? '' : 's'}
-              , {unreadInCurrentFolderCount} unread
+              {accountToAddressMap[accountId]} | Unread: {unreadInCurrentFolderCount}
             </div>
             <div className={`${style.statusCell} ${style.statusCellMiddle}`}>
-              Working Online
+              {folderEmails.length} message{folderEmails.length === 1 ? '' : 's'}
             </div>
             <div className={`${style.statusCell} ${style.statusCellRight}`}>
               {accountServerMap[accountId]}

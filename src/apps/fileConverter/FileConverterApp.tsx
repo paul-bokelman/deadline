@@ -1,6 +1,7 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 
+import Dropdown from '../../components/shared/Dropdown/Dropdown';
 import { getDynamicDesktopItems } from '../../system/desktop/dynamicDesktopItems';
 import { useGameState } from '../../game/state';
 import { FileTypeId } from '../../types/FileType';
@@ -73,6 +74,7 @@ const replaceExtension = (fileName: string, nextExtension: string): string => {
 
 const FileConverterApp: FunctionComponent<AppProps> = ({
   closeWindow,
+  openApp,
 }: AppProps) => {
   const { flags, setFlags } = useGameState();
   const desktopFiles = useMemo<ShellItem[]>(
@@ -116,35 +118,25 @@ const FileConverterApp: FunctionComponent<AppProps> = ({
       </div>
       <div style={boxStyle}>
         <div style={{ marginBottom: '6px' }}>Choose file:</div>
-        <select
-          style={{ width: '100%' }}
-          value={selectedFileId}
-          onChange={(event) =>
-            setSelectedFileId((event.currentTarget as HTMLSelectElement).value)
-          }
-        >
-          {desktopFiles.map((entry) => (
-            <option key={entry.id} value={entry.id}>
-              {entry.name}
-            </option>
-          ))}
-        </select>
+        <Dropdown
+          id="file-converter-file-select"
+          selected={selectedFileId}
+          onChange={(value) => setSelectedFileId(value)}
+          options={desktopFiles.map((entry) => ({
+            value: entry.id,
+            label: entry.name,
+          }))}
+        />
         <div style={{ marginTop: '8px', marginBottom: '6px' }}>Convert to:</div>
-        <select
-          style={{ width: '100%' }}
-          value={targetType}
-          onChange={(event) =>
-            setTargetType(
-              (event.currentTarget as HTMLSelectElement).value as FileTypeId
-            )
-          }
-        >
-          {conversionOptions.map((option) => (
-            <option key={option.id} value={option.id}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        <Dropdown
+          id="file-converter-target-select"
+          selected={targetType}
+          onChange={(value) => setTargetType(value as FileTypeId)}
+          options={conversionOptions.map((option) => ({
+            value: option.id,
+            label: option.label,
+          }))}
+        />
         {selectedFile && selectedFile.type === 'file' && (
           <div style={{ marginTop: '8px', fontSize: '12px' }}>
             Current type: <b>{selectedFile.fileTypeId}</b>
@@ -175,6 +167,9 @@ const FileConverterApp: FunctionComponent<AppProps> = ({
               setStatusMessage(
                 `Converted ${selectedFile.name} to ${nextName}.`
               );
+              if (targetType === 'pngFile') {
+                openApp({ appId: 'tipOfDay' });
+              }
             }}
           >
             Convert
