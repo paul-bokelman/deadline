@@ -42,7 +42,7 @@ export const netVoiceCallers: Record<NetVoiceCallerId, NetVoiceCaller> = {
     username: '@coxial_cable_slayer4',
     avatar: '/audio/netvoice/greg_profile.png',
     role: 'IT Guy',
-    warning: "!!!DON'T PICK UP HIS CALLS!!!",
+    warning: 'He gives me the creeps....',
     address: '192.168.1.42',
   },
   boss: {

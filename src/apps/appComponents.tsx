@@ -1,5 +1,8 @@
 import { h, FunctionComponent } from 'preact';
 
+import AntiVirusApp from './antiVirus/AntiVirusApp';
+import DraftDocumentLinkApp from './draftDocumentLink/DraftDocumentLinkApp';
+import FileConverterApp from './fileConverter/FileConverterApp';
 import EmailClient from './email/EmailClient';
 import BlackjackApp from './blackjack/BlackjackApp';
 import WalletApp from './wallet/WalletApp';
@@ -33,6 +36,9 @@ const ImportantPasswordsFileApp: FunctionComponent<AppProps> = () => (
 );
 
 export const appComponents: Record<AppId, FunctionComponent<AppProps>> = {
+  antiVirus: AntiVirusApp,
+  draftDocumentLink: DraftDocumentLinkApp,
+  fileConverter: FileConverterApp,
   calc: VoidApp,
   cdPlayer: VoidApp,
   clickMeReset: VoidApp,

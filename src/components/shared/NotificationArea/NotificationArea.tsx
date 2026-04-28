@@ -5,6 +5,7 @@ import Icon from '../Icon/Icon';
 import maximizeIcon from '../../../assets/img/ui/maximize.svg';
 import restoreIcon from '../../../assets/img/ui/restore.svg';
 import { gameEventBus } from '../../../game/events';
+import { useGameState } from '../../../game/state';
 
 import style from './NotificationArea.module.css';
 import { getGameDate } from '../../../system/clock/gameClock';
@@ -22,6 +23,7 @@ const formatTrayTime = (date: Date) =>
   });
 
 const NotificationArea: FunctionComponent = () => {
+  const { flags, setFlag } = useGameState();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const autoplayRetryCountRef = useRef(0);
   const autoplayRetryTimeoutRef = useRef<number | null>(null);
@@ -221,6 +223,12 @@ const NotificationArea: FunctionComponent = () => {
     }
   };
 
+  const handleDisablePopups = () => {
+    if (flags.hasPurchasedAntiVirus) return;
+    setFlag('hasPurchasedAntiVirus', true);
+    gameEventBus.emit('popup:clear_all', { source: 'taskbar_button' });
+  };
+
   return (
     <div className={style.notificationArea}>
       <button
@@ -230,6 +238,19 @@ const NotificationArea: FunctionComponent = () => {
         type="button"
       >
         <Icon iconId={isPlaying ? 'sound' : 'soundOff'} />
+      </button>
+      <button
+        className={style.statusIcon}
+        disabled={flags.hasPurchasedAntiVirus}
+        onClick={handleDisablePopups}
+        title={
+          flags.hasPurchasedAntiVirus
+            ? 'Popups are permanently disabled'
+            : 'Disable all popups'
+        }
+        type="button"
+      >
+        <Icon iconId="warning" />
       </button>
       <button
         className={style.statusIcon}

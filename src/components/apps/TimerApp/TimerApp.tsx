@@ -1,98 +1,60 @@
-import { h, FunctionComponent } from 'preact';
+import { h, FunctionComponent, JSX } from 'preact';
 import { useState } from 'preact/hooks';
-
-import happy from '../../../assets/img/interface/minesweeper_happy.png';
-import sick from '../../../assets/img/interface/minesweeper_dead.png';
 
 import { AppProps } from '../../../types/App';
 import useInterval from '../../../hooks/useInterval';
-import Bump from '../../shared/Bump/Bump';
-import Button from '../../shared/Button/Button';
-import TimerNumber from '../../shared/TimerNumber/TimerNumber';
 import WindowContent from '../../shared/WindowContent/WindowContent';
+const DEADLINE_TEXT = '5:00 PM';
+const COUNTDOWN_MS = 15 * 60 * 1000;
 
-import style from './TimerApp.module.css';
+const panelStyle: JSX.CSSProperties = {
+  margin: 0,
+  padding: '10px',
+  backgroundColor: 'var(--button-highlight)',
+  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+  height: '100%',
+  width: '100%',
+  boxSizing: 'border-box',
+  display: 'flex',
+  flexDirection: 'column',
+  fontFamily: 'monospace',
+  fontSize: '14px',
+};
 
-const TARGET_MS = Date.now() + 1000 * 60 * 60 * 24 * 0.666;
-const SMILEY_SRC = [happy, sick];
+const timeStyle: JSX.CSSProperties = {
+  fontSize: '14px',
+  fontWeight: 400,
+  marginTop: '8px',
+};
 
-const parseNumber = (i: number): string[] => ('000' + i).slice(-3).split('');
-
-const getCurrentCountdown = (targetMs: number) => {
-  const currentMs = Date.now();
-  const diff = targetMs - currentMs > 0 ? targetMs - currentMs : 0;
-
-  let tmp = Math.floor(diff / 100);
-  const cSec = tmp % 600;
-
-  tmp = Math.floor((tmp - cSec) / 600);
-  const min = tmp % 60;
-
-  tmp = Math.floor((tmp - min) / 60);
-  const hour = tmp;
-
-  return {
-    h: parseNumber(hour),
-    m: parseNumber(min),
-    s: parseNumber(cSec),
-  };
+const formatCountdown = (remainingMs: number): string => {
+  const totalSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(
+    2,
+    '0'
+  )}`;
 };
 
 const TimerApp: FunctionComponent<AppProps> = () => {
-  const [countdown, setCountdown] = useState(getCurrentCountdown(TARGET_MS));
-  const [smileyIndex, setSmileyIndex] = useState(0);
+  const [deadlineAt] = useState(() => Date.now() + COUNTDOWN_MS);
+  const [remainingMs, setRemainingMs] = useState(COUNTDOWN_MS);
 
   useInterval(() => {
-    setCountdown(getCurrentCountdown(TARGET_MS));
-  }, 15);
-
-  useInterval(() => {
-    setSmileyIndex((currentSmileyIndex) => {
-      const nextSmileyIndex = currentSmileyIndex + 1;
-      return nextSmileyIndex >= SMILEY_SRC.length ? 0 : nextSmileyIndex;
-    });
+    setRemainingMs(Math.max(0, deadlineAt - Date.now()));
   }, 1000);
 
   return (
     <WindowContent
       body={
-        <Bump size="large" type="outer">
-          <div className={style.timerAppContent}>
-            <Bump size="medium" type="inner">
-              <div className={style.timers}>
-                <Bump size="small" type="inner">
-                  <div className={style.timer}>
-                    <TimerNumber i={parseInt(countdown['h'][0])} />
-                    <TimerNumber i={parseInt(countdown['h'][1])} />
-                    <TimerNumber i={parseInt(countdown['h'][2])} />
-                  </div>
-                </Bump>
-                <Button
-                  label={<img src={SMILEY_SRC[smileyIndex]} />}
-                  onClick={() => null}
-                />
-                <Bump size="small" type="inner">
-                  <div className={style.timer}>
-                    <TimerNumber i={parseInt(countdown['m'][0])} />
-                    <TimerNumber i={parseInt(countdown['m'][1])} />
-                    <TimerNumber i={parseInt(countdown['m'][2])} />
-                  </div>
-                </Bump>
-                <Button
-                  label={<img src={SMILEY_SRC[smileyIndex]} />}
-                  onClick={() => null}
-                />
-                <Bump size="small" type="inner">
-                  <div className={style.timer}>
-                    <TimerNumber i={parseInt(countdown['s'][0])} />
-                    <TimerNumber i={parseInt(countdown['s'][1])} />
-                    <TimerNumber i={parseInt(countdown['s'][2])} />
-                  </div>
-                </Bump>
-              </div>
-            </Bump>
+        <div style={panelStyle}>
+          <div>
+            Due at <b>{DEADLINE_TEXT}</b>
           </div>
-        </Bump>
+          <div style={{ marginTop: '6px' }}>Time remaining:</div>
+          <div style={timeStyle}>{formatCountdown(remainingMs)}</div>
+        </div>
       }
     />
   );

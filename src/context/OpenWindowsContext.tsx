@@ -6,6 +6,8 @@ import { IconId } from '../types/Icon';
 
 export type OpenWindow = {
   app: App;
+  canMaximize?: boolean;
+  canMinimize?: boolean;
   coords: { x: number; y: number };
   hasFocus: boolean;
   iconId: IconId;
@@ -14,6 +16,8 @@ export type OpenWindow = {
   isMaximized: boolean;
   isMinimized: boolean;
   isResizeable: boolean;
+  showCloseButton?: boolean;
+  showMaximizeButton?: boolean;
   size: { x: number; y: number };
   title: string;
   workingDir?: FileSystemDir;

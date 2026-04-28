@@ -6,6 +6,7 @@ import IntrusivePopupWindow from './IntrusivePopupWindow';
 import { ActiveIntrusivePopup, IntrusivePopupConfig } from './types';
 import { createRandomIntrusivePopupConfig } from '../../data/intrusivePopupConfigs';
 import { gameEventBus } from '../../game/events';
+import { useGameState } from '../../game/state';
 import {
   createIntrusivePopupLoopSfx,
   playIntrusivePopupCloseSfx,
@@ -29,7 +30,10 @@ const randomAngleVelocity = (
     const angle = Math.random() * Math.PI * 2;
     const x = Math.cos(angle) * speedPxPerSecond;
     const y = Math.sin(angle) * speedPxPerSecond;
-    if (Math.abs(x) > speedPxPerSecond * 0.25 && Math.abs(y) > speedPxPerSecond * 0.25) {
+    if (
+      Math.abs(x) > speedPxPerSecond * 0.25 &&
+      Math.abs(y) > speedPxPerSecond * 0.25
+    ) {
       return { x, y };
     }
   }
@@ -53,11 +57,18 @@ const managerBoundsStyle: JSX.CSSProperties = {
 };
 
 const IntrusivePopupManager: FunctionComponent = () => {
+  const { flags } = useGameState();
+  const hasAntiVirus = flags.hasPurchasedAntiVirus;
+  const hasAntiVirusRef = useRef(hasAntiVirus);
   const [activePopups, setActivePopups] = useState<ActiveIntrusivePopup[]>([]);
   const boundsRef = useRef<HTMLDivElement>(null);
   const zIndexRef = useRef(1);
   const timeoutIdsRef = useRef<number[]>([]);
   const popupLoopSfxRef = useRef<Map<string, HTMLAudioElement>>(new Map());
+
+  useEffect(() => {
+    hasAntiVirusRef.current = hasAntiVirus;
+  }, [hasAntiVirus]);
 
   const getBounds = useCallback((): { height: number; width: number } => {
     const rect = boundsRef.current?.getBoundingClientRect();
@@ -76,10 +87,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
     ): ActiveIntrusivePopup => {
       const bounds = getBounds();
       const maxX = Math.max(0, bounds.width - config.size.width);
-      const maxY = Math.max(
-        0,
-        bounds.height - config.size.height
-      );
+      const maxY = Math.max(0, bounds.height - config.size.height);
 
       const x =
         typeof coords?.x === 'number'
@@ -135,6 +143,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
 
   const spawnPopup = useCallback(
     (config: IntrusivePopupConfig = createRandomIntrusivePopupConfig()) => {
+      if (hasAntiVirusRef.current) return;
       const popup = createPopup(config);
       playIntrusivePopupSpawnSfx();
       const loopAudio = createIntrusivePopupLoopSfx();
@@ -154,39 +163,58 @@ const IntrusivePopupManager: FunctionComponent = () => {
   }, [spawnPopup]);
 
   const scheduleAmbientSpawn = useCallback(() => {
+    if (hasAntiVirusRef.current) return;
     const timeoutId = window.setTimeout(() => {
+      if (hasAntiVirusRef.current) return;
       spawnPopup(createRandomIntrusivePopupConfig());
       scheduleAmbientSpawn();
     }, AMBIENT_SPAWN_EVERY_MS);
     timeoutIdsRef.current.push(timeoutId);
   }, [spawnPopup]);
 
+  const clearAllPopups = useCallback(() => {
+    popupLoopSfxRef.current.forEach((audio) =>
+      stopIntrusivePopupLoopSfx(audio)
+    );
+    popupLoopSfxRef.current.clear();
+    setActivePopups([]);
+  }, []);
+
+  useEffect(() => {
+    if (!hasAntiVirus) return;
+
+    timeoutIdsRef.current.forEach((timeoutId) =>
+      window.clearTimeout(timeoutId)
+    );
+    timeoutIdsRef.current = [];
+    clearAllPopups();
+  }, [clearAllPopups, hasAntiVirus]);
+
   const closePopup = useCallback((popupId: string) => {
     const loopAudio = popupLoopSfxRef.current.get(popupId);
     stopIntrusivePopupLoopSfx(loopAudio);
     popupLoopSfxRef.current.delete(popupId);
-    setActivePopups((current) => current.filter((popup) => popup.id !== popupId));
+    setActivePopups((current) =>
+      current.filter((popup) => popup.id !== popupId)
+    );
     gameEventBus.emit('popup:closed', { popupId });
     playIntrusivePopupCloseSfx();
   }, []);
 
-  const handlePopupMouseDown = useCallback(
-    (popupId: string) => {
-      setActivePopups((current) =>
-        current.map((popup) =>
-          popup.id === popupId
-            ? {
-                ...popup,
-                pausedVelocity: popup.velocity ?? popup.pausedVelocity,
-                velocity: null,
-                zIndex: zIndexRef.current++,
-              }
-            : popup
-        )
-      );
-    },
-    []
-  );
+  const handlePopupMouseDown = useCallback((popupId: string) => {
+    setActivePopups((current) =>
+      current.map((popup) =>
+        popup.id === popupId
+          ? {
+              ...popup,
+              pausedVelocity: popup.velocity ?? popup.pausedVelocity,
+              velocity: null,
+              zIndex: zIndexRef.current++,
+            }
+          : popup
+      )
+    );
+  }, []);
 
   const handlePopupClick = useCallback(
     (popupId: string) => {
@@ -225,7 +253,11 @@ const IntrusivePopupManager: FunctionComponent = () => {
     setActivePopups((current) =>
       current.map((popup) =>
         popup.id === popupId
-          ? { ...popup, isMaximized: !popup.isMaximized, zIndex: zIndexRef.current++ }
+          ? {
+              ...popup,
+              isMaximized: !popup.isMaximized,
+              zIndex: zIndexRef.current++,
+            }
           : popup
       )
     );
@@ -239,10 +271,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
 
         const bounds = getBounds();
         const maxX = Math.max(0, bounds.width - popup.config.size.width);
-        const maxY = Math.max(
-          0,
-          bounds.height - popup.config.size.height
-        );
+        const maxY = Math.max(0, bounds.height - popup.config.size.height);
 
         return current.map((candidate) =>
           candidate.id === popupId
@@ -267,20 +296,24 @@ const IntrusivePopupManager: FunctionComponent = () => {
         spawnRandomPopup();
       }
     );
+    const unsubscribeClearAll = gameEventBus.on('popup:clear_all', () => {
+      clearAllPopups();
+    });
 
     const unsubscribeRebooted = gameEventBus.on('game:rebooted', () => {
-      popupLoopSfxRef.current.forEach((audio) => stopIntrusivePopupLoopSfx(audio));
-      popupLoopSfxRef.current.clear();
-      setActivePopups([]);
+      clearAllPopups();
     });
 
     return () => {
       unsubscribeTestSpawn();
+      unsubscribeClearAll();
       unsubscribeRebooted();
     };
-  }, [spawnRandomPopup]);
+  }, [clearAllPopups, spawnRandomPopup]);
 
   useEffect(() => {
+    if (hasAntiVirus) return undefined;
+
     scheduleAmbientSpawn();
     return () => {
       timeoutIdsRef.current.forEach((timeoutId) => {
@@ -288,7 +321,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
       });
       timeoutIdsRef.current = [];
     };
-  }, [scheduleAmbientSpawn]);
+  }, [hasAntiVirus, scheduleAmbientSpawn]);
 
   useEffect(() => {
     const resumePausedBouncing = () => {
@@ -317,6 +350,8 @@ const IntrusivePopupManager: FunctionComponent = () => {
   }, []);
 
   useEffect(() => {
+    if (hasAntiVirus) return undefined;
+
     const intervalId = window.setInterval(() => {
       const now = Date.now();
       let didSpawn = false;
@@ -354,9 +389,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
             nextPopup.nextAutoSpawnAt !== null &&
             now >= nextPopup.nextAutoSpawnAt
           ) {
-            spawned.push(
-              createPopup(createRandomIntrusivePopupConfig())
-            );
+            spawned.push(createPopup(createRandomIntrusivePopupConfig()));
             const mostRecent = spawned[spawned.length - 1];
             if (mostRecent) spawnedPopupIds.push(mostRecent.id);
             didSpawn = true;
@@ -392,9 +425,11 @@ const IntrusivePopupManager: FunctionComponent = () => {
     return () => {
       window.clearInterval(intervalId);
     };
-  }, [createPopup]);
+  }, [createPopup, hasAntiVirus]);
 
   useEffect(() => {
+    if (hasAntiVirus) return undefined;
+
     let rafId = 0;
     let previousTimestamp = performance.now();
 
@@ -415,10 +450,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
           if (!popup.velocity) return popup;
 
           const maxX = Math.max(0, bounds.width - popup.config.size.width);
-          const maxY = Math.max(
-            0,
-            bounds.height - popup.config.size.height
-          );
+          const maxY = Math.max(0, bounds.height - popup.config.size.height);
           const velocity = { ...popup.velocity };
 
           let nextX = popup.coords.x + velocity.x * deltaSeconds;
@@ -461,11 +493,13 @@ const IntrusivePopupManager: FunctionComponent = () => {
     return () => {
       window.cancelAnimationFrame(rafId);
     };
-  }, [getBounds]);
+  }, [getBounds, hasAntiVirus]);
 
   useEffect(() => {
     return () => {
-      popupLoopSfxRef.current.forEach((audio) => stopIntrusivePopupLoopSfx(audio));
+      popupLoopSfxRef.current.forEach((audio) =>
+        stopIntrusivePopupLoopSfx(audio)
+      );
       popupLoopSfxRef.current.clear();
     };
   }, []);

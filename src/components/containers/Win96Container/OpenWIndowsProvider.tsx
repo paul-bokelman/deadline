@@ -18,7 +18,32 @@ interface Props {
   children: ComponentChildren;
 }
 
-const createInitialOpenWindows = (): OpenWindow[] => [];
+const createInitialOpenWindows = (): OpenWindow[] => {
+  const timerApp = appList.timer;
+  return [
+    {
+      app: timerApp,
+      canMaximize: true,
+      canMinimize: true,
+      coords: { x: 420, y: 56 },
+      hasFocus: true,
+      iconId: timerApp.iconId,
+      id: uuid(),
+      isDraggable: timerApp.isDraggable ?? true,
+      isMaximized: false,
+      isMinimized: false,
+      isResizeable: timerApp.isResizeable ?? true,
+      showCloseButton: false,
+      showMaximizeButton: true,
+      size: {
+        x: timerApp.size ? timerApp.size.width : 300,
+        y: timerApp.size ? timerApp.size.height : 300,
+      },
+      title: timerApp.name,
+      zIndex: 0,
+    },
+  ];
+};
 
 const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
   const { flags, rebootGame } = useGameState();
@@ -72,6 +97,7 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
       rebootGame();
       return;
     }
+    const isProjectDeadlineWindow = appId === 'timer';
 
     setOpenWindows((windows) => {
       const app = appList[appId];
@@ -86,6 +112,10 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
         ...existingWindows,
         {
           app,
+          canMaximize: isProjectDeadlineWindow
+            ? true
+            : app.isResizeable ?? true,
+          canMinimize: true,
           iconId,
           id: uuid(),
           coords: {
@@ -96,7 +126,11 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
           isDraggable: app.isDraggable ?? true,
           isMinimized: false,
           isMaximized: false,
-          isResizeable: true,
+          isResizeable: isProjectDeadlineWindow
+            ? true
+            : app.isResizeable ?? true,
+          showCloseButton: !isProjectDeadlineWindow,
+          showMaximizeButton: true,
           size: {
             x: app.size ? app.size.width : 300,
             y: app.size ? app.size.height : 300,

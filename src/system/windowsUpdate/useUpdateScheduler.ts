@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'preact/hooks';
 
 import { systemConfig } from '../../data/systemConfig';
 import { GameStage, useGameState } from '../../game/state';
@@ -25,12 +31,7 @@ interface UseUpdateSchedulerResult {
 const REMIND_LATER_MS = 45_000;
 
 export const useUpdateScheduler = (): UseUpdateSchedulerResult => {
-  const {
-    flags,
-    rebootGame,
-    setFlags,
-    stage,
-  } = useGameState();
+  const { flags, rebootGame, setFlags, stage } = useGameState();
   const [countdownMs, setCountdownMs] = useState(
     systemConfig.windowsUpdate.countdownMs
   );
@@ -42,7 +43,10 @@ export const useUpdateScheduler = (): UseUpdateSchedulerResult => {
   const isEligible =
     stageOrder[stage] >=
     stageOrder[systemConfig.windowsUpdate.enabledAfterStage];
-  const isNagVisible = flags.windowsUpdateActive && Date.now() >= snoozedUntil;
+  const isNagVisible =
+    systemConfig.windowsUpdate.enabled &&
+    flags.windowsUpdateActive &&
+    Date.now() >= snoozedUntil;
 
   const clearCountdownInterval = useCallback(() => {
     if (countdownIntervalRef.current !== null) {
@@ -69,6 +73,15 @@ export const useUpdateScheduler = (): UseUpdateSchedulerResult => {
   }, [setFlags]);
 
   useEffect(() => {
+    if (!systemConfig.windowsUpdate.enabled) {
+      clearCountdownInterval();
+      hasTriggeredRebootRef.current = false;
+      if (flags.windowsUpdateActive || flags.windowsUpdateRebootAt !== null) {
+        deactivateWindowsUpdate();
+      }
+      return;
+    }
+
     if (!isEligible) {
       clearCountdownInterval();
       hasTriggeredRebootRef.current = false;
@@ -82,9 +95,9 @@ export const useUpdateScheduler = (): UseUpdateSchedulerResult => {
       startRebootTimer();
     }
   }, [
-    isEligible,
     flags.windowsUpdateActive,
     flags.windowsUpdateRebootAt,
+    isEligible,
     clearCountdownInterval,
     deactivateWindowsUpdate,
     startRebootTimer,

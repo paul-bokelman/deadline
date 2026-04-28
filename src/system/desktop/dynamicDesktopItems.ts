@@ -141,30 +141,43 @@ const createFileShellItem = (
   id: string,
   fileTypeId: FileTypeId,
   name: string,
-  content: string
+  content: string,
+  overrideFileTypeId?: FileTypeId,
+  overrideName?: string
 ): ShellItem => {
+  const resolvedFileTypeId = overrideFileTypeId ?? fileTypeId;
+  const resolvedName = overrideName ?? name;
   const fileSystemFile: FileSystemFile = {
     content,
-    fileTypeId,
-    name,
+    fileTypeId: resolvedFileTypeId,
+    name: resolvedName,
     type: 'file',
   };
 
   return {
     fileSystemFile,
-    fileTypeId,
+    fileTypeId: resolvedFileTypeId,
     hasFocus: false,
     hasSoftFocus: false,
-    iconId: fileTypeList[fileTypeId].iconId,
+    iconId: fileTypeList[resolvedFileTypeId].iconId,
     id,
-    name,
+    name: resolvedName,
     type: 'file',
   };
 };
 
 export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
+  const fileTypeOverrides = flags.dynamicFileTypeOverrides ?? {};
+  const fileNameOverrides = flags.dynamicFileNameOverrides ?? {};
   const dynamicItems: ShellItem[] = [
     createAppShellItem('click-me-reset', 'clickMeReset', 'click me'),
+    createAppShellItem(
+      'draft-document-link',
+      'draftDocumentLink',
+      'Draft.Document.lnk'
+    ),
+    createAppShellItem('file-converter', 'fileConverter', 'File Converter'),
+    createAppShellItem('anti-virus', 'antiVirus', 'Anti-Virus'),
     createAppShellItem('popup-launcher', 'timer', 'Popup'),
     createAppShellItem('submission-portal', 'portal', 'Submission Portal'),
     createAppShellItem('bank', 'bank', 'America #1 Bank'),
@@ -174,7 +187,9 @@ export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
       'funny-password-dump',
       'notepadDoc',
       "IMPORTANT_PASSWORDS_DON'T_LOSE.txt",
-      generateFunnyPasswordDump()
+      generateFunnyPasswordDump(),
+      fileTypeOverrides['funny-password-dump'],
+      fileNameOverrides['funny-password-dump']
     ),
   ];
 
@@ -196,19 +211,25 @@ export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
         'garbage-1',
         'msDosApp',
         'totally_safe_patch.exe',
-        'binary-gibberish'
+        'binary-gibberish',
+        fileTypeOverrides['garbage-1'],
+        fileNameOverrides['garbage-1']
       ),
       createFileShellItem(
         'garbage-2',
         'notepadDoc',
         'desktop-cache.tmp',
-        'cache=###\ninvalid=true\n'
+        'cache=###\ninvalid=true\n',
+        fileTypeOverrides['garbage-2'],
+        fileNameOverrides['garbage-2']
       ),
       createFileShellItem(
         'garbage-3',
         'notepadDoc',
         'invoice_scan.tmp',
-        'TEMP DATA BLOCK ###'
+        'TEMP DATA BLOCK ###',
+        fileTypeOverrides['garbage-3'],
+        fileNameOverrides['garbage-3']
       )
     );
   }
@@ -219,13 +240,17 @@ export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
         'garbage-4',
         'msDosApp',
         'hotfix_install.exe',
-        'binary-junk'
+        'binary-junk',
+        fileTypeOverrides['garbage-4'],
+        fileNameOverrides['garbage-4']
       ),
       createFileShellItem(
         'garbage-5',
         'notepadDoc',
         'debug_dump.tmp',
-        'E2 A9 FF 0A 8D 11'
+        'E2 A9 FF 0A 8D 11',
+        fileTypeOverrides['garbage-5'],
+        fileNameOverrides['garbage-5']
       )
     );
   }
@@ -236,19 +261,25 @@ export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
         'wingdings-1',
         'notepadDoc',
         'quarterly_symbols_1.txt',
-        '☞ ✖ ✈ ☼ ♣ ♠ ☯ ✉ ☢'
+        '☞ ✖ ✈ ☼ ♣ ♠ ☯ ✉ ☢',
+        fileTypeOverrides['wingdings-1'],
+        fileNameOverrides['wingdings-1']
       ),
       createFileShellItem(
         'wingdings-2',
         'notepadDoc',
         'quarterly_symbols_2.txt',
-        '✎ ☠ ✿ ♫ ⚑ ☺ ✂ ❖'
+        '✎ ☠ ✿ ♫ ⚑ ☺ ✂ ❖',
+        fileTypeOverrides['wingdings-2'],
+        fileNameOverrides['wingdings-2']
       ),
       createFileShellItem(
         'wingdings-3',
         'notepadDoc',
         'quarterly_symbols_3.txt',
-        '❂ ☎ ✕ ⚙ ☾ ☍ ✱ ☄'
+        '❂ ☎ ✕ ⚙ ☾ ☍ ✱ ☄',
+        fileTypeOverrides['wingdings-3'],
+        fileNameOverrides['wingdings-3']
       )
     );
   }
@@ -259,7 +290,9 @@ export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
         'q3-real-report',
         'notepadDoc',
         'FINAL_v2_FINAL_actuallyfinal_USE_THIS_ONE_REAL_v3.txt',
-        'Q3 REPORT\n\nRevenue was stable across core product lines while support costs rose due to legacy migration work. Gross margin held within expected range after temporary hosting spikes in July.\n\nCustomer retention improved in enterprise accounts, but expansion revenue lagged forecast in the mid-market segment. Sales cycle length increased by roughly two weeks as procurement review tightened.\n\nOperationally, incident count fell quarter-over-quarter, though mean time to recovery remains above target in off-hours windows. Recommended action for Q4: prioritize deployment automation and account handoff playbooks.'
+        'Q3 REPORT\n\nRevenue was stable across core product lines while support costs rose due to legacy migration work. Gross margin held within expected range after temporary hosting spikes in July.\n\nCustomer retention improved in enterprise accounts, but expansion revenue lagged forecast in the mid-market segment. Sales cycle length increased by roughly two weeks as procurement review tightened.\n\nOperationally, incident count fell quarter-over-quarter, though mean time to recovery remains above target in off-hours windows. Recommended action for Q4: prioritize deployment automation and account handoff playbooks.',
+        fileTypeOverrides['q3-real-report'],
+        fileNameOverrides['q3-real-report']
       )
     );
   }

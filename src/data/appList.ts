@@ -1,6 +1,27 @@
 import { AppList } from '../types/App';
 
 export const appList: AppList = {
+  antiVirus: {
+    id: 'antiVirus',
+    iconId: 'scandisk',
+    isResizeable: false,
+    name: 'Anti-Virus',
+    size: { width: 420, height: 260 },
+  },
+  draftDocumentLink: {
+    id: 'draftDocumentLink',
+    iconId: 'program',
+    isResizeable: false,
+    name: 'Draft.Document.lnk',
+    size: { width: 320, height: 120 },
+  },
+  fileConverter: {
+    id: 'fileConverter',
+    iconId: 'quickView',
+    isResizeable: false,
+    name: 'File Converter',
+    size: { width: 540, height: 340 },
+  },
   calc: {
     id: 'calc',
     iconId: 'calc',
@@ -173,9 +194,9 @@ export const appList: AppList = {
   timer: {
     id: 'timer',
     iconId: 'program',
-    isResizeable: false,
-    name: 'Timer cfb4-42b7-a723',
-    size: { width: 231, height: 83 },
+    isResizeable: true,
+    name: 'Project Deadline',
+    size: { width: 360, height: 200 },
   },
   corpMail: {
     id: 'corpMail',

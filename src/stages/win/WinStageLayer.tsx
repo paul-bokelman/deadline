@@ -47,6 +47,7 @@ const WinStageLayer: FunctionComponent = () => {
           iconId="program"
           isDraggable
           isResizeable={false}
+          onClickClose={rebootGame}
           onMoved={(nextCoords) => setCoords(nextCoords)}
           size={{ x: 520, y: 190 }}
           title="Success"

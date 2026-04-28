@@ -35,7 +35,16 @@ const selectStyle: JSX.CSSProperties = {
 };
 
 const REQUIRED_REPORT_FILE_ID = 'q3-real-report';
-const REQUIRED_REPORT_FILE_NAME = 'FINAL_v2_FINAL_actuallyfinal_USE_THIS_ONE_REAL_v3.txt';
+const REQUIRED_REPORT_FILE_NAME =
+  'FINAL_v2_FINAL_actuallyfinal_USE_THIS_ONE_REAL_v3.png';
+const REQUIRED_REPORT_FILE_TYPE = 'pngFile';
+const CLOCK_CAPTIONS = [
+  'Captcha: Pick the clock that matches server time.',
+  'Captcha: Time-check this before payroll panic starts.',
+  'Captcha: Select the exact meeting-start time.',
+  'Captcha: Find the clock your project manager would trust.',
+  'Captcha: Confirm the current time before the coffee cooldown ends.',
+];
 
 type CaptchaId =
   | 'mailbox_system'
@@ -160,7 +169,10 @@ const AnalogClock: FunctionComponent<{ time: Date }> = ({ time }) => {
 const playSpokenCaptcha = async (text: string): Promise<CaptchaResult> => {
   // Must be triggered from user gesture to reliably play.
   if (!('speechSynthesis' in window)) {
-    return { ok: false, message: 'Speech synthesis not available in this browser.' };
+    return {
+      ok: false,
+      message: 'Speech synthesis not available in this browser.',
+    };
   }
   const utter = new SpeechSynthesisUtterance(text);
   utter.rate = 1.0;
@@ -301,7 +313,10 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
     if (captchaStep === 'color_pick') {
       const order = shuffleWithSeed([0, 1, 2, 3], captchaSeed);
       // color index 2 is blue in our palette below; find where it landed
-      const target = Math.max(0, order.findIndex((c) => c === 2));
+      const target = Math.max(
+        0,
+        order.findIndex((c) => c === 2)
+      );
       setColorOrder(order);
       setColorTargetIndex(target);
     }
@@ -314,12 +329,22 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
   const selectedFile = useMemo(() => {
     return desktopFiles.find((f) => f.id === selectedFileId) ?? null;
   }, [desktopFiles, selectedFileId]);
+  const clockCaption = useMemo(() => {
+    return (
+      CLOCK_CAPTIONS[captchaSeed % CLOCK_CAPTIONS.length] ?? CLOCK_CAPTIONS[0]
+    );
+  }, [captchaSeed]);
 
   const isCorrectFileSelected = useMemo(() => {
     if (!selectedFile) return false;
-    if (selectedFile.id === REQUIRED_REPORT_FILE_ID) return true;
     if (selectedFile.type !== 'file') return false;
-    return selectedFile.name === REQUIRED_REPORT_FILE_NAME;
+    if (selectedFile.id === REQUIRED_REPORT_FILE_ID) {
+      return selectedFile.fileTypeId === REQUIRED_REPORT_FILE_TYPE;
+    }
+    return (
+      selectedFile.name === REQUIRED_REPORT_FILE_NAME &&
+      selectedFile.fileTypeId === REQUIRED_REPORT_FILE_TYPE
+    );
   }, [selectedFile]);
 
   const canSubmit = useMemo(() => {
@@ -346,7 +371,7 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
       return;
     }
     if (!isCorrectFileSelected) {
-      setStatus('Upload rejected: incorrect document selected.');
+      setStatus('Upload rejected: final document must be a PNG file.');
       return;
     }
     if (!captchaPassed) {
@@ -373,13 +398,14 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
     <div style={panelStyle}>
       <div style={{ fontWeight: 700 }}>Corp Submission Portal</div>
       <div style={{ marginTop: '8px' }}>
-        Destination: <span style={{ fontFamily: 'monospace' }}>boss@10.0.0.1</span>
+        Destination:{' '}
+        <span style={{ fontFamily: 'monospace' }}>boss@10.0.0.1</span>
       </div>
 
       <div style={{ marginTop: '10px' }}>
         <div>Required file:</div>
         <div style={{ fontFamily: 'monospace', marginTop: '4px' }}>
-          {REQUIRED_REPORT_FILE_NAME}
+          {REQUIRED_REPORT_FILE_NAME} (must be .png)
         </div>
       </div>
 
@@ -404,7 +430,8 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
         </select>
         {selectedFile && (
           <div style={{ marginTop: '6px' }}>
-            Selected: <span style={{ fontFamily: 'monospace' }}>{selectedFile.name}</span>
+            Selected:{' '}
+            <span style={{ fontFamily: 'monospace' }}>{selectedFile.name}</span>
           </div>
         )}
       </div>
@@ -426,7 +453,8 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
       {!flags.hasSubmittedFinalReport && (
         <div style={captchaPanelStyle}>
           <div style={{ fontWeight: 700 }}>
-            Human Verification ({captchaPassed ? 'complete' : `step ${captchaIdx + 1}/3`})
+            Human Verification (
+            {captchaPassed ? 'complete' : `step ${captchaIdx + 1}/3`})
           </div>
           <div style={{ marginTop: '6px', ...smallMutedStyle }}>
             Failing any step restarts verification.
@@ -444,7 +472,9 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
                       type="button"
                       onClick={() => {
                         setMailboxPhase('system');
-                        setCaptchaStatus('No mailbox found. Click the system icon to continue.');
+                        setCaptchaStatus(
+                          'No mailbox found. Click the system icon to continue.'
+                        );
                       }}
                     >
                       <Icon iconId="myComputer" size={16} /> My Computer
@@ -454,7 +484,9 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
                       type="button"
                       onClick={() => {
                         setMailboxPhase('system');
-                        setCaptchaStatus('No mailbox found. Click the system icon to continue.');
+                        setCaptchaStatus(
+                          'No mailbox found. Click the system icon to continue.'
+                        );
                       }}
                     >
                       <Icon iconId="notepad" size={16} /> Notepad
@@ -464,7 +496,9 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
                       type="button"
                       onClick={() => {
                         setMailboxPhase('system');
-                        setCaptchaStatus('No mailbox found. Click the system icon to continue.');
+                        setCaptchaStatus(
+                          'No mailbox found. Click the system icon to continue.'
+                        );
                       }}
                     >
                       <Icon iconId="calc" size={16} /> Calculator
@@ -498,13 +532,22 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
           {!captchaPassed && captchaStep === 'wingdings_letters' && (
             <div style={{ marginTop: '10px' }}>
               <div>Captcha: Type the letters you see.</div>
-              <div style={{ marginTop: '8px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <div
+                style={{
+                  marginTop: '8px',
+                  display: 'flex',
+                  gap: '10px',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                }}
+              >
                 <div
                   style={{
                     backgroundColor: '#ffffff',
                     boxShadow: 'var(--border-field)',
                     padding: '8px 10px',
-                    fontFamily: 'Wingdings, \"Wingdings 2\", \"Zapf Dingbats\", serif',
+                    fontFamily:
+                      'Wingdings, "Wingdings 2", "Zapf Dingbats", serif',
                     fontSize: '22px',
                     letterSpacing: '3px',
                     userSelect: 'none',
@@ -512,7 +555,13 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
                 >
                   {wingTarget}
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                  }}
+                >
                   <div style={{ ...smallMutedStyle }}>
                     Decode strip:
                     <span
@@ -527,7 +576,9 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
                       {wingGlyphs.join('')}
                     </span>
                     <span style={{ marginLeft: '8px' }}>→</span>
-                    <span style={{ marginLeft: '8px', fontFamily: 'monospace' }}>
+                    <span
+                      style={{ marginLeft: '8px', fontFamily: 'monospace' }}
+                    >
                       {wingGlyphs.join('')}
                     </span>
                   </div>
@@ -539,7 +590,9 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
                   style={textInputStyle}
                   value={wingInput}
                   onInput={(e) =>
-                    setWingInput((e.currentTarget as HTMLInputElement).value ?? '')
+                    setWingInput(
+                      (e.currentTarget as HTMLInputElement).value ?? ''
+                    )
                   }
                   placeholder="Type here..."
                 />
@@ -568,7 +621,15 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
                     ? 'Audio captcha (4 seconds of a goose): what word is being said?'
                     : 'Audio captcha (jungle noises): what animal is this?'}
                 </div>
-                <div style={{ marginTop: '8px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div
+                  style={{
+                    marginTop: '8px',
+                    display: 'flex',
+                    gap: '10px',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                  }}
+                >
                   <button
                     style={buttonStyle}
                     type="button"
@@ -589,7 +650,9 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
                     style={textInputStyle}
                     value={audioInput}
                     onInput={(e) =>
-                      setAudioInput((e.currentTarget as HTMLInputElement).value ?? '')
+                      setAudioInput(
+                        (e.currentTarget as HTMLInputElement).value ?? ''
+                      )
                     }
                     placeholder="Your answer..."
                   />
@@ -599,7 +662,9 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
                     onClick={() => {
                       const got = audioInput.trim().toUpperCase();
                       const expected =
-                        captchaStep === 'audio_goose_word' ? 'HONK' : audioExpected;
+                        captchaStep === 'audio_goose_word'
+                          ? 'HONK'
+                          : audioExpected;
                       if (got === expected) passStep();
                       else failCaptcha('Incorrect answer.');
                     }}
@@ -615,7 +680,7 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
 
           {!captchaPassed && captchaStep === 'clock_time' && (
             <div style={{ marginTop: '10px' }}>
-              <div>Captcha: Select the current time.</div>
+              <div>{clockCaption}</div>
               <div style={{ marginTop: '6px', ...smallMutedStyle }}>
                 (Analog clocks have no ticks and are very close.)
               </div>
@@ -631,7 +696,13 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
                     }}
                   >
                     <AnalogClock time={t} />
-                    <div style={{ marginTop: '6px', fontFamily: 'monospace', fontSize: '12px' }}>
+                    <div
+                      style={{
+                        marginTop: '6px',
+                        fontFamily: 'monospace',
+                        fontSize: '12px',
+                      }}
+                    >
                       {formatTime(t)}
                     </div>
                   </button>
@@ -643,16 +714,30 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
           {!captchaPassed && captchaStep === 'slider_96' && (
             <div style={{ marginTop: '10px' }}>
               <div>Captcha: Drag the slider to 96 exactly.</div>
-              <div style={{ marginTop: '8px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <div
+                style={{
+                  marginTop: '8px',
+                  display: 'flex',
+                  gap: '10px',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                }}
+              >
                 <input
                   type="range"
                   min={0}
                   max={100}
                   value={sliderValue}
-                  onInput={(e) => setSliderValue(Number((e.currentTarget as HTMLInputElement).value))}
+                  onInput={(e) =>
+                    setSliderValue(
+                      Number((e.currentTarget as HTMLInputElement).value)
+                    )
+                  }
                   style={{ width: '260px' }}
                 />
-                <div style={{ fontFamily: 'monospace', width: '80px' }}>{sliderValue}</div>
+                <div style={{ fontFamily: 'monospace', width: '80px' }}>
+                  {sliderValue}
+                </div>
                 <button
                   style={buttonStyle}
                   type="button"
@@ -702,10 +787,16 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
             </div>
           )}
 
-          {captchaStatus && <div style={{ marginTop: '10px' }}>{captchaStatus}</div>}
+          {captchaStatus && (
+            <div style={{ marginTop: '10px' }}>{captchaStatus}</div>
+          )}
           {!captchaPassed && (
             <div style={{ marginTop: '10px' }}>
-              <button style={buttonStyle} type="button" onClick={() => resetCaptchas(Date.now())}>
+              <button
+                style={buttonStyle}
+                type="button"
+                onClick={() => resetCaptchas(Date.now())}
+              >
                 Restart Verification
               </button>
             </div>
@@ -722,17 +813,17 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
               color: !flags.hasFinalReportFile
                 ? 'maroon'
                 : selectedFileId && !isCorrectFileSelected
-                  ? 'maroon'
-                  : 'inherit',
+                ? 'maroon'
+                : 'inherit',
             }}
           >
             {!flags.hasFinalReportFile
               ? 'Missing required file. Extract the archive first.'
               : !selectedFileId
-                ? 'Select the correct file to enable upload.'
-                : isCorrectFileSelected
-                  ? 'Ready to submit.'
-                  : 'Incorrect file selected.'}
+              ? 'Select the correct file to enable upload.'
+              : isCorrectFileSelected
+              ? 'Ready to submit.'
+              : 'Incorrect file selected (must be the final report in PNG format).'}
           </span>
         )}
       </div>
@@ -743,4 +834,3 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
 };
 
 export default PortalApp;
-

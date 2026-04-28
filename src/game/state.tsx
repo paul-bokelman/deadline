@@ -5,6 +5,7 @@ import { triggerBootLoaderScreen } from '../components/shared/BootLoaderScreen/B
 import { gameEventBus } from './events';
 import { NetVoiceCallId } from './netvoice/calls';
 import { playRebootSfx, playYouGotMailSfx } from '../utils/audio/osSfx';
+import { FileTypeId } from '../types/FileType';
 
 export type GameStage =
   | 'bios'
@@ -44,7 +45,10 @@ export interface GameFlags {
   blackjackHandsInProgress: number;
   blackjackBailoutCount: 0 | 1 | 2 | 3;
   hasPurchasedWinRar: boolean;
+  hasPurchasedAntiVirus: boolean;
   hasReceivedWinRarLinkEmail: boolean;
+  dynamicFileTypeOverrides: Partial<Record<string, FileTypeId>>;
+  dynamicFileNameOverrides: Partial<Record<string, string>>;
   language: 'en' | 'zh';
 }
 
@@ -92,7 +96,10 @@ const initialFlags: GameFlags = {
   blackjackHandsInProgress: 0,
   blackjackBailoutCount: 0,
   hasPurchasedWinRar: false,
+  hasPurchasedAntiVirus: false,
   hasReceivedWinRarLinkEmail: false,
+  dynamicFileTypeOverrides: {},
+  dynamicFileNameOverrides: {},
   language: 'en',
 };
 
@@ -171,15 +178,24 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
     const unsubscribeStarted = gameEventBus.on('blackjack:hand_started', () => {
       setFlagsState((current) => ({
         ...current,
-        blackjackHandsInProgress: Math.max(0, (current.blackjackHandsInProgress ?? 0) + 1),
+        blackjackHandsInProgress: Math.max(
+          0,
+          (current.blackjackHandsInProgress ?? 0) + 1
+        ),
       }));
     });
-    const unsubscribeFinished = gameEventBus.on('blackjack:hand_finished', () => {
-      setFlagsState((current) => ({
-        ...current,
-        blackjackHandsInProgress: Math.max(0, (current.blackjackHandsInProgress ?? 0) - 1),
-      }));
-    });
+    const unsubscribeFinished = gameEventBus.on(
+      'blackjack:hand_finished',
+      () => {
+        setFlagsState((current) => ({
+          ...current,
+          blackjackHandsInProgress: Math.max(
+            0,
+            (current.blackjackHandsInProgress ?? 0) - 1
+          ),
+        }));
+      }
+    );
     return () => {
       unsubscribeStarted();
       unsubscribeFinished();
@@ -194,7 +210,8 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
     // Small debounce to avoid races where a hand just started but the
     // blackjack "hand_started" event hasn't been processed/rendered yet.
     const timer = window.setTimeout(() => {
-      const isStillBroke = flags.bankBalance <= 0 && flags.blackjackBalance <= 0;
+      const isStillBroke =
+        flags.bankBalance <= 0 && flags.blackjackBalance <= 0;
       const noActiveHands = flags.blackjackHandsInProgress <= 0;
       if (!isStillBroke || !noActiveHands) return;
       if (activeNetVoiceCallId !== null) return;
@@ -208,8 +225,8 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
         bailoutCount === 0
           ? 'mom_bailout_1'
           : bailoutCount === 1
-            ? 'mom_bailout_2'
-            : 'greg_3rd_0';
+          ? 'mom_bailout_2'
+          : 'greg_3rd_0';
       setActiveNetVoiceCallIdState(nextCallId);
       setIsNetVoiceCallAcceptedState(false);
     }, 250);
@@ -238,8 +255,8 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
             callId === 'mom_bailout_1'
               ? 1
               : callId === 'mom_bailout_2'
-                ? 2
-                : currentFlags.blackjackBailoutCount ?? 0,
+              ? 2
+              : currentFlags.blackjackBailoutCount ?? 0,
         }));
         return { ...currentEvents, [eventId]: true };
       });
@@ -253,8 +270,7 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
     void playRebootSfx();
     void triggerBootLoaderScreen({
       preFadeMs: 500,
-    })
-      .then(() => applyInitialGameState());
+    }).then(() => applyInitialGameState());
   };
 
   useEffect(() => {

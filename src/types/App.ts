@@ -3,6 +3,9 @@ import { IconId } from './Icon';
 import { OpenWindowsContextType } from '../context/OpenWindowsContext';
 
 export const appIds = [
+  'antiVirus',
+  'draftDocumentLink',
+  'fileConverter',
   'calc',
   'cdPlayer',
   'clickMeReset',

@@ -43,6 +43,14 @@ const WindowsContainer: FunctionComponent = () => {
         if (window.isMinimized) return null;
 
         const isNetVoiceCallWindow = window.app.id === 'netVoiceCall';
+        const canClose =
+          !isNetVoiceCallWindow && (window.showCloseButton ?? true);
+        const canMinimize =
+          !isNetVoiceCallWindow && (window.canMinimize ?? true);
+        const canMaximize =
+          !isNetVoiceCallWindow && (window.canMaximize ?? window.isResizeable);
+        const showMaximizeButton =
+          !isNetVoiceCallWindow && (window.showMaximizeButton ?? true);
         const windowTitle = isNetVoiceCallWindow
           ? `NetVoice \u2013 ${
               isNetVoiceCallAccepted ? 'Connected' : 'Incoming Call'
@@ -59,23 +67,19 @@ const WindowsContainer: FunctionComponent = () => {
             isMaximized={window.isMaximized}
             isResizeable={window.isResizeable}
             onClickClose={
-              isNetVoiceCallWindow
-                ? () => undefined
-                : () => closeWindow(window.id)
+              canClose ? () => closeWindow(window.id) : () => undefined
             }
             onClickMaximize={
-              window.isResizeable ? () => maximizeWindow(window.id) : undefined
+              canMaximize ? () => maximizeWindow(window.id) : undefined
             }
             onClickMinimize={
-              isNetVoiceCallWindow ? undefined : () => minimizeWindow(window.id)
+              canMinimize ? () => minimizeWindow(window.id) : undefined
             }
             onClickRestore={
-              window.isResizeable
-                ? () => unMaximizeWindow(window.id)
-                : undefined
+              canMaximize ? () => unMaximizeWindow(window.id) : undefined
             }
             onDblClickTitleBar={() => {
-              if (!window.isResizeable) return;
+              if (!canMaximize) return;
               if (window.isMaximized) {
                 unMaximizeWindow(window.id);
               } else {
@@ -89,8 +93,8 @@ const WindowsContainer: FunctionComponent = () => {
             onResized={(size) =>
               window.isResizeable ? resizeWindow(window.id, size) : undefined
             }
-            showCloseButton={!isNetVoiceCallWindow}
-            showMaximizeButton={!isNetVoiceCallWindow}
+            showCloseButton={canClose}
+            showMaximizeButton={showMaximizeButton}
             size={window.size}
             title={windowTitle}
             zIndex={window.zIndex}

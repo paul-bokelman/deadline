@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 
 import Button from '../../components/shared/Button/Button';
 import Window from '../../components/shared/Window/Window';
-import { gameEventBus } from '../../game/events';
 import { useUpdateScheduler } from './useUpdateScheduler';
 
 const DUE_TIME_TEXT = '5:00 PM';
@@ -24,6 +23,7 @@ const WindowsUpdateNag: FunctionComponent = () => {
   const {
     countdownMs,
     isNagVisible,
+    onRemindLater,
     onRebootNow,
   } = useUpdateScheduler();
   const boundsRef = useRef<HTMLDivElement>(null);
@@ -37,35 +37,12 @@ const WindowsUpdateNag: FunctionComponent = () => {
 
   useEffect(() => {
     if (!isNagVisible) {
-      gameEventBus.emit('windows_update:tab_state', {
-        isActive: false,
-        isVisible: false,
-        label: 'Project Deadline',
-      });
-      return;
-    }
-
-    gameEventBus.emit('windows_update:tab_state', {
-      isActive: !isMinimized,
-      isVisible: true,
-      label: `Project Deadline (${formatCountdown(countdownMs)})`,
-    });
-  }, [countdownMs, isMinimized, isNagVisible]);
-
-  useEffect(() => {
-    return gameEventBus.on('windows_update:restore', () => {
-      setIsMinimized(false);
-    });
-  }, []);
-
-  useEffect(() => {
-    return gameEventBus.on('game:rebooted', () => {
       setShowInstallPrompt(false);
       setIsMinimized(false);
       setCoords(INITIAL_DEADLINE_COORDS);
       setInstallCoords(INITIAL_INSTALL_COORDS);
-    });
-  }, []);
+    }
+  }, [isNagVisible]);
 
   useEffect(() => {
     if (!isNagVisible) return;
@@ -122,7 +99,7 @@ const WindowsUpdateNag: FunctionComponent = () => {
             showCloseButton={false}
             showMaximizeButton={false}
             style={{ pointerEvents: 'auto' }}
-            title="Project Deadline"
+            title="Windows Update Reminder"
             zIndex={98501}
           >
             <div style={{ padding: '8px' }}>
@@ -139,6 +116,14 @@ const WindowsUpdateNag: FunctionComponent = () => {
                 <b>{formatCountdown(countdownMs)}</b>
               </div>
               <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                <Button
+                  label="Minimize"
+                  onClick={() => {
+                    setShowInstallPrompt(false);
+                    setIsMinimized(true);
+                    onRemindLater();
+                  }}
+                />
                 <Button label="Reboot Now" onClick={handleRebootNow} />
               </div>
             </div>
@@ -154,6 +139,11 @@ const WindowsUpdateNag: FunctionComponent = () => {
             isDraggable
             isResizeable={false}
             onClickClose={() => undefined}
+            onClickMinimize={() => {
+              setShowInstallPrompt(false);
+              setIsMinimized(true);
+              onRemindLater();
+            }}
             onMoved={(nextCoords) => setInstallCoords(nextCoords)}
             showCloseButton={false}
             showMaximizeButton={false}
@@ -176,7 +166,14 @@ const WindowsUpdateNag: FunctionComponent = () => {
                 Installation reminder will keep appearing until reboot.
               </div>
               <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
-                <Button label="Remind me later" onClick={handleRebootNow} />
+                <Button
+                  label="Minimize"
+                  onClick={() => {
+                    setShowInstallPrompt(false);
+                    setIsMinimized(true);
+                    onRemindLater();
+                  }}
+                />
                 <Button label="Reboot now" onClick={handleRebootNow} />
               </div>
             </div>
