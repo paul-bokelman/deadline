@@ -12,14 +12,17 @@ import {
 import { createRandomIntrusivePopupConfig } from '../../data/intrusivePopupConfigs';
 import { gameEventBus } from '../../game/events';
 import {
+  createIntrusivePopupLoopSfx,
   playIntrusivePopupCloseSfx,
   playIntrusivePopupHoverSfx,
   playIntrusivePopupSpawnSfx,
+  stopIntrusivePopupLoopSfx,
 } from './sfx';
 
 const MIN_STACKED_CLOSE_CLICKS = 1;
 const MAX_STACKED_CLOSE_CLICKS = 3;
 const TASKBAR_HEIGHT_PX = 28;
+const AMBIENT_SPAWN_EVERY_MS = 120_000;
 
 const clamp = (value: number, min: number, max: number): number =>
   Math.max(min, Math.min(value, max));
@@ -27,9 +30,6 @@ const clamp = (value: number, min: number, max: number): number =>
 const randomFrom = <T,>(items: T[]): T => {
   return items[Math.floor(Math.random() * items.length)];
 };
-
-const randomInt = (min: number, max: number): number =>
-  Math.floor(Math.random() * (max - min + 1)) + min;
 
 const randomAngleVelocity = (
   speedPxPerSecond: number
@@ -68,6 +68,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
   const latestCursorRef = useRef<{ x: number; y: number } | null>(null);
   const zIndexRef = useRef(98651);
   const timeoutIdsRef = useRef<number[]>([]);
+  const popupLoopSfxRef = useRef<Map<string, HTMLAudioElement>>(new Map());
 
   const getBounds = useCallback((): { height: number; width: number } => {
     const rect = boundsRef.current?.getBoundingClientRect();
@@ -172,8 +173,16 @@ const IntrusivePopupManager: FunctionComponent = () => {
       cursor?: { x: number; y: number } | null,
       config: IntrusivePopupConfig = createRandomIntrusivePopupConfig()
     ) => {
+      const popup = createPopup(config, cursor);
       playIntrusivePopupSpawnSfx();
-      setActivePopups((current) => [...current, createPopup(config, cursor)]);
+      const loopAudio = createIntrusivePopupLoopSfx();
+      if (loopAudio) {
+        popupLoopSfxRef.current.set(popup.id, loopAudio);
+        loopAudio.play().catch(() => {
+          popupLoopSfxRef.current.delete(popup.id);
+        });
+      }
+      setActivePopups((current) => [...current, popup]);
     },
     [createPopup]
   );
@@ -186,28 +195,10 @@ const IntrusivePopupManager: FunctionComponent = () => {
   );
 
   const scheduleAmbientSpawn = useCallback(() => {
-    const delayMs = randomInt(20_000, 35_000);
     const timeoutId = window.setTimeout(() => {
-      const baseConfig = createRandomIntrusivePopupConfig();
-      const dvdMode = Math.random() < 1 / 3;
-      const config = dvdMode
-        ? {
-            ...baseConfig,
-            behavior: {
-              ...baseConfig.behavior,
-              spawnMode: 'random' as const,
-              // "DVD logo" mode: fast bounce + hard-to-close
-              bounceSpeedPxPerSecond: randomInt(260, 420),
-              stackedCloseClicks: 3,
-              scrambledDecorations: true,
-              closeOtherPopupOnCloseClick: true,
-            },
-          }
-        : baseConfig;
-
-      spawnPopup(latestCursorRef.current, config);
+      spawnPopup(latestCursorRef.current, createRandomIntrusivePopupConfig());
       scheduleAmbientSpawn();
-    }, delayMs);
+    }, AMBIENT_SPAWN_EVERY_MS);
     timeoutIdsRef.current.push(timeoutId);
   }, [spawnPopup]);
 
@@ -225,6 +216,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
     (popupId: string) => {
       const recursiveSpawnDelays: number[] = [];
       let didClose = false;
+      let closedPopupId: string | null = null;
 
       setActivePopups((current) => {
         const clickedPopup = current.find((popup) => popup.id === popupId);
@@ -260,11 +252,17 @@ const IntrusivePopupManager: FunctionComponent = () => {
         }
 
         didClose = true;
+        closedPopupId = targetPopup.id;
         gameEventBus.emit('popup:closed', { popupId: targetPopup.id });
         return current.filter((popup) => popup.id !== targetPopup.id);
       });
 
       if (didClose) {
+        if (closedPopupId) {
+          const loopAudio = popupLoopSfxRef.current.get(closedPopupId);
+          stopIntrusivePopupLoopSfx(loopAudio);
+          popupLoopSfxRef.current.delete(closedPopupId);
+        }
         playIntrusivePopupCloseSfx();
       }
 
@@ -279,6 +277,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
     (popupId: string, event: MouseEvent) => {
       latestCursorRef.current = { x: event.clientX, y: event.clientY };
       let spawnedCount = 0;
+      const spawnedPopupIds: string[] = [];
 
       setActivePopups((current) => {
         const sourcePopup = current.find((popup) => popup.id === popupId);
@@ -295,11 +294,20 @@ const IntrusivePopupManager: FunctionComponent = () => {
             latestCursorRef.current
           )
         );
+        spawnedPopupIds.push(...spawned.map((popup) => popup.id));
         return [...current, ...spawned];
       });
 
       if (spawnedCount > 0) {
-        playIntrusivePopupSpawnSfx();
+        spawnedPopupIds.forEach((popupId) => {
+          playIntrusivePopupSpawnSfx();
+          const loopAudio = createIntrusivePopupLoopSfx();
+          if (!loopAudio) return;
+          popupLoopSfxRef.current.set(popupId, loopAudio);
+          loopAudio.play().catch(() => {
+            popupLoopSfxRef.current.delete(popupId);
+          });
+        });
       }
     },
     [createPopup]
@@ -381,6 +389,8 @@ const IntrusivePopupManager: FunctionComponent = () => {
     );
 
     const unsubscribeRebooted = gameEventBus.on('game:rebooted', () => {
+      popupLoopSfxRef.current.forEach((audio) => stopIntrusivePopupLoopSfx(audio));
+      popupLoopSfxRef.current.clear();
       setActivePopups([]);
     });
 
@@ -409,6 +419,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
         !!target.closest('[data-desktop-root="true"]');
 
       let didSpawn = false;
+      const spawnedPopupIds: string[] = [];
 
       setActivePopups((current) => {
         if (!current.length) return current;
@@ -448,6 +459,8 @@ const IntrusivePopupManager: FunctionComponent = () => {
                 latestCursorRef.current
               )
             );
+            const mostRecent = spawned[spawned.length - 1];
+            if (mostRecent) spawnedPopupIds.push(mostRecent.id);
             didSpawn = true;
             hasChanges = true;
           }
@@ -460,7 +473,15 @@ const IntrusivePopupManager: FunctionComponent = () => {
       });
 
       if (didSpawn) {
-        playIntrusivePopupSpawnSfx();
+        spawnedPopupIds.forEach((popupId) => {
+          playIntrusivePopupSpawnSfx();
+          const loopAudio = createIntrusivePopupLoopSfx();
+          if (!loopAudio) return;
+          popupLoopSfxRef.current.set(popupId, loopAudio);
+          loopAudio.play().catch(() => {
+            popupLoopSfxRef.current.delete(popupId);
+          });
+        });
       }
     };
 
@@ -474,6 +495,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
     const intervalId = window.setInterval(() => {
       const now = Date.now();
       let didSpawn = false;
+      const spawnedPopupIds: string[] = [];
 
       setActivePopups((current) => {
         if (!current.length) return current;
@@ -514,6 +536,8 @@ const IntrusivePopupManager: FunctionComponent = () => {
                 latestCursorRef.current
               )
             );
+            const mostRecent = spawned[spawned.length - 1];
+            if (mostRecent) spawnedPopupIds.push(mostRecent.id);
             didSpawn = true;
             const nextSeconds =
               nextPopup.config.behavior.autoSpawnEverySeconds ?? 10;
@@ -532,7 +556,15 @@ const IntrusivePopupManager: FunctionComponent = () => {
       });
 
       if (didSpawn) {
-        playIntrusivePopupSpawnSfx();
+        spawnedPopupIds.forEach((popupId) => {
+          playIntrusivePopupSpawnSfx();
+          const loopAudio = createIntrusivePopupLoopSfx();
+          if (!loopAudio) return;
+          popupLoopSfxRef.current.set(popupId, loopAudio);
+          loopAudio.play().catch(() => {
+            popupLoopSfxRef.current.delete(popupId);
+          });
+        });
       }
     }, 120);
 
@@ -608,7 +640,10 @@ const IntrusivePopupManager: FunctionComponent = () => {
   }, [getBounds]);
 
   useEffect(() => {
-    return () => undefined;
+    return () => {
+      popupLoopSfxRef.current.forEach((audio) => stopIntrusivePopupLoopSfx(audio));
+      popupLoopSfxRef.current.clear();
+    };
   }, []);
 
   return (

@@ -306,6 +306,11 @@
   width: 100%;
 }
 
+.previewBodyHtml a {
+  color: #0000cc;
+  text-decoration: underline;
+}
+
 .previewEmpty {
   padding: 16px;
   color: #666666;

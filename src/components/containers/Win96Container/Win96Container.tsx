@@ -16,8 +16,12 @@ import BluescreenSequence from '../../../stages/transition/BluescreenSequence';
 import WinStageLayer from '../../../stages/win/WinStageLayer';
 import Narrator from '../../../system/narrator/Narrator';
 import WindowsUpdateNag from '../../../system/windowsUpdate/WindowsUpdateNag';
-import BootLoaderScreen from '../../shared/BootLoaderScreen/BootLoaderScreen';
+import BootLoaderScreen, {
+  triggerBootLoaderScreen,
+} from '../../shared/BootLoaderScreen/BootLoaderScreen';
 import { playClickSfx } from '../../../utils/audio/sfx';
+import DeadPixelOverlay from '../../../system/deadPixels/DeadPixelOverlay';
+import { gameEventBus } from '../../../game/events';
 
 import style from './Win96Container.module.css';
 
@@ -43,7 +47,26 @@ const NetVoiceCallWindowSync: FunctionComponent = () => {
   return null;
 };
 
+const BrowserNavigationSync: FunctionComponent = () => {
+  const { openApp } = useContext(OpenWindowsContext);
+
+  useEffect(() => {
+    return gameEventBus.on('browser:navigate_to_url', ({ url }) => {
+      openApp({ appId: 'worldWideWeb' });
+      window.setTimeout(() => {
+        gameEventBus.emit('browser:url_requested', { url });
+      }, 40);
+    });
+  }, [openApp]);
+
+  return null;
+};
+
 const Win96Container: FunctionComponent = () => {
+  useEffect(() => {
+    void triggerBootLoaderScreen();
+  }, []);
+
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
       if (event.button !== 0) return;
@@ -73,12 +96,14 @@ const Win96Container: FunctionComponent = () => {
                 <WindowsUpdateNag />
                 <Narrator />
                 <NetVoiceCallWindowSync />
+                <BrowserNavigationSync />
                 <GameScenarioController />
               </div>
               <div className={style.taskbarView}>
                 <TaskbarContainer />
               </div>
               <BootLoaderScreen />
+              <DeadPixelOverlay />
             </OpenWindowsProvider>
           </I18nProvider>
         </GameStateProvider>

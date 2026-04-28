@@ -5,7 +5,9 @@ import { useGameState } from '../../game/state';
 
 const INTRO_CALL_TRIGGER_EVENT_ID = 'intro_call:triggered';
 const INTRO_CALL_COMPLETED_EVENT_ID = 'intro_call:completed';
-const INTRO_EMAIL_ID = 'q3_report_instructions';
+const INTRO_EMAIL_ID = 'corp-promotions-012-real';
+const INTRO_CALL_DELAY_MS = 6000;
+const INTRO_EMAIL_DELIVERY_DELAY_MS = 1000;
 
 export const useIntroCallStage = (): void => {
   const {
@@ -30,7 +32,7 @@ export const useIntroCallStage = (): void => {
         markEventFired(INTRO_CALL_TRIGGER_EVENT_ID);
         setStage('intro_call');
         triggerNetVoiceCall('intro_assistant');
-      }, 2000);
+      }, INTRO_CALL_DELAY_MS);
     };
 
     const unsubscribeBootComplete = gameEventBus.on('boot:complete', () => {
@@ -48,14 +50,12 @@ export const useIntroCallStage = (): void => {
         if (hasEventFired(INTRO_CALL_COMPLETED_EVENT_ID)) return;
 
         markEventFired(INTRO_CALL_COMPLETED_EVENT_ID);
-        setFlag('hasReceivedIntroCall', true);
         setFlag('hasEmailAccess', true);
         setStage('search_email');
-
-        const emailDing = new Audio('/audio/email_ding.mp3');
-        emailDing.play().catch(() => undefined);
-
-        gameEventBus.emit('email:delivered', { emailId: INTRO_EMAIL_ID });
+        window.setTimeout(() => {
+          setFlag('hasReceivedIntroCall', true);
+          gameEventBus.emit('email:delivered', { emailId: INTRO_EMAIL_ID });
+        }, INTRO_EMAIL_DELIVERY_DELAY_MS);
       }
     );
 

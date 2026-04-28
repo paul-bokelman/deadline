@@ -24,6 +24,7 @@ export interface EmailRecord {
   timestamp: string;
   preview: string;
   body: string;
+  bodyHtml?: string;
   encryptedWithPassword?: string;
   encryptedLockedBody?: string;
   attachments?: EmailAttachment[];
@@ -43,479 +44,314 @@ export const emailAccounts: EmailAccountDefinition[] = [
   { id: 'personalMail', label: 'PersonalMail' },
   { id: 'corpMailLegacy', label: 'CorpMail 2 (Legacy)' },
 ];
+const EMAIL_ACCESS_RULE: EmailDeliveryRule = {
+  requiresFlags: ['hasEmailAccess'],
+};
 
-const PERSONAL_INBOX: EmailRecord[] = [
+const twoDigits = (value: number): string => value.toString().padStart(2, '0');
+const three = (value: number): string => value.toString().padStart(3, '0');
+
+const toClock = (offset: number): string => {
+  const hour = 7 + Math.floor(offset / 60);
+  const minute = offset % 60;
+  return `${twoDigits(hour)}:${twoDigits(minute)}`;
+};
+
+const richBody = (paragraphs: string[], bullets: string[] = []): string => {
+  const bulletMarkup =
+    bullets.length > 0
+      ? `<ul>${bullets.map((item) => `<li>${item}</li>`).join('')}</ul>`
+      : '';
+  return `<div><p>${paragraphs.join('</p><p>')}</p>${bulletMarkup}</div>`;
+};
+
+const personalSenders = [
+  'mom@familymail.com',
+  'sam@groupchat.zone',
+  'nora@oldmail.net',
+  'danny@garageband.club',
+  'exwife@seriouslyfine.com',
+  'coach@weekendwarriors.org',
+  'landlord@brickhouse.pm',
+  'cousin@familymail.com',
+  'bookclub@threads.local',
+  'roommate@apartment.life',
+];
+
+const personalSubjects = [
+  'Dinner plan keeps mutating',
+  'You left your jacket and your dignity',
+  'Please confirm this chaotic weekend plan',
+  'Your plant is alive (barely)',
+  'Family group chat update',
+  'Board game rematch invitation',
+  'Can you feed my cat tonight?',
+  'Emergency: who took the charger',
+  'Reminder about the awkward reunion',
+  'You still owe me tacos',
+];
+
+const personalBodyTemplates = [
   {
-    id: 'personal-001',
-    accountId: 'personalMail',
-    folder: 'inbox',
-    sender: 'mom@familymail.com',
-    subject: 'Did you eat lunch?',
-    timestamp: '09:04',
-    preview: 'Please stop skipping meals at work.',
-    body: 'Hey. Please eat lunch and drink water. Call me tonight.',
-  },
-  {
-    id: 'personal-002',
-    accountId: 'personalMail',
-    folder: 'inbox',
-    sender: 'no-reply@amazon.com',
-    subject: 'Your order has shipped',
-    timestamp: '09:12',
-    preview: 'Package arrives tomorrow by 8 PM.',
-    body: 'Your package is in transit. Tracking updates may be delayed.',
-  },
-  {
-    id: 'personal-003',
-    accountId: 'personalMail',
-    folder: 'inbox',
-    sender: 'notifications@reddit.com',
-    subject: '10 new replies to your post',
-    timestamp: '09:18',
-    preview: 'Internet strangers are yelling again.',
-    body: 'Your post is trending in r/techsupportgore.',
-  },
-  {
-    id: 'personal-004',
-    accountId: 'personalMail',
-    folder: 'promotions',
-    sender: 'promo@streamflix.tv',
-    subject: 'Come back for 40% off',
-    timestamp: '09:29',
-    preview: 'We miss your subscription money.',
-    body: 'Special offer expires at midnight.',
-  },
-  {
-    id: 'personal-005',
-    accountId: 'personalMail',
-    folder: 'spam',
-    sender: 'winner@mega-prizes.cc',
-    subject: 'YOU WON AN IPAD!!!',
-    timestamp: '09:30',
-    preview: 'Open attachment to claim now.',
-    body: 'Congratulations! Run the attached tool to validate your identity.',
-    attachments: [
-      {
-        id: 'personal-005-attachment-1',
-        fileName: 'Claim_iPad_NOW.exe',
-        isMalwareTrap: true,
-      },
+    p1: 'I know this sounds dramatic, but today turned into three mini-disasters before noon.',
+    p2: 'Not urgent unless you are available to laugh about it later.',
+    bullets: [
+      'One errand became five errands.',
+      'Coffee was spilled, dignity was not recovered.',
+      'Please reply with either advice or memes.',
     ],
   },
   {
-    id: 'personal-006',
-    accountId: 'personalMail',
-    folder: 'inbox',
-    sender: 'calendar@events.mail',
-    subject: 'Dinner with Sam moved',
-    timestamp: '09:44',
-    preview: 'Moved to Thursday 7:30 PM.',
-    body: 'Location unchanged. Traffic will be bad.',
-  },
-  {
-    id: 'personal-007',
-    accountId: 'personalMail',
-    folder: 'spam',
-    sender: 'security@free-antivirus.help',
-    subject: 'Critical virus detected',
-    timestamp: '09:51',
-    preview: 'Install emergency cleaner immediately.',
-    body: 'Your machine is infected. Launch attachment for instant cleanup.',
-    attachments: [
-      {
-        id: 'personal-007-attachment-1',
-        fileName: 'EmergencyCleaner.scr',
-        isMalwareTrap: true,
-      },
+    p1: 'Quick life update: I am pretending to be organized and it is barely working.',
+    p2: 'If you are free this week, I need a second opinion on a questionable plan.',
+    bullets: [
+      'Schedule moved again.',
+      'I probably forgot one detail.',
+      'Bring snacks if this becomes a meeting.',
     ],
   },
   {
-    id: 'personal-008',
-    accountId: 'personalMail',
-    folder: 'promotions',
-    sender: 'offers@airline.example',
-    subject: 'Weekend fares from $89',
-    timestamp: '10:02',
-    preview: 'Pretend you have free time.',
-    body: 'Sale ends tonight.',
-  },
-  {
-    id: 'personal-009',
-    accountId: 'personalMail',
-    folder: 'inbox',
-    sender: 'billing@internetprovider.net',
-    subject: 'Autopay receipt',
-    timestamp: '10:15',
-    preview: 'Payment processed successfully.',
-    body: 'Thank you. Nothing exciting happened.',
-  },
-  {
-    id: 'personal-010',
-    accountId: 'personalMail',
-    folder: 'spam',
-    sender: 'noreply@gift-card-bonus.biz',
-    subject: 'Gift card payout enclosed',
-    timestamp: '10:22',
-    preview: 'Attach and run to redeem.',
-    body: 'Double your gift card instantly with attached activator.',
-    attachments: [
-      {
-        id: 'personal-010-attachment-1',
-        fileName: 'GiftCardActivator.com',
-        isMalwareTrap: true,
-      },
-    ],
-  },
-  {
-    id: 'personal-011',
-    accountId: 'personalMail',
-    folder: 'inbox',
-    sender: 'friend@oldmail.net',
-    subject: 'Board game night?',
-    timestamp: '10:31',
-    preview: 'Friday still good?',
-    body: 'Bring snacks. No spreadsheets allowed.',
-  },
-  {
-    id: 'personal-012',
-    accountId: 'personalMail',
-    folder: 'trash',
-    sender: 'newsletter@dailynews.example',
-    subject: 'Morning digest',
-    timestamp: '10:46',
-    preview: 'Unread. Moved to trash.',
-    body: 'A lot happened that you are ignoring.',
-  },
-  {
-    id: 'personal-013',
-    accountId: 'personalMail',
-    folder: 'inbox',
-    sender: 'notifications@bank.fake',
-    subject: 'Invoice correction attached',
-    timestamp: '10:51',
-    preview: 'Please review attachment',
-    body: 'Update account records with attached correction patch.',
-    attachments: [
-      {
-        id: 'personal-013-attachment-1',
-        fileName: 'invoice_patch.exe',
-        isMalwareTrap: true,
-      },
-    ],
-  },
-  {
-    id: 'personal-014',
-    accountId: 'personalMail',
-    folder: 'sent',
-    sender: 'you@personal.mail',
-    subject: 'Re: landlord docs',
-    timestamp: '11:01',
-    preview: 'Sent signed PDF.',
-    body: 'Attached the signed lease addendum. Thanks.',
-  },
-  {
-    id: 'personal-015',
-    accountId: 'personalMail',
-    folder: 'promotions',
-    sender: 'shop@keyboardclub.com',
-    subject: 'New keycaps drop',
-    timestamp: '11:12',
-    preview: 'Limited stock in neon colors.',
-    body: 'Only 250 sets available worldwide.',
-  },
-  {
-    id: 'personal-016',
-    accountId: 'personalMail',
-    folder: 'spam',
-    sender: 'support@urgent-repair.cn',
-    subject: 'Open this to remove lag',
-    timestamp: '11:18',
-    preview: 'Performance booster attached.',
-    body: 'Run attachment for instant speed optimization.',
-    attachments: [
-      {
-        id: 'personal-016-attachment-1',
-        fileName: 'FPS_Booster.bat',
-        isMalwareTrap: true,
-      },
+    p1: 'Small favor request, medium chaos level, large appreciation in advance.',
+    p2: 'You always answer with common sense, so I am cashing in that reputation.',
+    bullets: [
+      'No money needed.',
+      'Might involve carrying one heavy box.',
+      'Will trade for dinner.',
     ],
   },
 ];
 
-const LEGACY_CORP_MAIL: EmailRecord[] = [
+const corpInboxBodyTemplates = [
   {
-    id: 'legacy-001',
-    accountId: 'corpMailLegacy',
-    folder: 'inbox',
-    sender: 'calendar@corp.internal',
-    subject: 'Meeting reminder: Q1 retrospective',
-    timestamp: '07:10',
-    preview: 'This invite expired 86 days ago.',
-    body: 'Legacy calendar event. Do not reply.',
+    p1: 'Quarterly alignment update: timeline is stable, morale is unstable, and the printer has chosen violence again.',
+    p2: 'Action is only required if your name appears in the ownership table or if you are emotionally invested in chaos.',
+    bullets: [
+      'Status: green-ish with suspicious yellow undertones.',
+      'Owner: Program Ops + one intern fueled by cold brew.',
+      'Next checkpoint: tomorrow at 10:00 unless another fire drill appears.',
+    ],
   },
   {
-    id: 'legacy-002',
-    accountId: 'corpMailLegacy',
-    folder: 'inbox',
-    sender: 'ops-notify@corp.internal',
-    subject: 'Printer migration phase 1 complete',
-    timestamp: '07:24',
-    preview: 'No action required.',
-    body: 'Legacy infrastructure notice.',
+    p1: 'Following up on the 47-message thread nobody asked for: scope is clearer and blast radius is now merely theatrical.',
+    p2: 'Please avoid reply-all unless your blocker has an ETA, a screenshot, and at least one witness.',
+    bullets: [
+      'Risk moved from "panic" to "nervous chuckle."',
+      'Security review is pending because legal wants one more comma.',
+      'Metrics dashboard now refreshes hourly and judges silently.',
+    ],
   },
   {
-    id: 'legacy-003',
-    accountId: 'corpMailLegacy',
-    folder: 'inbox',
-    sender: 'finance-archive@corp.internal',
-    subject: 'Expense report policy 2019',
-    timestamp: '07:31',
-    preview: 'Superseded document.',
-    body: 'This policy has been replaced.',
-  },
-  {
-    id: 'legacy-004',
-    accountId: 'corpMailLegacy',
-    folder: 'promotions',
-    sender: 'vendor-webinar@crmtool.com',
-    subject: 'Watch yesterday webinar replay',
-    timestamp: '07:52',
-    preview: 'Replay link expired.',
-    body: 'The recording is unavailable in your region.',
-  },
-  {
-    id: 'legacy-005',
-    accountId: 'corpMailLegacy',
-    folder: 'inbox',
-    sender: 'hr@corp.internal',
-    subject: 'Out of office: Janet Wells',
-    timestamp: '08:01',
-    preview: 'OOO auto-response',
-    body: 'I am out of office through last Tuesday.',
-  },
-  {
-    id: 'legacy-006',
-    accountId: 'corpMailLegacy',
-    folder: 'sent',
-    sender: 'you@corp.internal',
-    subject: 'Re: Legacy mailbox shutdown',
-    timestamp: '08:08',
-    preview: 'Please decommission mailbox.',
-    body: 'Following up on closure timeline.',
-  },
-  {
-    id: 'legacy-007',
-    accountId: 'corpMailLegacy',
-    folder: 'inbox',
-    sender: 'infra@corp.internal',
-    subject: 'FW: RE: FW: conference room lock code',
-    timestamp: '08:14',
-    preview: 'The code changed again.',
-    body: 'Please disregard previous code.',
-  },
-  {
-    id: 'legacy-008',
-    accountId: 'corpMailLegacy',
-    folder: 'spam',
-    sender: 'newsletter@b2b-data.example',
-    subject: 'Buy 100k executive leads',
-    timestamp: '08:28',
-    preview: 'Definitely not approved.',
-    body: 'Bulk lead list offer.',
-  },
-  {
-    id: 'legacy-009',
-    accountId: 'corpMailLegacy',
-    folder: 'inbox',
-    sender: 'calendar@corp.internal',
-    subject: 'Invite cancelled: Migration sync',
-    timestamp: '08:33',
-    preview: 'Organizer cancelled this event.',
-    body: 'No replacement meeting planned.',
-  },
-  {
-    id: 'legacy-010',
-    accountId: 'corpMailLegacy',
-    folder: 'inbox',
-    sender: 'qa@corp.internal',
-    subject: 'Test message - ignore',
-    timestamp: '08:42',
-    preview: 'legacy route validation',
-    body: 'Please ignore this validation email.',
-  },
-  {
-    id: 'legacy-011',
-    accountId: 'corpMailLegacy',
-    folder: 'promotions',
-    sender: 'events@cloudvendor.io',
-    subject: 'Claim your free expo pass',
-    timestamp: '08:50',
-    preview: 'Offer expired yesterday.',
-    body: 'This pass can no longer be redeemed.',
-  },
-  {
-    id: 'legacy-012',
-    accountId: 'corpMailLegacy',
-    folder: 'inbox',
-    sender: 'security@corp.internal',
-    subject: 'Password policy update (archived)',
-    timestamp: '09:02',
-    preview: 'Reference only.',
-    body: 'This is an archived policy version.',
-  },
-  {
-    id: 'legacy-013',
-    accountId: 'corpMailLegacy',
-    folder: 'trash',
-    sender: 'bot@calendar-sync.local',
-    subject: 'Sync failed for mailbox LEGACY_2',
-    timestamp: '09:11',
-    preview: 'Error code 0xA2',
-    body: 'Mailbox is pending retirement.',
-  },
-  {
-    id: 'legacy-014',
-    accountId: 'corpMailLegacy',
-    folder: 'inbox',
-    sender: 'admin@corp.internal',
-    subject: 'Legacy VPN cert expires soon',
-    timestamp: '09:15',
-    preview: 'No longer required.',
-    body: 'This environment is deprecated.',
-  },
-  {
-    id: 'legacy-015',
-    accountId: 'corpMailLegacy',
-    folder: 'inbox',
-    sender: 'noreply@corp.internal',
-    subject: 'Calendar digest',
-    timestamp: '09:28',
-    preview: 'No meetings today.',
-    body: 'You have no events in this mailbox.',
-  },
-  {
-    id: 'legacy-016',
-    accountId: 'corpMailLegacy',
-    folder: 'spam',
-    sender: 'hello@ai-seo.example',
-    subject: 'Rank #1 overnight',
-    timestamp: '09:34',
-    preview: 'cold pitch',
-    body: 'Auto-generated growth marketing pitch.',
+    p1: 'This memo replaces yesterday\'s memo, which replaced Monday\'s memo, which legally never happened.',
+    p2: 'Updated rollout sequencing is below and has been approved by governance, vibes, and a random number generator.',
+    bullets: [
+      'Wave 1: brave volunteers and accidental early adopters.',
+      'Wave 2: full department rollout with ceremonial keyboard cleaning.',
+      'Wave 3: organization-wide launch plus mandatory deep breathing.',
+    ],
   },
 ];
+
+const promoBodyTemplates = [
+  {
+    p1: 'This campaign includes product updates, workflow shortcuts, and one suspiciously enthusiastic webinar host named Trent.',
+    p2: 'Ninety percent is marketing glitter, ten percent is useful, and one percent is legally confusing.',
+    bullets: [
+      'Live session with Q&A and accidental oversharing.',
+      'Template bundle included (23 duplicates, 2 gems).',
+      'Coupon expires at midnight or whenever our server blinks.',
+    ],
+  },
+  {
+    p1: 'Congratulations, you were selected for a limited productivity trial by a spreadsheet that definitely has feelings.',
+    p2: 'If you ignore this email, one growth analyst will stare at a dashboard in silence for 20 minutes.',
+    bullets: [
+      'Free tier for 30 days and one emotional support tooltip.',
+      'Manager approval may be required unless they are on vacation.',
+      'One-click team import (three clicks in practice).',
+    ],
+  },
+  {
+    p1: 'Release recap includes feature highlights, migration notes, and customer quotes that sound suspiciously AI-generated.',
+    p2: 'Skim this if your team owns dashboards, onboarding, or anxiety.',
+    bullets: [
+      'Improved role permissions with 14 new checkboxes.',
+      'New export wizard wearing old bugs in a new hat.',
+      'Setup time reduced by 40% (source: vibes and one benchmark).',
+    ],
+  },
+];
+
+const q3ScamOpeners = [
+  'Per finance escalation and three alarming emojis, this is the corrected quarter package demanded by leadership.',
+  'Compliance says your previous upload failed checksum, spellcheck, and destiny. Re-submit now.',
+  'Executive desk requested latest revision before close of business and before Greg notices.',
+  'Automated records sync rejected your file, your font choices, and your confidence.',
+];
+
+const promoBrands = [
+  'streamflix.tv',
+  'flightflash.example',
+  'keyboardclub.com',
+  'warehouse-deals.io',
+  'retroshoes.shop',
+  'mealprep.zone',
+];
+
+const malwareDomains = [
+  'urgent-scan-now.biz',
+  'office-security.help',
+  'gift-upgrade.cc',
+  'driver-optimizer.pro',
+  'antivirus-delivery.top',
+  'q3-export-mail.net',
+];
+
+const buildPersonalEmails = (): EmailRecord[] => {
+  return Array.from({ length: 70 }, (_, index) => {
+    const id = index + 1;
+    const folder: EmailFolder =
+      id % 7 === 0
+        ? 'spam'
+        : id % 5 === 0
+          ? 'promotions'
+          : id % 11 === 0
+            ? 'sent'
+            : id % 13 === 0
+              ? 'trash'
+              : 'inbox';
+    const sender =
+      folder === 'promotions'
+        ? `offers@${promoBrands[id % promoBrands.length]}`
+        : folder === 'spam'
+          ? `notice@${malwareDomains[id % malwareDomains.length]}`
+          : personalSenders[id % personalSenders.length];
+    const subject =
+      folder === 'spam'
+        ? `ALERT: verify account package #${4000 + id}`
+        : folder === 'promotions'
+          ? `Limited offer ${30 + (id % 60)}% off`
+          : personalSubjects[id % personalSubjects.length];
+    const isMalware = folder === 'spam';
+    const malwareUrl = `http://cdn.${malwareDomains[id % malwareDomains.length]}/patch_${id}.exe`;
+    const paragraphs = isMalware
+      ? [
+          'Your personal mailbox has been flagged for suspicious behavior, excessive memes, and one illegal amount of glitter.',
+          'Use the secure downloader below to remove 19 threats and one deeply cursed browser extension.',
+        ]
+      : [
+          `${personalBodyTemplates[id % personalBodyTemplates.length]?.p1} - ${sender.split('@')[0]}.`,
+          personalBodyTemplates[id % personalBodyTemplates.length]?.p2 ??
+            'Reply when you can. This one is not urgent, just dramatic.',
+        ];
+    return {
+      id: `personal-${three(id)}`,
+      accountId: 'personalMail',
+      folder,
+      sender,
+      subject,
+      timestamp: toClock(100 + id * 3),
+      preview: isMalware
+        ? 'Urgent fake security drama with a sketchy download.'
+        : 'A chaotic personal update that somehow got longer.',
+      body: isMalware
+        ? `Critical action required. Download: ${malwareUrl}`
+        : `Message from ${sender}.`,
+      bodyHtml: isMalware
+        ? richBody(paragraphs, [
+            `Secure cleanup package: <a href="${malwareUrl}">Download SecurityPatch_${id}.exe</a>`,
+            '<a href="http://identity-checker.invalid/confirm">Confirm billing identity</a>',
+          ])
+        : richBody(
+            paragraphs,
+            personalBodyTemplates[id % personalBodyTemplates.length]?.bullets ?? [
+              'Bring snacks if you are coming.',
+              'Do not mention what happened last Friday.',
+            ]
+          ),
+      isMalwareTrap: isMalware,
+      attachments: isMalware
+        ? [
+            {
+              id: `personal-${three(id)}-attachment-1`,
+              fileName: `cleanup_bundle_${id}.scr`,
+              isMalwareTrap: true,
+            },
+          ]
+        : undefined,
+    };
+  });
+};
+
+const LEGACY_CORP_MAIL: EmailRecord[] = Array.from({ length: 20 }, (_, index) => {
+  const id = index + 1;
+  const folder: EmailFolder =
+    id % 9 === 0 ? 'spam' : id % 6 === 0 ? 'promotions' : id % 8 === 0 ? 'trash' : 'inbox';
+  return {
+    id: `legacy-${three(id)}`,
+    accountId: 'corpMailLegacy',
+    folder,
+    sender:
+      folder === 'spam'
+        ? `sales-bot${id}@legacy-funnels.biz`
+        : folder === 'promotions'
+          ? `events${id}@legacy-vendor.io`
+          : `archive-${id}@corp.internal`,
+    subject:
+      folder === 'spam'
+        ? `Legacy mailbox optimization offer #${id}`
+        : `Archive notice ${id}: mailbox migration memo`,
+    timestamp: toClock(20 + id * 4),
+    preview: 'Legacy mailbox clutter with detailed but outdated context.',
+    body: 'Legacy notice.',
+    bodyHtml: richBody(
+      [
+        'This legacy mailbox was retired three times and still refuses to leave.',
+        'Messages here are stale, duplicated, and occasionally sent by a haunted autoresponder.',
+      ],
+      [
+        'Do not submit current quarter data via this mailbox unless you enjoy consequences.',
+        'Forward only if requested by Security or a time traveler.',
+      ]
+    ),
+  };
+});
 
 const CORP_INBOX_NOISE: EmailRecord[] = [
-  {
-    id: 'corp-001',
-    accountId: 'corpMail',
-    folder: 'inbox',
-    sender: 'hr@corp.internal',
-    subject: 'Benefits enrollment reminder',
-    timestamp: '08:00',
-    preview: 'Enrollment closes Friday.',
-    body: 'Submit selections by end of week.',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
-  },
-  {
-    id: 'corp-002',
-    accountId: 'corpMail',
-    folder: 'inbox',
-    sender: 'facilities@corp.internal',
-    subject: 'Lunch in the break room',
-    timestamp: '08:06',
-    preview: 'Sandwiches on table B.',
-    body: 'First come first served.',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
-  },
-  {
-    id: 'corp-003',
-    accountId: 'corpMail',
-    folder: 'inbox',
-    sender: 'it-ops@corp.internal',
-    subject: 'Password rotation notice',
-    timestamp: '08:11',
-    preview: 'Change required by 5 PM.',
-    body: 'Use the password reset portal.',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
-  },
-  {
-    id: 'corp-004',
-    accountId: 'corpMail',
-    folder: 'inbox',
-    sender: 'calendar@corp.internal',
-    subject: 'Reminder: Standup in 15 minutes',
-    timestamp: '08:14',
-    preview: 'Bring blockers.',
-    body: 'Join the team room promptly.',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
-  },
-  {
-    id: 'corp-005',
-    accountId: 'corpMail',
-    folder: 'inbox',
-    sender: 'procurement@corp.internal',
-    subject: 'New laptop request approved',
-    timestamp: '08:17',
-    preview: 'Delivery ETA 2 weeks.',
-    body: 'Track status in Asset Portal.',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
-  },
-  {
-    id: 'corp-006',
-    accountId: 'corpMail',
-    folder: 'inbox',
-    sender: 'security@corp.internal',
-    subject: 'Phishing simulation results',
-    timestamp: '08:22',
-    preview: 'Team score: 78%',
-    body: 'Mandatory refresher scheduled.',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
-  },
-  {
-    id: 'corp-007',
-    accountId: 'corpMail',
-    folder: 'inbox',
-    sender: 'buildbot@corp.internal',
-    subject: 'Nightly pipeline failed',
-    timestamp: '08:25',
-    preview: 'Module auth-gateway red.',
-    body: 'Investigate failed integration tests.',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
-  },
-  {
-    id: 'corp-008',
-    accountId: 'corpMail',
-    folder: 'inbox',
-    sender: 'finance@corp.internal',
-    subject: 'Expense reminder',
-    timestamp: '08:31',
-    preview: 'Submit receipts before month-end.',
-    body: 'Late expenses will roll over.',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
-  },
-  {
-    id: 'corp-009',
-    accountId: 'corpMail',
-    folder: 'inbox',
-    sender: 'admin@corp.internal',
-    subject: 'Fire drill at 3 PM',
-    timestamp: '08:40',
-    preview: 'Do not use elevators.',
-    body: 'Meet at assembly point C.',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
-  },
-  {
-    id: 'corp-010',
-    accountId: 'corpMail',
-    folder: 'inbox',
-    sender: 'qa@corp.internal',
-    subject: 'Regression run complete',
-    timestamp: '08:49',
-    preview: 'Two flaky tests quarantined.',
-    body: 'See dashboard for details.',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
-  },
+  ...Array.from({ length: 47 }, (_, index): EmailRecord => {
+    const id = index + 1;
+    const template = corpInboxBodyTemplates[id % corpInboxBodyTemplates.length];
+    return {
+      id: `corp-${three(id)}`,
+      accountId: 'corpMail' as const,
+      folder: 'inbox' as const,
+      sender: [
+        'hr@corp.internal',
+        'facilities@corp.internal',
+        'it-ops@corp.internal',
+        'buildbot@corp.internal',
+        'finance@corp.internal',
+        'admin@corp.internal',
+        'security@corp.internal',
+      ][id % 7],
+      subject: [
+        'Benefits election reminder',
+        'Office kitchen policy update',
+        'Password rotation prompt',
+        'Build monitor digest',
+        'Expense policy change',
+        'Floor access badge migration',
+        'Mandatory anti-phishing refresher',
+      ][id % 7],
+      timestamp: toClock(50 + id * 2),
+      preview: 'Routine internal corporate traffic with enough detail to read.',
+      body: 'Routine internal message pretending to be normal.',
+      bodyHtml: richBody(
+        [template.p1, template.p2],
+        template.bullets
+      ),
+      deliveryRule: EMAIL_ACCESS_RULE,
+    };
+  }),
   {
     id: 'corp-011-password-hint',
     accountId: 'corpMail',
@@ -525,7 +361,17 @@ const CORP_INBOX_NOISE: EmailRecord[] = [
     timestamp: '11:39',
     preview: 'Encrypted message.',
     body: `Attachment password: ${Q3_ATTACHMENT_PASSWORD}`,
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
+    bodyHtml: richBody(
+      [
+        'You requested the decryption key for the encrypted Q3 attachment because nothing can ever be simple.',
+        `Password: <b>${Q3_ATTACHMENT_PASSWORD}</b>`,
+      ],
+      [
+        'Use key only on trusted sender attachment, not random inbox jump scares.',
+        'Do not post this in public channels, break-room whiteboards, or karaoke lyrics.',
+      ]
+    ),
+    deliveryRule: EMAIL_ACCESS_RULE,
   },
   {
     id: 'corp-submission-portal-link',
@@ -535,10 +381,16 @@ const CORP_INBOX_NOISE: EmailRecord[] = [
     subject: 'Submission Portal Link',
     timestamp: '12:08',
     preview: 'Open this portal to submit the report.',
-    body:
-      'Submission portal link:\nhttps://portal.corp.internal/submit\n\nUse your standard credentials. Deadline is unchanged.',
+    body: 'Submission portal link: https://portal.corp.internal/submit',
+    bodyHtml: richBody(
+      [
+        'Submission portal link for end-of-quarter filing and mild existential dread:',
+        '<a href="https://portal.corp.internal/submit">https://portal.corp.internal/submit</a>',
+      ],
+      ['Use standard corporate credentials.', 'Deadline remains unchanged, cruel, and very real.']
+    ),
     requiresGameFlag: 'hasReceivedPortalIntroCall',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
+    deliveryRule: EMAIL_ACCESS_RULE,
   },
   {
     id: 'corp-winrar-download-link',
@@ -548,10 +400,19 @@ const CORP_INBOX_NOISE: EmailRecord[] = [
     subject: 'WinRAR download link',
     timestamp: '12:11',
     preview: 'Use this link to download WinRAR for the zip.',
-    body:
-      'Use the following URL to download WinRAR:\nhttp://download.winrar-online.example/\n\nOpen World Wide Web and paste/search this link. Then run WinRAR_installer.exe.',
+    body: 'Use this URL to download WinRAR: https://www.win-rar.com/',
+    bodyHtml: richBody(
+      [
+        'Download WinRAR from the link below so this zip stops bullying everyone:',
+        '<a href="https://www.win-rar.com/">https://www.win-rar.com/</a>',
+      ],
+      [
+        'Use browser download page, then launch WinRAR installer.',
+        'Do not use random third-party mirrors unless you enjoy mystery malware.',
+      ]
+    ),
     requiresGameFlag: 'hasReceivedWinRarLinkEmail',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
+    deliveryRule: EMAIL_ACCESS_RULE,
   },
 ];
 
@@ -567,146 +428,72 @@ const q3SpamSenders = [
 ];
 
 const CORP_SPAM_FAKE_Q3: EmailRecord[] = Array.from(
-  { length: 47 },
+  { length: 35 },
   (_, index) => {
     const spamId = index + 1;
+    const trapUrl = `http://q3-archive-fast${spamId}.corp-mail.support/Q3_Report_${2020 + (spamId % 6)}.zip`;
     return {
       id: `corp-spam-q3-${spamId.toString().padStart(2, '0')}`,
       accountId: 'corpMail',
       folder: 'spam',
       sender: q3SpamSenders[index % q3SpamSenders.length],
-      subject: 'RE: Q3 Report',
+      subject: spamId % 2 === 0 ? 'RE: Q3 Report (Updated)' : 'Q3 Report - action needed',
       timestamp: `10:${(spamId % 60).toString().padStart(2, '0')}`,
-      preview: 'Reattached report. Open urgently.',
-      body: 'This sender is not trusted. Attachment missing or suspicious.',
+      preview: 'Suspicious clone of a real report thread with fake urgency and panic seasoning.',
+      body: `Urgent Q3 package mirror: ${trapUrl}`,
+      bodyHtml: richBody(
+        [
+          q3ScamOpeners[spamId % q3ScamOpeners.length],
+          'This thread mimics internal style but comes from an untrusted relay wearing a fake mustache.',
+        ],
+        [
+          `<a href="${trapUrl}">Download Q3_Financials_Final_${spamId}.zip</a>`,
+          '<a href="http://secure-q3-password-reset.help/">Reset attachment password</a>',
+        ]
+      ),
       isMalwareTrap: true,
-      deliveryRule: { requiresFlags: ['hasEmailAccess'] },
+      attachments: [
+        {
+          id: `corp-spam-q3-${twoDigits(spamId)}-attachment`,
+          fileName: `Q3_Corrected_${spamId}.exe`,
+          isMalwareTrap: true,
+        },
+      ],
+      deliveryRule: EMAIL_ACCESS_RULE,
     };
   }
 );
 
 const CORP_PROMOTIONS: EmailRecord[] = [
-  {
-    id: 'corp-promotions-001',
-    accountId: 'corpMail',
-    folder: 'promotions',
-    sender: 'premium@linkedin.com',
-    subject: 'Upgrade to Premium Career',
-    timestamp: '11:00',
-    preview: 'See who viewed your profile.',
-    body: 'Try one month free.',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
-  },
-  {
-    id: 'corp-promotions-002',
-    accountId: 'corpMail',
-    folder: 'promotions',
-    sender: 'tips@slack.com',
-    subject: '5 Slack tips for focus',
-    timestamp: '11:02',
-    preview: 'Mute channels in one click.',
-    body: 'Productivity content you will never read.',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
-  },
-  {
-    id: 'corp-promotions-003',
-    accountId: 'corpMail',
-    folder: 'promotions',
-    sender: 'newsletter@notion.so',
-    subject: 'Template pack for teams',
-    timestamp: '11:04',
-    preview: 'New launch roadmap templates.',
-    body: 'Duplicate into your workspace.',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
-  },
-  {
-    id: 'corp-promotions-004',
-    accountId: 'corpMail',
-    folder: 'promotions',
-    sender: 'launches@figma.com',
-    subject: 'Design systems webinar',
-    timestamp: '11:06',
-    preview: 'Register for Thursday.',
-    body: 'Seats are limited.',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
-  },
-  {
-    id: 'corp-promotions-005',
-    accountId: 'corpMail',
-    folder: 'promotions',
-    sender: 'events@atlassian.com',
-    subject: 'Join Team Conference',
-    timestamp: '11:08',
-    preview: 'Hybrid attendance available.',
-    body: 'Early bird closes tonight.',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
-  },
-  {
-    id: 'corp-promotions-006',
-    accountId: 'corpMail',
-    folder: 'promotions',
-    sender: 'partner@zoom.us',
-    subject: 'Set up webinar in minutes',
-    timestamp: '11:10',
-    preview: 'Automated reminders now live.',
-    body: 'Marketing feature announcement.',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
-  },
-  {
-    id: 'corp-promotions-007',
-    accountId: 'corpMail',
-    folder: 'promotions',
-    sender: 'academy@coursera.org',
-    subject: 'Enroll in Data Storytelling',
-    timestamp: '11:12',
-    preview: 'Corporate discount applied.',
-    body: 'Coupon expires in 48 hours.',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
-  },
-  {
-    id: 'corp-promotions-008',
-    accountId: 'corpMail',
-    folder: 'promotions',
-    sender: 'digest@devtool.io',
-    subject: 'Release notes weekly',
-    timestamp: '11:14',
-    preview: 'Five updates this week.',
-    body: 'Changelog summary.',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
-  },
-  {
-    id: 'corp-promotions-009',
-    accountId: 'corpMail',
-    folder: 'promotions',
-    sender: 'offers@cloudstorage.net',
-    subject: 'Storage expansion promo',
-    timestamp: '11:16',
-    preview: 'Double quota for 90 days.',
-    body: 'Terms and limits apply.',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
-  },
-  {
-    id: 'corp-promotions-010',
-    accountId: 'corpMail',
-    folder: 'promotions',
-    sender: 'community@stackshare.io',
-    subject: 'Trending stacks this month',
-    timestamp: '11:18',
-    preview: 'See what teams use.',
-    body: 'Editorial roundup.',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
-  },
-  {
-    id: 'corp-promotions-011',
-    accountId: 'corpMail',
-    folder: 'promotions',
-    sender: 'deals@officechair.example',
-    subject: 'Ergonomic sale 20% off',
-    timestamp: '11:20',
-    preview: 'Back pain has entered the chat.',
-    body: 'Finance may not approve this.',
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
-  },
+  ...Array.from({ length: 24 }, (_, index): EmailRecord => {
+    const id = index + 1;
+    const template = promoBodyTemplates[id % promoBodyTemplates.length];
+    const sender = [
+      'premium@linkedin.com',
+      'tips@slack.com',
+      'newsletter@notion.so',
+      'launches@figma.com',
+      'events@atlassian.com',
+      'partner@zoom.us',
+      'academy@coursera.org',
+      'digest@devtool.io',
+    ][id % 8];
+    return {
+      id: `corp-promotions-auto-${three(id)}`,
+      accountId: 'corpMail',
+      folder: 'promotions',
+      sender,
+      subject: `Team productivity bundle ${id}`,
+      timestamp: toClock(180 + id * 2),
+      preview: 'Long-form promo mail with practical and absurd bullet points.',
+      body: `Promotional bulletin from ${sender}.`,
+      bodyHtml: richBody(
+        [template.p1, template.p2],
+        template.bullets
+      ),
+      deliveryRule: EMAIL_ACCESS_RULE,
+    };
+  }),
   {
     id: 'corp-promotions-012-real',
     accountId: 'corpMail',
@@ -715,8 +502,14 @@ const CORP_PROMOTIONS: EmailRecord[] = [
     subject: 'Q3 Report - encrypted attachment',
     timestamp: '11:22',
     preview: 'Per your request, attached is the Q3 report.',
-    body:
-      'Per your request, attached is the Q3 report. File is encrypted. Password is in a separate email. - [auto-generated]',
+    body: 'Per your request, attached is the Q3 report. File is encrypted.',
+    bodyHtml: richBody(
+      [
+        'Per your request, attached is the Q3 report package.',
+        'File is encrypted. Password is sent separately in a dedicated message.',
+      ],
+      ['Attachment source: approved reporting relay', 'Message signature: auto-generated']
+    ),
     attachments: [
       {
         id: 'corp-promotions-012-real-attachment',
@@ -724,12 +517,12 @@ const CORP_PROMOTIONS: EmailRecord[] = [
         isRealAttachment: true,
       },
     ],
-    deliveryRule: { requiresFlags: ['hasEmailAccess'] },
+    deliveryRule: { requiresFlags: ['hasEmailAccess', 'hasReceivedIntroCall'] },
   },
 ];
 
 export const allEmails: EmailRecord[] = [
-  ...PERSONAL_INBOX,
+  ...buildPersonalEmails(),
   ...LEGACY_CORP_MAIL,
   ...CORP_INBOX_NOISE,
   ...CORP_SPAM_FAKE_Q3,

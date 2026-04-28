@@ -4,6 +4,7 @@ import { useContext, useEffect, useState } from 'preact/hooks';
 import { triggerBootLoaderScreen } from '../components/shared/BootLoaderScreen/BootLoaderScreen';
 import { gameEventBus } from './events';
 import { NetVoiceCallId } from './netvoice/calls';
+import { playRebootSfx, playYouGotMailSfx } from '../utils/audio/osSfx';
 
 export type GameStage =
   | 'bios'
@@ -67,7 +68,7 @@ export interface GameStateContextValue {
 
 const initialFlags: GameFlags = {
   hasReceivedIntroCall: false,
-  hasEmailAccess: false,
+  hasEmailAccess: true,
   hasFoundRealEmail: false,
   hasReceivedPasswordHintCall: false,
   hasUnlockedAttachment: false,
@@ -210,7 +211,7 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
           ? 'mom_bailout_1'
           : bailoutCount === 1
             ? 'mom_bailout_2'
-            : 'it_guy_blackjack_roast';
+            : 'greg_3rd_0';
       setActiveNetVoiceCallIdState(nextCallId);
       setIsNetVoiceCallAcceptedState(false);
     }, 250);
@@ -251,16 +252,28 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
     setActiveNetVoiceCallIdState(null);
     setIsNetVoiceCallAcceptedState(false);
     emitGameRebooted();
-    void triggerBootLoaderScreen().then(() => applyInitialGameState());
+    void playRebootSfx()
+      .then((rebootSfxDurationMs) =>
+        triggerBootLoaderScreen({
+          preFadeMs: rebootSfxDurationMs,
+        })
+      )
+      .then(() => applyInitialGameState());
   };
 
   useEffect(() => {
+    return gameEventBus.on('email:delivered', () => {
+      playYouGotMailSfx();
+    });
+  }, []);
+
+  useEffect(() => {
     return gameEventBus.on('netvoice:call_accepted', ({ callId }) => {
-      if (callId !== 'it_guy_blackjack_roast') return;
+      if (callId !== 'greg_3rd_0') return;
       // Force hang up, then reboot the run.
       window.setTimeout(() => {
         gameEventBus.emit('netvoice:call_ended', {
-          callId: 'it_guy_blackjack_roast',
+          callId: 'greg_3rd_0',
           autoTriggerNextStage: false,
         });
         window.setTimeout(() => {

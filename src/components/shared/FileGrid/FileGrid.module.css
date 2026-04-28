@@ -15,7 +15,8 @@
   align-items: center;
   margin: 4px 2px;
   width: 74px;
-  height: 66px;
+  height: auto;
+  min-height: 66px;
   user-select: none;
   cursor: default;
 }
@@ -25,7 +26,7 @@
 }
 
 .fileLabel {
-  height: 30px;
+  min-height: 30px;
   width: 100%;
   padding: 2px 3px 2px 3px;
   font-family: var(--font-family-ui), sans-serif;
@@ -35,10 +36,6 @@
   white-space: normal;
   word-break: break-word;
   overflow-wrap: anywhere;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
 }
 
 .file.focus .fileIcon {

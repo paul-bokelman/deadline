@@ -14,13 +14,18 @@ import { netVoiceCallers, netVoiceCalls } from '../../../game/netvoice/calls';
 import MenuBar from '../../shared/MenuBar/MenuBar';
 import StatusBar from '../../shared/StatusBar/StatusBar';
 import WindowContent from '../../shared/WindowContent/WindowContent';
+import {
+  playCallOverSfx,
+  playHangupSfx,
+  playIncomingCallSfxLoop,
+  stopCallOverSfx,
+} from '../../../utils/audio/osSfx';
 
 import style from './NetVoiceCallApp.module.css';
 
-const RING_AUDIO_VOLUME = 0.5;
 const CALL_AUDIO_VOLUME = 0.75;
 const AUTO_ACCEPT_DELAY_MS = 5000;
-const AUTO_HANGUP_DELAY_MS = 1000;
+const AUTO_HANGUP_DELAY_MS = 4000;
 const RING_TICK_MS = 1700;
 
 const MENU_OPTIONS = ['File', 'Edit', 'View', 'Call', 'Help'];
@@ -45,6 +50,7 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
   const [callDurationSec, setCallDurationSec] = useState(0);
   const ringAudioRef = useRef<HTMLAudioElement | null>(null);
   const callAudioRef = useRef<HTMLAudioElement | null>(null);
+  const callOverAudioRef = useRef<HTMLAudioElement | null>(null);
   const hasEndedCallRef = useRef(false);
 
   const call = activeNetVoiceCallId
@@ -54,18 +60,22 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
     call,
   ]);
 
+  const stopCallOverTone = useCallback(() => {
+    stopCallOverSfx(callOverAudioRef.current);
+    callOverAudioRef.current = null;
+  }, []);
+
   useEffect(() => {
     setIsAccepted(false);
     setIsAudioFinished(false);
     setRingCount(1);
     setCallDurationSec(0);
     hasEndedCallRef.current = false;
+    stopCallOverTone();
 
     if (!activeNetVoiceCallId) return;
 
-    const ringAudio = new Audio('/audio/ring.mp3');
-    ringAudio.loop = true;
-    ringAudio.volume = RING_AUDIO_VOLUME;
+    const ringAudio = playIncomingCallSfxLoop();
     ringAudioRef.current = ringAudio;
     ringAudio.play().catch(() => undefined);
 
@@ -73,7 +83,7 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
       ringAudio.pause();
       ringAudio.currentTime = 0;
     };
-  }, [activeNetVoiceCallId]);
+  }, [activeNetVoiceCallId, stopCallOverTone]);
 
   useEffect(() => {
     if (!activeNetVoiceCallId || isAccepted) return;
@@ -97,9 +107,10 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
 
   useEffect(() => {
     return () => {
+      stopCallOverTone();
       callAudioRef.current?.pause();
     };
-  }, []);
+  }, [stopCallOverTone]);
 
   const handleAccept = useCallback(() => {
     if (isAccepted || !activeNetVoiceCallId || !call) return;
@@ -111,9 +122,15 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
     const callAudio = new Audio(call.audioPath);
     callAudio.volume = CALL_AUDIO_VOLUME;
     callAudioRef.current = callAudio;
-    callAudio.addEventListener('ended', () => setIsAudioFinished(true), {
-      once: true,
-    });
+    callAudio.addEventListener(
+      'ended',
+      () => {
+        stopCallOverTone();
+        callOverAudioRef.current = playCallOverSfx();
+        setIsAudioFinished(true);
+      },
+      { once: true }
+    );
     callAudio.play().catch(() => setIsAudioFinished(true));
 
     gameEventBus.emit('netvoice:call_accepted', {
@@ -122,21 +139,27 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
     });
   }, [activeNetVoiceCallId, call, isAccepted]);
 
-  const handleHangup = useCallback(() => {
-    if (!call) return;
-    if (hasEndedCallRef.current) return;
+  const handleHangup = useCallback(
+    (reason: 'hangup' | 'call_over' = 'hangup') => {
+      if (!call) return;
+      if (hasEndedCallRef.current) return;
 
-    hasEndedCallRef.current = true;
-    ringAudioRef.current?.pause();
-    if (ringAudioRef.current) ringAudioRef.current.currentTime = 0;
-    callAudioRef.current?.pause();
-    if (callAudioRef.current) callAudioRef.current.currentTime = 0;
-    setIsAudioFinished(true);
-    gameEventBus.emit('netvoice:call_ended', {
-      callId: call.id,
-      autoTriggerNextStage: call.autoTriggerNextStage ?? false,
-    });
-  }, [call]);
+      hasEndedCallRef.current = true;
+      stopCallOverTone();
+      playHangupSfx();
+      ringAudioRef.current?.pause();
+      if (ringAudioRef.current) ringAudioRef.current.currentTime = 0;
+      callAudioRef.current?.pause();
+      if (callAudioRef.current) callAudioRef.current.currentTime = 0;
+      setIsAudioFinished(true);
+      gameEventBus.emit('netvoice:call_ended', {
+        callId: call.id,
+        autoTriggerNextStage: call.autoTriggerNextStage ?? false,
+        reason,
+      });
+    },
+    [call, stopCallOverTone]
+  );
 
   useEffect(() => {
     if (!activeNetVoiceCallId || isAccepted || !call) return;
@@ -154,7 +177,7 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
     if (!isAudioFinished) return;
 
     const autoHangupTimer = window.setTimeout(() => {
-      handleHangup();
+      handleHangup('call_over');
     }, AUTO_HANGUP_DELAY_MS);
 
     return () => {
@@ -173,6 +196,9 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
   const description = (
     <div className={style.description}>
       <div className={style.descriptionRole}>{caller.role}</div>
+      {caller.username && (
+        <div className={style.descriptionUsername}>{caller.username}</div>
+      )}
       {caller.warning && (
         <div className={style.descriptionWarning}>{caller.warning}</div>
       )}
@@ -221,7 +247,7 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
             </button>
             <button
               className={style.actionButton}
-              onClick={handleHangup}
+              onClick={() => handleHangup('hangup')}
               type="button"
             >
               <span className={style.iconDecline} aria-hidden="true">
@@ -240,7 +266,7 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
             </button>
             <button
               className={`${style.actionButton} ${style.actionButtonPrimary}`}
-              onClick={handleHangup}
+              onClick={() => handleHangup('hangup')}
               type="button"
             >
               <span className={style.iconHangup} aria-hidden="true">

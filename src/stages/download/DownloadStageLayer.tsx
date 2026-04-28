@@ -48,8 +48,6 @@ const DownloadStageLayer: FunctionComponent = () => {
           if (!hasEventFired(IT_GUY_WINRAR_LINK_EMAIL_EVENT_ID)) {
             markEventFired(IT_GUY_WINRAR_LINK_EMAIL_EVENT_ID);
             setFlag('hasReceivedWinRarLinkEmail', true);
-            const emailDing = new Audio('/audio/email_ding.mp3');
-            emailDing.play().catch(() => undefined);
             gameEventBus.emit('email:delivered', {
               emailId: 'corp-winrar-download-link',
             });

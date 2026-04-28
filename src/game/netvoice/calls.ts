@@ -1,10 +1,14 @@
 export type NetVoiceCallId =
   | 'intro_assistant'
+  | 'alice_halfway'
+  | 'alice_greg_warning'
   | 'password_hint_assistant'
   | 'password_dump_hint'
   | 'mom_bailout_1'
   | 'mom_bailout_2'
-  | 'it_guy_blackjack_roast'
+  | 'mom_www_issues'
+  | 'mom_maryjane'
+  | 'greg_3rd_0'
   | 'it_guy_intro'
   | 'it_guy_winrar_link'
   | 'it_guy_angry_1'
@@ -19,6 +23,7 @@ export type NetVoiceCallerId = 'alice' | 'greg' | 'boss' | 'mom';
 export interface NetVoiceCaller {
   id: NetVoiceCallerId;
   name: string;
+  username?: string;
   avatar: string;
   role: string;
   warning?: string;
@@ -29,6 +34,7 @@ export const netVoiceCallers: Record<NetVoiceCallerId, NetVoiceCaller> = {
   alice: {
     id: 'alice',
     name: 'Alice',
+    username: '@guantummy1_11',
     avatar: '/audio/netvoice/alice_profile.png',
     role: 'Assistant',
     warning: "Don't flirt, she knows Grace and WILL tell (like last time)",
@@ -37,6 +43,7 @@ export const netVoiceCallers: Record<NetVoiceCallerId, NetVoiceCaller> = {
   greg: {
     id: 'greg',
     name: 'Greg',
+    username: '@coxial_cable_slayer4',
     avatar: '/audio/netvoice/greg_profile.png',
     role: 'IT Guy',
     warning: "!!!DON'T PICK UP HIS CALLS!!!",
@@ -52,6 +59,7 @@ export const netVoiceCallers: Record<NetVoiceCallerId, NetVoiceCaller> = {
   mom: {
     id: 'mom',
     name: 'Mom',
+    username: '@julia45ALE',
     avatar: '/audio/netvoice/mom_profile.png',
     role: 'Family',
     warning: 'Please do not answer this at work',
@@ -71,9 +79,23 @@ export const netVoiceCalls: Record<NetVoiceCallId, NetVoiceCallDefinition> = {
   intro_assistant: {
     id: 'intro_assistant',
     callerId: 'alice',
-    audioPath: '/audio/netvoice/intro_assistant.mp3',
+    audioPath: '/audio/netvoice/people/alice-intro.mp3',
     dialogText:
       "Hey, listen, you need to download the Q3 report and send it to the boss before deadline. It's in your email. Heads up - my email address isn't my name, it's an ID number, so don't fall for impersonators. And whatever you do, do NOT reboot the computer - you'll lose everything. Good luck.",
+    autoTriggerNextStage: false,
+  },
+  alice_halfway: {
+    id: 'alice_halfway',
+    callerId: 'alice',
+    audioPath: '/audio/netvoice/people/alice-halfway.mp3',
+    dialogText: 'Deadline halfway check-in from Alice.',
+    autoTriggerNextStage: false,
+  },
+  alice_greg_warning: {
+    id: 'alice_greg_warning',
+    callerId: 'alice',
+    audioPath: '/audio/netvoice/people/alice-greg-warning.mp3',
+    dialogText: 'Alice warning call.',
     autoTriggerNextStage: false,
   },
   password_hint_assistant: {
@@ -95,7 +117,7 @@ export const netVoiceCalls: Record<NetVoiceCallId, NetVoiceCallDefinition> = {
   mom_bailout_1: {
     id: 'mom_bailout_1',
     callerId: 'mom',
-    audioPath: '/audio/netvoice/mom_bailout_1.wav',
+    audioPath: '/audio/netvoice/people/mom-1st-0.mp3',
     dialogText:
       "Hey honey uhm… I noticed you have no money in your bank account…. You really need to manage your money better your 43. Me and dad are pretty disappointed in you. Im going to send over $100 to make sure your alright but make sure that lasts\n\n[NOTE: change audio, mom calls and gives you $100]",
     autoTriggerNextStage: false,
@@ -103,15 +125,29 @@ export const netVoiceCalls: Record<NetVoiceCallId, NetVoiceCallDefinition> = {
   mom_bailout_2: {
     id: 'mom_bailout_2',
     callerId: 'mom',
-    audioPath: '/audio/netvoice/mom_bailout_2.wav',
+    audioPath: '/audio/netvoice/people/mom-2nd-0.mp3',
     dialogText:
       "ok this is getting ridiculous. I just gave you money a few minutes ago. I’ll send $100 more but your not getting any allowance next month.\n\n[NOTE: change audio, mom calls and gives you $100]",
     autoTriggerNextStage: false,
   },
-  it_guy_blackjack_roast: {
-    id: 'it_guy_blackjack_roast',
+  mom_www_issues: {
+    id: 'mom_www_issues',
+    callerId: 'mom',
+    audioPath: '/audio/netvoice/people/mom-www-issues.mp3',
+    dialogText: 'Mom random call about web issues.',
+    autoTriggerNextStage: false,
+  },
+  mom_maryjane: {
+    id: 'mom_maryjane',
+    callerId: 'mom',
+    audioPath: '/audio/netvoice/people/mom-maryjane.mp3',
+    dialogText: 'Mom random call.',
+    autoTriggerNextStage: false,
+  },
+  greg_3rd_0: {
+    id: 'greg_3rd_0',
     callerId: 'greg',
-    audioPath: '/audio/netvoice/it_guy_blackjack_roast.wav',
+    audioPath: '/audio/netvoice/people/greg-3rd-0.mp3',
     dialogText:
       'HAHAHAHA, you actually suck at blackjack. go next budy.\n\n[NOTE: change audio, forced hangup + reboot]',
     autoTriggerNextStage: false,
@@ -119,7 +155,7 @@ export const netVoiceCalls: Record<NetVoiceCallId, NetVoiceCallDefinition> = {
   it_guy_intro: {
     id: 'it_guy_intro',
     callerId: 'greg',
-    audioPath: '/audio/netvoice/it_guy_intro.mp3',
+    audioPath: '/audio/netvoice/people/greg-download-failed.mp3',
     dialogText:
       "Hey, I saw your download fail. I'm gonna remote in and just drop the file on your desktop as a zip. Just extract it, easy. Give me a sec.",
     autoTriggerNextStage: false,

@@ -1,5 +1,7 @@
 export type CoreGameEvents = {
   'boot:complete': { at: number };
+  'bootloader:started': { at: number };
+  'bootloader:ended': { at: number };
   'game:rebooted': { at: number };
   'email:opened': { emailId: string };
   'email:delivered': { emailId: string };
@@ -27,6 +29,14 @@ export type CoreGameEvents = {
     sourceEmailId: string;
     subject: string;
   };
+  'browser:navigate_to_url': {
+    url: string;
+    source: 'email';
+    emailId: string;
+  };
+  'browser:url_requested': {
+    url: string;
+  };
   'popup:test_spawn_random': { x: number; y: number };
   'popup:closed': { popupId: string };
   'netvoice:call_accepted': {
@@ -36,6 +46,7 @@ export type CoreGameEvents = {
   'netvoice:call_ended': {
     callId: string;
     autoTriggerNextStage: boolean;
+    reason?: 'hangup' | 'call_over' | 'remote_hangup';
   };
   'blackjack:hand_started': { at: number };
   'blackjack:hand_finished': { at: number };

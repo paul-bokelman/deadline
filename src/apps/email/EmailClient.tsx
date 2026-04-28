@@ -14,6 +14,10 @@ import {
 import { gameEventBus } from '../../game/events';
 import { useGameState } from '../../game/state';
 import { getAttachmentDecryptionKeyFromDump } from '../../system/desktop/dynamicDesktopItems';
+import {
+  getDeliveredEmailInstances,
+  subscribeRuntimeMailbox,
+} from '../../system/email/runtimeMailbox';
 import { IconId } from '../../types/Icon';
 
 import style from './EmailClient.module.css';
@@ -51,6 +55,10 @@ type PasswordDialogContext =
   | { mode: 'attachment'; emailId: string }
   | { mode: 'email'; emailId: string }
   | null;
+interface VisibleEmailItem {
+  instanceId: string;
+  email: EmailRecord;
+}
 
 const PASSWORD_DUMP_HINT_CALL_TRIGGER_EVENT_ID = 'password_dump_hint_call:triggered';
 
@@ -102,23 +110,41 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
     triggerNetVoiceCall,
   } = useGameState();
   const [selectedFolder, setSelectedFolder] = useState<EmailFolder>('inbox');
-  const [selectedEmail, setSelectedEmail] = useState<EmailRecord | null>(null);
+  const [selectedEmail, setSelectedEmail] = useState<VisibleEmailItem | null>(null);
   const [isLoadingEmail, setIsLoadingEmail] = useState(false);
   const [passwordDialogContext, setPasswordDialogContext] =
     useState<PasswordDialogContext>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [readEmailMap, setReadEmailMap] = useState<Record<string, true>>({});
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+  const [mailboxVersion, setMailboxVersion] = useState(0);
   const loadEmailTimerRef = useRef<number | null>(null);
   const attachmentUnlockKeyRef = useRef(getAttachmentDecryptionKeyFromDump());
+  const previewBodyRef = useRef<HTMLDivElement>(null);
 
-  const accountEmails = useMemo(() => getEmailsForAccount(accountId, flags), [
+  const eligibleEmails = useMemo(() => getEmailsForAccount(accountId, flags), [
     accountId,
     flags,
   ]);
+  const eligibleEmailMap = useMemo(
+    () => new Map(eligibleEmails.map((email) => [email.id, email])),
+    [eligibleEmails]
+  );
+
+  const accountEmails = useMemo<VisibleEmailItem[]>(() => {
+    const instances = getDeliveredEmailInstances();
+    const visibleItems = instances
+      .map((item) => {
+        const email = eligibleEmailMap.get(item.emailId);
+        if (!email) return null;
+        return { instanceId: item.instanceId, email };
+      })
+      .filter((item): item is VisibleEmailItem => item !== null);
+    return visibleItems.reverse();
+  }, [eligibleEmailMap, mailboxVersion]);
 
   const folderEmails = useMemo(
-    () => accountEmails.filter((email) => email.folder === selectedFolder),
+    () => accountEmails.filter((item) => item.email.folder === selectedFolder),
     [accountEmails, selectedFolder]
   );
 
@@ -130,9 +156,9 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
       sent: 0,
       trash: 0,
     };
-    accountEmails.forEach((email) => {
-      if (readEmailMap[email.id]) return;
-      counts[email.folder] = (counts[email.folder] ?? 0) + 1;
+    accountEmails.forEach((item) => {
+      if (readEmailMap[item.instanceId]) return;
+      counts[item.email.folder] = (counts[item.email.folder] ?? 0) + 1;
     });
     return counts;
   }, [accountEmails, readEmailMap]);
@@ -140,7 +166,7 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
   const unreadInCurrentFolderCount = useMemo(
     () =>
       folderEmails.reduce(
-        (count, email) => (readEmailMap[email.id] ? count : count + 1),
+        (count, item) => (readEmailMap[item.instanceId] ? count : count + 1),
         0
       ),
     [folderEmails, readEmailMap]
@@ -152,6 +178,12 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
         window.clearTimeout(loadEmailTimerRef.current);
       }
     };
+  }, []);
+
+  useEffect(() => {
+    return subscribeRuntimeMailbox(() => {
+      setMailboxVersion((current) => current + 1);
+    });
   }, []);
 
   useEffect(() => {
@@ -181,14 +213,15 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
     triggerNetVoiceCall('password_dump_hint');
   };
 
-  const markEmailRead = (emailId: string) => {
+  const markEmailRead = (instanceId: string) => {
     setReadEmailMap((current) => {
-      if (current[emailId]) return current;
-      return { ...current, [emailId]: true };
+      if (current[instanceId]) return current;
+      return { ...current, [instanceId]: true };
     });
   };
 
-  const handleSelectEmail = (email: EmailRecord) => {
+  const handleSelectEmail = (item: VisibleEmailItem) => {
+    const email = item.email;
     if (email.isMalwareTrap) {
       triggerMalwareEvent(email, 'email_open');
     }
@@ -198,7 +231,7 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
       loadEmailTimerRef.current = null;
     }
 
-    markEmailRead(email.id);
+    markEmailRead(item.instanceId);
 
     const loadDelayMs = email.loadDelayMs ?? 0;
     if (loadDelayMs > 0) {
@@ -206,14 +239,14 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
       setIsLoadingEmail(true);
       loadEmailTimerRef.current = window.setTimeout(() => {
         setIsLoadingEmail(false);
-        setSelectedEmail(email);
+        setSelectedEmail(item);
         loadEmailTimerRef.current = null;
       }, loadDelayMs);
       return;
     }
 
     setIsLoadingEmail(false);
-    setSelectedEmail(email);
+    setSelectedEmail(item);
   };
 
   const openAttachmentPasswordDialog = (email: EmailRecord) => {
@@ -292,12 +325,12 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
 
   const handleDeleteSelected = () => {
     if (!selectedEmail) return;
-    markEmailRead(selectedEmail.id);
+    markEmailRead(selectedEmail.instanceId);
     setSelectedEmail(null);
   };
 
   const selectedEmailIsLocked = false;
-  const selectedEmailBody = selectedEmail?.body;
+  const selectedEmailBody = selectedEmail?.email.body;
 
   return (
     <WindowContent
@@ -390,9 +423,10 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
                   {folderEmails.length === 0 && (
                     <div className={style.listEmpty}>No new messages.</div>
                   )}
-                  {folderEmails.map((email) => {
-                    const isActive = selectedEmail?.id === email.id;
-                    const isUnread = !readEmailMap[email.id];
+                  {folderEmails.map((item) => {
+                    const email = item.email;
+                    const isActive = selectedEmail?.instanceId === item.instanceId;
+                    const isUnread = !readEmailMap[item.instanceId];
                     const rowIcon: IconId = isUnread
                       ? 'mailEnvelope'
                       : 'mailEnvelopeOpen';
@@ -401,8 +435,8 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
                         className={`${style.listRow} ${
                           isActive ? style.listRowActive : ''
                         } ${isUnread ? style.listRowUnread : ''}`}
-                        key={email.id}
-                        onClick={() => handleSelectEmail(email)}
+                        key={item.instanceId}
+                        onClick={() => handleSelectEmail(item)}
                       >
                         <div
                           className={`${style.listCell} ${style.listCellPriority}`}
@@ -451,7 +485,7 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
                       <div className={style.previewLabel}>
                         <b>From:</b>
                       </div>
-                      <div>{selectedEmail.sender}</div>
+                      <div>{selectedEmail.email.sender}</div>
                       <div className={style.previewLabel}>
                         <b>To:</b>
                       </div>
@@ -459,25 +493,25 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
                       <div className={style.previewLabel}>
                         <b>Subject:</b>
                       </div>
-                      <div>{selectedEmail.subject}</div>
+                      <div>{selectedEmail.email.subject}</div>
                       <div className={style.previewLabel}>
                         <b>Date:</b>
                       </div>
-                      <div>{selectedEmail.timestamp}</div>
+                      <div>{selectedEmail.email.timestamp}</div>
                       {!selectedEmailIsLocked &&
-                        !!selectedEmail.attachments?.length && (
+                        !!selectedEmail.email.attachments?.length && (
                           <Fragment>
                             <div className={style.previewLabel}>
                               <b>Attach:</b>
                             </div>
                             <div>
-                              {selectedEmail.attachments.map((attachment) => (
+                              {selectedEmail.email.attachments.map((attachment) => (
                                 <button
                                   className={style.previewAttachment}
                                   key={attachment.id}
                                   onClick={() =>
                                     handleClickAttachment(
-                                      selectedEmail,
+                                      selectedEmail.email,
                                       attachment.id
                                     )
                                   }
@@ -492,7 +526,37 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
                         )}
                     </div>
                     <div className={style.previewBody}>
-                      {selectedEmailBody}
+                      <div
+                        className={style.previewBodyHtml}
+                        onClick={(event) => {
+                          const target = event.target as HTMLElement;
+                          const anchor = target.closest('a') as HTMLAnchorElement | null;
+                          if (!anchor || !selectedEmail) return;
+                          const href = anchor.getAttribute('href');
+                          if (!href || href.startsWith('#')) return;
+                          event.preventDefault();
+                          if (selectedEmail.email.isMalwareTrap) {
+                            triggerMalwareEvent(selectedEmail.email, 'email_open');
+                            return;
+                          }
+                          gameEventBus.emit('browser:navigate_to_url', {
+                            url: href,
+                            source: 'email',
+                            emailId: selectedEmail.email.id,
+                          });
+                        }}
+                        ref={previewBodyRef}
+                      >
+                        {selectedEmail.email.bodyHtml ? (
+                          <div
+                            dangerouslySetInnerHTML={{
+                              __html: selectedEmail.email.bodyHtml,
+                            }}
+                          />
+                        ) : (
+                          selectedEmailBody
+                        )}
+                      </div>
                     </div>
                   </Fragment>
                 )}

@@ -2,6 +2,7 @@ import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 
 import { AppProps } from '../../types/App';
+import { gameEventBus } from '../../game/events';
 
 const rootStyle: JSX.CSSProperties = {
   height: '100%',
@@ -152,6 +153,27 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
     setHistoryIndex((current) => current + 1);
   };
 
+  const navigateForUrl = (rawUrl: string) => {
+    const q = rawUrl.trim().toLowerCase();
+    if (!q) return;
+    if (q.includes('news')) return navigateTo('news');
+    if (q.includes('weather') || q.includes('weeather')) return navigateTo('weather');
+    if (q.includes('stocks')) return navigateTo('stocks');
+    if (q.includes('sports')) return navigateTo('sports');
+    if (q.includes('history')) return navigateTo('history');
+    if (q.includes('home')) return navigateTo('home');
+    if (
+      q.includes('win-rar.com') ||
+      q.includes('winrar') ||
+      q.includes('.rar') ||
+      q.includes('rar')
+    ) {
+      return navigateTo('winrarDownload');
+    }
+    setSearchQuery(rawUrl.trim());
+    navigateTo('search');
+  };
+
   const pageAddress = useMemo(() => {
     if (page === 'news') return 'http://daily-beeper.net/news';
     if (page === 'weather') return 'http://cloud.oracle/weather';
@@ -176,21 +198,15 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
   };
 
   const handleGo = () => {
-    const q = typedAddress.trim().toLowerCase();
-    if (!q) return;
-    if (q.includes('news')) return navigateTo('news');
-    if (q.includes('weather') || q.includes('weeather')) return navigateTo('weather');
-    if (q.includes('stocks')) return navigateTo('stocks');
-    if (q.includes('sports')) return navigateTo('sports');
-    if (q.includes('history')) return navigateTo('history');
-    if (q.includes('home')) return navigateTo('home');
-    if (q.includes('winrar') || q.includes('.rar') || q.includes('rar')) {
-      return navigateTo('winrarDownload');
-    }
-
-    setSearchQuery(typedAddress.trim());
-    navigateTo('search');
+    navigateForUrl(typedAddress);
   };
+
+  useEffect(() => {
+    return gameEventBus.on('browser:url_requested', ({ url }) => {
+      setTypedAddress(url);
+      navigateForUrl(url);
+    });
+  }, []);
 
   const renderPage = (): JSX.Element => {
     if (page === 'news') {

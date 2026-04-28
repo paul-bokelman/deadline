@@ -1,7 +1,11 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { gameEventBus } from '../../../game/events';
+import { playStartupSfx } from '../../../utils/audio/osSfx';
 
 const BOOT_DURATION_MS = 3000;
+const DEFAULT_PRE_FADE_MS = 0;
+const DEFAULT_POST_FADE_MS = 850;
 const MAX_VISIBLE_LINES = 34;
 
 interface BootLine {
@@ -258,61 +262,109 @@ const cursorStyle: JSX.CSSProperties = {
 };
 
 interface BootLoaderListener {
-  (): void;
+  (options?: TriggerBootLoaderOptions): void;
 }
 
 const listeners = new Set<BootLoaderListener>();
+interface TriggerBootLoaderOptions {
+  bootDurationMs?: number;
+  preFadeMs?: number;
+  postFadeMs?: number;
+}
 
 /**
  * Imperatively show the boot loader screen for ~4 seconds.
  * Safe to call from anywhere; resolves after the screen hides.
  */
-export const triggerBootLoaderScreen = (): Promise<void> => {
+export const triggerBootLoaderScreen = (
+  options?: TriggerBootLoaderOptions
+): Promise<void> => {
+  const preFadeMs = options?.preFadeMs ?? DEFAULT_PRE_FADE_MS;
+  const bootDurationMs = options?.bootDurationMs ?? BOOT_DURATION_MS;
+  const postFadeMs = options?.postFadeMs ?? DEFAULT_POST_FADE_MS;
+  const totalDurationMs = preFadeMs + bootDurationMs + postFadeMs;
+
   return new Promise((resolve) => {
-    listeners.forEach((listener) => listener());
-    window.setTimeout(resolve, BOOT_DURATION_MS);
+    gameEventBus.emit('bootloader:started', { at: Date.now() });
+    listeners.forEach((listener) => listener(options));
+    window.setTimeout(() => {
+      gameEventBus.emit('bootloader:ended', { at: Date.now() });
+      resolve();
+    }, totalDurationMs);
   });
 };
 
 const BootLoaderScreen: FunctionComponent = () => {
   const [isActive, setIsActive] = useState(false);
+  const [isOverlayVisible, setIsOverlayVisible] = useState(false);
+  const [overlayOpacity, setOverlayOpacity] = useState(0);
   const [visibleCount, setVisibleCount] = useState(0);
   const [showCursor, setShowCursor] = useState(true);
   const tokenRef = useRef(0);
+  const fadeDurationMsRef = useRef(0);
 
   useEffect(() => {
-    const handleTrigger = (): void => {
+    const handleTrigger = (options?: TriggerBootLoaderOptions): void => {
       tokenRef.current += 1;
       const myToken = tokenRef.current;
-      setIsActive(true);
+      const preFadeMs = options?.preFadeMs ?? DEFAULT_PRE_FADE_MS;
+      const bootDurationMs = options?.bootDurationMs ?? BOOT_DURATION_MS;
+      const postFadeMs = options?.postFadeMs ?? DEFAULT_POST_FADE_MS;
+
+      fadeDurationMsRef.current = preFadeMs;
+
+      setIsOverlayVisible(true);
+      setOverlayOpacity(0);
       setVisibleCount(0);
 
       const totalLines = BOOT_LINES.length;
       const stepMs = Math.max(
         10,
-        Math.floor((BOOT_DURATION_MS - 250) / totalLines)
+        Math.floor((bootDurationMs - 250) / totalLines)
       );
+      const startBootSequence = () => {
+        if (tokenRef.current !== myToken) return;
+        setIsActive(true);
+        const intervalId = window.setInterval(() => {
+          if (tokenRef.current !== myToken) {
+            window.clearInterval(intervalId);
+            return;
+          }
+          setVisibleCount((current) => {
+            if (current >= totalLines) {
+              window.clearInterval(intervalId);
+              return current;
+            }
+            return Math.min(totalLines, current + 2);
+          });
+        }, stepMs);
 
-      const intervalId = window.setInterval(() => {
-        if (tokenRef.current !== myToken) {
+        window.setTimeout(() => {
+          if (tokenRef.current !== myToken) {
+            window.clearInterval(intervalId);
+            return;
+          }
+          setIsActive(false);
+          playStartupSfx();
+          fadeDurationMsRef.current = postFadeMs;
+          setOverlayOpacity(0);
+          window.setTimeout(() => {
+            if (tokenRef.current !== myToken) return;
+            setIsOverlayVisible(false);
+          }, postFadeMs);
           window.clearInterval(intervalId);
+        }, bootDurationMs);
+      };
+
+      window.requestAnimationFrame(() => {
+        if (tokenRef.current !== myToken) return;
+        setOverlayOpacity(1);
+        if (preFadeMs <= 0) {
+          startBootSequence();
           return;
         }
-        setVisibleCount((current) => {
-          if (current >= totalLines) {
-            window.clearInterval(intervalId);
-            return current;
-          }
-          return Math.min(totalLines, current + 2);
-        });
-      }, stepMs);
-
-      window.setTimeout(() => {
-        if (tokenRef.current === myToken) {
-          setIsActive(false);
-        }
-        window.clearInterval(intervalId);
-      }, BOOT_DURATION_MS);
+        window.setTimeout(startBootSequence, preFadeMs);
+      });
     };
 
     listeners.add(handleTrigger);
@@ -329,7 +381,7 @@ const BootLoaderScreen: FunctionComponent = () => {
     return () => window.clearInterval(intervalId);
   }, [isActive]);
 
-  if (!isActive) return null;
+  if (!isOverlayVisible) return null;
 
   const visibleLines = BOOT_LINES.slice(
     Math.max(0, visibleCount - MAX_VISIBLE_LINES),
@@ -337,13 +389,20 @@ const BootLoaderScreen: FunctionComponent = () => {
   );
 
   return (
-    <div style={containerStyle}>
-      {visibleLines.map((line, index) => (
-        <div key={index} style={line.isError ? errorStyle : undefined}>
-          {`[${line.prefix}] ${line.text}`}
-        </div>
-      ))}
-      {visibleCount > 0 && (
+    <div
+      style={{
+        ...containerStyle,
+        opacity: overlayOpacity,
+        transition: `opacity ${fadeDurationMsRef.current}ms linear`,
+      }}
+    >
+      {isActive &&
+        visibleLines.map((line, index) => (
+          <div key={index} style={line.isError ? errorStyle : undefined}>
+            {`[${line.prefix}] ${line.text}`}
+          </div>
+        ))}
+      {isActive && visibleCount > 0 && (
         <span
           style={{
             ...cursorStyle,

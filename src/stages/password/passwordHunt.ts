@@ -19,9 +19,6 @@ export const usePasswordHuntStage = (): void => {
         markEventFired(PASSWORD_HINT_COMPLETED_EVENT_ID);
         setFlag('hasReceivedPasswordHintCall', true);
 
-        const emailDing = new Audio('/audio/email_ding.mp3');
-        emailDing.play().catch(() => undefined);
-
         gameEventBus.emit('email:delivered', {
           emailId: PASSWORD_HINT_EMAIL_ID,
         });

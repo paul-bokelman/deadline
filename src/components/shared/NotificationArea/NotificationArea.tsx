@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import Icon from '../Icon/Icon';
 import maximizeIcon from '../../../assets/img/ui/maximize.svg';
 import restoreIcon from '../../../assets/img/ui/restore.svg';
+import { gameEventBus } from '../../../game/events';
 
 import style from './NotificationArea.module.css';
 import { getGameDate } from '../../../system/clock/gameClock';
@@ -20,7 +21,8 @@ const formatTrayTime = (date: Date) =>
 
 const NotificationArea: FunctionComponent = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const wasPlayingBeforeBootloaderRef = useRef(true);
+  const [isPlaying, setIsPlaying] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [clockText, setClockText] = useState(formatTrayTime(getGameDate()));
 
@@ -30,6 +32,29 @@ const NotificationArea: FunctionComponent = () => {
     }, 1000);
 
     return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const unsubscribeBootloaderStarted = gameEventBus.on(
+      'bootloader:started',
+      () => {
+        const audio = audioRef.current;
+        if (!audio) return;
+        wasPlayingBeforeBootloaderRef.current = !audio.paused;
+        audio.pause();
+      }
+    );
+    const unsubscribeBootloaderEnded = gameEventBus.on('bootloader:ended', () => {
+      const audio = audioRef.current;
+      if (!audio) return;
+      if (!wasPlayingBeforeBootloaderRef.current) return;
+      audio.play().catch(() => setIsPlaying(false));
+    });
+
+    return () => {
+      unsubscribeBootloaderStarted();
+      unsubscribeBootloaderEnded();
+    };
   }, []);
 
   useEffect(() => {

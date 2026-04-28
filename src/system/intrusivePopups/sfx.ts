@@ -1,19 +1,26 @@
-const SPAWN_SOURCE = '/audio/popup.mp3';
+const SPAWN_SOURCES = ['/audio/popups/popup1.mp3', '/audio/popups/popup2.mp3'];
+const LOOP_SOURCES = [
+  '/audio/popups/advertise.mp3',
+  '/audio/popups/airhorn.mp3',
+  '/audio/popups/alarm1.mp3',
+  '/audio/popups/alarm2.wav',
+  '/audio/popups/alarm3.wav',
+  '/audio/popups/bass-boost.mp3',
+  '/audio/popups/bluescreen.mp3',
+  '/audio/popups/cash-register.mp3',
+];
 const CLICK_SOURCE = '/audio/clicking_effect.m4a';
 
 const CLICK_START_SECONDS = 0.54;
 const CLICK_END_SECONDS = 0.74;
 const CLICK_CLIP_MS = (CLICK_END_SECONDS - CLICK_START_SECONDS) * 1000;
 
-const SPAWN_POOL_SIZE = 3;
 const CLOSE_POOL_SIZE = 3;
 const HOVER_POOL_SIZE = 3;
 
-let spawnPool: HTMLAudioElement[] | null = null;
 let closePool: HTMLAudioElement[] | null = null;
 let hoverPool: HTMLAudioElement[] | null = null;
 
-let nextSpawnIndex = 0;
 let nextCloseIndex = 0;
 let nextHoverIndex = 0;
 let lastHoverAt = 0;
@@ -27,6 +34,10 @@ const createAudio = (source: string, volume: number): HTMLAudioElement => {
   return audio;
 };
 
+const randomFrom = <T,>(items: T[]): T => {
+  return items[Math.floor(Math.random() * items.length)];
+};
+
 const buildPool = (
   source: string,
   volume: number,
@@ -37,13 +48,6 @@ const buildPool = (
     audio.load();
     return audio;
   });
-};
-
-const getSpawnPool = (): HTMLAudioElement[] => {
-  if (!spawnPool) {
-    spawnPool = buildPool(SPAWN_SOURCE, 0.42, SPAWN_POOL_SIZE);
-  }
-  return spawnPool;
 };
 
 const getClosePool = (): HTMLAudioElement[] => {
@@ -91,17 +95,27 @@ const playClippedClick = (pool: HTMLAudioElement[], index: number): number => {
 };
 
 export const playIntrusivePopupSpawnSfx = (): void => {
-  const pool = getSpawnPool();
-  const audio = pool[nextSpawnIndex % pool.length];
-  nextSpawnIndex = (nextSpawnIndex + 1) % pool.length;
+  const audio = createAudio(randomFrom(SPAWN_SOURCES), 0.42);
+  audio.play().catch(() => undefined);
+};
 
+export const createIntrusivePopupLoopSfx = (): HTMLAudioElement | null => {
+  if (Math.random() >= 0.5) return null;
+  const audio = createAudio(randomFrom(LOOP_SOURCES), 0.36);
+  audio.loop = true;
+  return audio;
+};
+
+export const stopIntrusivePopupLoopSfx = (
+  audio: HTMLAudioElement | null | undefined
+): void => {
+  if (!audio) return;
+  audio.pause();
   try {
     audio.currentTime = 0;
   } catch {
     // noop
   }
-
-  audio.play().catch(() => undefined);
 };
 
 export const playIntrusivePopupCloseSfx = (): void => {
