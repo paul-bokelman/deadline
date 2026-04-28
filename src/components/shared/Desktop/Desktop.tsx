@@ -392,8 +392,6 @@ const Desktop: FunctionComponent<Props> = ({
       const position = iconPositions[file.id];
       if (!position) return;
 
-      const { left, top } = position;
-
       const groupIds =
         selectedIds.has(file.id) && selectedIds.size > 1
           ? Array.from(selectedIds)

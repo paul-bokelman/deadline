@@ -41,7 +41,7 @@ const smallMutedStyle: JSX.CSSProperties = {
   fontSize: '12px',
 };
 
-const WalletApp: FunctionComponent<AppProps> = (_props: AppProps) => {
+const WalletApp: FunctionComponent<AppProps> = () => {
   const { flags } = useGameState();
   const bank = flags.bankBalance;
 

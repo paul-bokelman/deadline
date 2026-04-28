@@ -39,7 +39,6 @@ const useDragging = (
   const draggedEltRef = useRef<HTMLElement | null>();
   const boundingEltRef = useRef<HTMLElement | null>();
 
-  // const [isDragging, setIsDragging] = useState<boolean>(false);
   const [coords, setCoords] = useState<Coords>(initialCoords);
 
   useEffect(() => {

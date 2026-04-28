@@ -202,7 +202,7 @@ const scoreHand = (hand: Card[]): number => {
   return total;
 };
 
-const BlackjackApp: FunctionComponent<AppProps> = (_props: AppProps) => {
+const BlackjackApp: FunctionComponent<AppProps> = () => {
   const { flags, setFlags } = useGameState();
   const seedRef = useRef<number>(Date.now());
   const deckRef = useRef<Card[]>(buildDeck(seedRef.current));

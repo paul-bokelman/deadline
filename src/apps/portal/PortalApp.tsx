@@ -1,5 +1,5 @@
 import { h, FunctionComponent, JSX } from 'preact';
-import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { useEffect, useMemo, useState } from 'preact/hooks';
 
 import { getDynamicDesktopItems } from '../../system/desktop/dynamicDesktopItems';
 import { useGameState } from '../../game/state';
