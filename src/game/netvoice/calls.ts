@@ -2,16 +2,12 @@ export type NetVoiceCallId =
   | 'intro_assistant'
   | 'alice_halfway'
   | 'alice_greg_warning'
-  | 'password_hint_assistant'
-  | 'password_dump_hint'
   | 'mom_bailout_1'
   | 'mom_bailout_2'
   | 'mom_www_issues'
   | 'mom_maryjane'
   | 'greg_3rd_0'
   | 'it_guy_intro'
-  | 'it_guy_winrar_link'
-  | 'it_guy_angry_1'
   | 'assistant_portal_intro'
   | 'it_guy_cleanup'
   | 'boss_intro'
@@ -98,22 +94,6 @@ export const netVoiceCalls: Record<NetVoiceCallId, NetVoiceCallDefinition> = {
     dialogText: 'Alice warning call.',
     autoTriggerNextStage: false,
   },
-  password_hint_assistant: {
-    id: 'password_hint_assistant',
-    callerId: 'alice',
-    audioPath: '/audio/netvoice/password_hint_assistant.mp3',
-    dialogText:
-      "Oh, right, the password's encrypted too. I sent it in a separate email. But I think the password for THAT email is in your IMPORTANT_PASSWORDS.txt file on the desktop. You know, the one with all the passwords.",
-    autoTriggerNextStage: false,
-  },
-  password_dump_hint: {
-    id: 'password_dump_hint',
-    callerId: 'alice',
-    audioPath: '/audio/netvoice/password_hint_assistant.mp3',
-    dialogText:
-      "Heads up: the attachment is encrypted. You should already have a scary-looking passwords document on your desktop. The key is hidden somewhere inside it. Yeah... I know. Sorry. You'll need it now.",
-    autoTriggerNextStage: false,
-  },
   mom_bailout_1: {
     id: 'mom_bailout_1',
     callerId: 'mom',
@@ -158,22 +138,6 @@ export const netVoiceCalls: Record<NetVoiceCallId, NetVoiceCallDefinition> = {
     audioPath: '/audio/netvoice/people/greg-download-failed.mp3',
     dialogText:
       "Hey, I saw your download fail. I'm gonna remote in and just drop the file on your desktop as a zip. Just extract it, easy. Give me a sec.",
-    autoTriggerNextStage: false,
-  },
-  it_guy_winrar_link: {
-    id: 'it_guy_winrar_link',
-    callerId: 'greg',
-    audioPath: '/audio/netvoice/it_guy_intro.mp3',
-    dialogText:
-      "Zip's on your desktop now. You still need WinRAR to open it. I'm emailing you the download link right now.",
-    autoTriggerNextStage: false,
-  },
-  it_guy_angry_1: {
-    id: 'it_guy_angry_1',
-    callerId: 'greg',
-    audioPath: '/audio/netvoice/it_guy_angry_1.mp3',
-    dialogText:
-      "Are you serious? You ran the WinRAR update? Fine, fine. I'll send it again. Try not to break things this time.",
     autoTriggerNextStage: false,
   },
   assistant_portal_intro: {

@@ -15,10 +15,11 @@ import {
 
 const TASKBAR_HEIGHT_PX = 28;
 const AMBIENT_SPAWN_EVERY_MS = 120_000;
-const POPUP_WINDOW_CHROME_HEIGHT_PX = 28;
-
 const clamp = (value: number, min: number, max: number): number =>
   Math.max(min, Math.min(value, max));
+
+const randomBetween = (min: number, max: number): number =>
+  min + Math.random() * (max - min);
 
 const randomAngleVelocity = (
   speedPxPerSecond: number
@@ -60,25 +61,47 @@ const IntrusivePopupManager: FunctionComponent = () => {
 
   const getBounds = useCallback((): { height: number; width: number } => {
     const rect = boundsRef.current?.getBoundingClientRect();
+    const fallbackWidth = window.innerWidth;
+    const fallbackHeight = Math.max(0, window.innerHeight - TASKBAR_HEIGHT_PX);
     return {
-      width: rect?.width ?? window.innerWidth,
-      height: rect?.height ?? Math.max(0, window.innerHeight - TASKBAR_HEIGHT_PX),
+      width: rect && rect.width > 0 ? rect.width : fallbackWidth,
+      height: rect && rect.height > 0 ? rect.height : fallbackHeight,
     };
   }, []);
 
   const createPopup = useCallback(
-    (config: IntrusivePopupConfig): ActiveIntrusivePopup => {
+    (
+      config: IntrusivePopupConfig,
+      coords?: { x: number; y: number }
+    ): ActiveIntrusivePopup => {
       const bounds = getBounds();
       const maxX = Math.max(0, bounds.width - config.size.width);
       const maxY = Math.max(
         0,
-        bounds.height - (config.size.height + POPUP_WINDOW_CHROME_HEIGHT_PX)
+        bounds.height - config.size.height
       );
 
-      const x = Math.round(Math.random() * maxX);
-      const y = Math.round(Math.random() * maxY);
+      const x =
+        typeof coords?.x === 'number'
+          ? clamp(Math.round(coords.x), 0, maxX)
+          : Math.round(Math.random() * maxX);
+      const y =
+        typeof coords?.y === 'number'
+          ? clamp(Math.round(coords.y), 0, maxY)
+          : Math.round(Math.random() * maxY);
 
-      const speed = config.behavior.bounceSpeedPxPerSecond;
+      const minBounceSpeed = config.behavior.bounceSpeedMinPxPerSecond;
+      const maxBounceSpeed = config.behavior.bounceSpeedMaxPxPerSecond;
+      const speed =
+        typeof minBounceSpeed === 'number' &&
+        typeof maxBounceSpeed === 'number' &&
+        minBounceSpeed > 0 &&
+        maxBounceSpeed > 0
+          ? randomBetween(
+              Math.min(minBounceSpeed, maxBounceSpeed),
+              Math.max(minBounceSpeed, maxBounceSpeed)
+            )
+          : config.behavior.bounceSpeedPxPerSecond;
       const velocity =
         typeof speed === 'number' && speed > 0
           ? randomAngleVelocity(speed)
@@ -101,6 +124,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
           typeof spontaneousMs === 'number' && spontaneousMs > 0
             ? now + spontaneousMs
             : null,
+        pausedVelocity: null,
         shouldSnapOnNextClick: false,
         velocity,
         zIndex: zIndexRef.current++,
@@ -151,12 +175,50 @@ const IntrusivePopupManager: FunctionComponent = () => {
       setActivePopups((current) =>
         current.map((popup) =>
           popup.id === popupId
-            ? { ...popup, zIndex: zIndexRef.current++ }
+            ? {
+                ...popup,
+                pausedVelocity: popup.velocity ?? popup.pausedVelocity,
+                velocity: null,
+                zIndex: zIndexRef.current++,
+              }
             : popup
         )
       );
     },
     []
+  );
+
+  const handlePopupClick = useCallback(
+    (popupId: string) => {
+      const spawnedPopupIds: string[] = [];
+
+      setActivePopups((current) => {
+        const sourcePopup = current.find((popup) => popup.id === popupId);
+        if (!sourcePopup) return current;
+
+        const hydraSpawnCount = sourcePopup.config.behavior.hydraSpawnCount;
+        if (!hydraSpawnCount || hydraSpawnCount <= 0) return current;
+
+        const spawned = Array.from({ length: hydraSpawnCount }, () => {
+          const popup = createPopup(sourcePopup.config);
+          spawnedPopupIds.push(popup.id);
+          return popup;
+        });
+
+        return [...current, ...spawned];
+      });
+
+      spawnedPopupIds.forEach((spawnedPopupId) => {
+        playIntrusivePopupSpawnSfx();
+        const loopAudio = createIntrusivePopupLoopSfx();
+        if (!loopAudio) return;
+        popupLoopSfxRef.current.set(spawnedPopupId, loopAudio);
+        loopAudio.play().catch(() => {
+          popupLoopSfxRef.current.delete(spawnedPopupId);
+        });
+      });
+    },
+    [createPopup]
   );
 
   const togglePopupMaximize = useCallback((popupId: string) => {
@@ -179,8 +241,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
         const maxX = Math.max(0, bounds.width - popup.config.size.width);
         const maxY = Math.max(
           0,
-          bounds.height -
-            (popup.config.size.height + POPUP_WINDOW_CHROME_HEIGHT_PX)
+          bounds.height - popup.config.size.height
         );
 
         return current.map((candidate) =>
@@ -230,6 +291,32 @@ const IntrusivePopupManager: FunctionComponent = () => {
   }, [scheduleAmbientSpawn]);
 
   useEffect(() => {
+    const resumePausedBouncing = () => {
+      setActivePopups((current) =>
+        current.map((popup) =>
+          popup.pausedVelocity
+            ? {
+                ...popup,
+                velocity: popup.pausedVelocity,
+                pausedVelocity: null,
+              }
+            : popup
+        )
+      );
+    };
+
+    window.addEventListener('mouseup', resumePausedBouncing);
+    window.addEventListener('touchend', resumePausedBouncing);
+    window.addEventListener('touchcancel', resumePausedBouncing);
+
+    return () => {
+      window.removeEventListener('mouseup', resumePausedBouncing);
+      window.removeEventListener('touchend', resumePausedBouncing);
+      window.removeEventListener('touchcancel', resumePausedBouncing);
+    };
+  }, []);
+
+  useEffect(() => {
     const intervalId = window.setInterval(() => {
       const now = Date.now();
       let didSpawn = false;
@@ -246,7 +333,8 @@ const IntrusivePopupManager: FunctionComponent = () => {
 
           if (
             nextPopup.nextSpontaneousAt !== null &&
-            now >= nextPopup.nextSpontaneousAt
+            now >= nextPopup.nextSpontaneousAt &&
+            !nextPopup.velocity
           ) {
             const replacement = createPopup(nextPopup.config);
             const replaceEveryMs =
@@ -329,8 +417,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
           const maxX = Math.max(0, bounds.width - popup.config.size.width);
           const maxY = Math.max(
             0,
-            bounds.height -
-              (popup.config.size.height + POPUP_WINDOW_CHROME_HEIGHT_PX)
+            bounds.height - popup.config.size.height
           );
           const velocity = { ...popup.velocity };
 
@@ -391,6 +478,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
             boundsRef={boundsRef}
             key={popup.id}
             onClose={closePopup}
+            onPopupClick={handlePopupClick}
             onMoved={handlePopupMoved}
             onToggleMaximize={togglePopupMaximize}
             onPopupMouseDown={handlePopupMouseDown}

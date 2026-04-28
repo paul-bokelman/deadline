@@ -57,7 +57,7 @@ const DownloadDialog: FunctionComponent<DownloadDialogProps> = ({
               Download request received. Choose an action to continue.
             </div>
             <div style={actionsStyle}>
-              <Button label="Download" onClick={onStartDownload} />
+              <Button label="Download" onClick={onReboot} />
               <Button label="Reboot" onClick={onReboot} />
             </div>
           </div>

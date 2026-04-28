@@ -42,6 +42,10 @@ const useDragging = (
   const [coords, setCoords] = useState<Coords>(initialCoords);
 
   useEffect(() => {
+    setCoords(initialCoords);
+  }, [initialCoords.x, initialCoords.y]);
+
+  useEffect(() => {
     if (!isEnabled) return;
     handleEltRef.current = getHandleElt();
     draggedEltRef.current = getDraggedElt ? getDraggedElt() : handleEltRef.current ?? null;

@@ -5,7 +5,7 @@ import { gameEventBus } from '../../game/events';
 
 // Editable tuning values.
 const FIRST_DEAD_PIXEL_DELAY_MS = 30_000;
-const DEAD_PIXEL_SPAWN_INTERVAL_MS = 8_000;
+const DEAD_PIXEL_SPAWN_INTERVAL_MS = 5_333;
 const DEAD_PIXEL_SIZE_PX = 2;
 
 interface DeadPixel {

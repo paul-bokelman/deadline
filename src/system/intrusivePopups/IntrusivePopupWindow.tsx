@@ -13,9 +13,10 @@ interface Props {
   boundsRef: RefObject<HTMLDivElement>;
   children?: ComponentChildren;
   onClose: (popupId: string) => void;
+  onPopupClick: (popupId: string) => void;
   onMoved: (popupId: string, coords: { x: number; y: number }) => void;
   onToggleMaximize: (popupId: string) => void;
-  onPopupMouseDown: (popupId: string, event: MouseEvent) => void;
+  onPopupMouseDown: (popupId: string) => void;
   popup: ActiveIntrusivePopup;
 }
 
@@ -41,6 +42,7 @@ const IntrusivePopupWindow: FunctionComponent<Props> = ({
   boundsRef,
   children,
   onClose,
+  onPopupClick,
   onMoved,
   onToggleMaximize,
   onPopupMouseDown,
@@ -57,14 +59,20 @@ const IntrusivePopupWindow: FunctionComponent<Props> = ({
       onClickClose={() => onClose(popup.id)}
       onClickMaximize={() => onToggleMaximize(popup.id)}
       onClickRestore={() => onToggleMaximize(popup.id)}
+      onMouseDown={() => onPopupMouseDown(popup.id)}
       onMoved={(coords) => onMoved(popup.id, coords)}
       size={{ x: popup.config.size.width, y: popup.config.size.height }}
-      style={{ pointerEvents: 'auto' }}
+      style={{
+        pointerEvents: 'auto',
+        position: 'absolute',
+        left: 0,
+        top: 0,
+      }}
       title={popup.config.title}
       zIndex={popup.zIndex}
     >
       <div
-        onMouseDown={(event) => onPopupMouseDown(popup.id, event)}
+        onClick={() => onPopupClick(popup.id)}
         style={{
           ...shellStyle,
           backgroundColor: popup.config.backgroundImageUrl

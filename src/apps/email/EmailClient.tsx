@@ -60,8 +60,6 @@ interface VisibleEmailItem {
   email: EmailRecord;
 }
 
-const PASSWORD_DUMP_HINT_CALL_TRIGGER_EVENT_ID = 'password_dump_hint_call:triggered';
-
 const accountToAddressMap: Record<EmailAccountId, string> = {
   corpMail: 'me <you@corp.internal>',
   personalMail: 'me <you@personalmail.com>',
@@ -103,11 +101,8 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
 }: EmailClientProps) => {
   const {
     flags,
-    hasEventFired,
-    markEventFired,
     setFlag,
     setStage,
-    triggerNetVoiceCall,
   } = useGameState();
   const [selectedFolder, setSelectedFolder] = useState<EmailFolder>('inbox');
   const [selectedEmail, setSelectedEmail] = useState<VisibleEmailItem | null>(null);
@@ -208,12 +203,6 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
     }
   };
 
-  const triggerPasswordDumpHintCall = () => {
-    if (hasEventFired(PASSWORD_DUMP_HINT_CALL_TRIGGER_EVENT_ID)) return;
-    markEventFired(PASSWORD_DUMP_HINT_CALL_TRIGGER_EVENT_ID);
-    triggerNetVoiceCall('password_dump_hint');
-  };
-
   const markEmailRead = (instanceId: string) => {
     setReadEmailMap((current) => {
       if (current[instanceId]) return current;
@@ -223,10 +212,6 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
 
   const handleSelectEmail = (item: VisibleEmailItem) => {
     const email = item.email;
-    if (email.isMalwareTrap) {
-      triggerMalwareEvent(email, 'email_open');
-    }
-
     if (loadEmailTimerRef.current !== null) {
       window.clearTimeout(loadEmailTimerRef.current);
       loadEmailTimerRef.current = null;
@@ -279,9 +264,7 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
       const expected = (attachmentUnlockKeyRef.current ?? '').trim();
       const got = password.trim();
       if (!expected || got !== expected) {
-        setPasswordError(
-          'Incorrect encryption key. Check the desktop password dump.'
-        );
+        setPasswordError('incorrect encryption key');
         return;
       }
 
@@ -319,9 +302,6 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
         return;
       }
 
-      // Right before the password is required, tell the player
-      // about the passwords document on the desktop.
-      triggerPasswordDumpHintCall();
       openAttachmentPasswordDialog(email);
     }
   };

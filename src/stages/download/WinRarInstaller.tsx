@@ -2,6 +2,7 @@ import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 
 import { AppProps } from '../../types/App';
+import { gameEventBus } from '../../game/events';
 import { useGameState } from '../../game/state';
 import { createLoadingSfxController } from '../../utils/audio/sfx';
 import { getErraticProgressStep } from '../../utils/loading/erraticProgress';
@@ -94,11 +95,8 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
 }: AppProps) => {
   const {
     flags,
-    hasEventFired,
-    markEventFired,
     setFlag,
     setFlags,
-    triggerNetVoiceCall,
   } = useGameState();
   const [phase, setPhase] = useState<InstallerPhase>(
     flags.hasPurchasedWinRar ? 'installing' : 'purchase'
@@ -184,16 +182,10 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
       if (nextProgress >= 100) {
         setPhase('complete');
         setFlag('hasWinRarInstalled', true);
-        setFlag('hasZipFile', false);
+        setFlag('hasZipFile', true);
         setFlag('zipExtractionLevel', 1);
         setFlag('zipGarbageBatch', 0);
-
-        if (!hasEventFired('download:it_guy_angry_1:scheduled')) {
-          markEventFired('download:it_guy_angry_1:scheduled');
-          window.setTimeout(() => {
-            triggerNetVoiceCall('it_guy_angry_1');
-          }, 3000);
-        }
+        gameEventBus.emit('popup:test_spawn_random', { x: 220, y: 140 });
         return;
       }
 
@@ -204,13 +196,7 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
     return () => {
       if (timeoutId !== null) window.clearTimeout(timeoutId);
     };
-  }, [
-    phase,
-    hasEventFired,
-    markEventFired,
-    setFlag,
-    triggerNetVoiceCall,
-  ]);
+  }, [phase, setFlag]);
 
   if (phase === 'done') {
     return (
@@ -304,8 +290,8 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
       {phase === 'complete' && (
         <div>
           <div>
-            Update complete. ALL .ZIP FILES HAVE BEEN REMOVED FROM THIS COMPUTER
-            FOR SECURITY REASONS.
+            Update complete. WinRAR is ready and your ZIP archive can now be
+            extracted from Program Select.
           </div>
           <button onClick={closeWindow} style={buttonStyle}>
             OK

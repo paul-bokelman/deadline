@@ -415,10 +415,11 @@ const BootLoaderScreen: FunctionComponent = () => {
       const bootDurationMs = options?.bootDurationMs ?? BOOT_DURATION_MS;
       const postFadeMs = options?.postFadeMs ?? DEFAULT_POST_FADE_MS;
 
-      fadeDurationMsRef.current = preFadeMs;
+      // Pre-boot phase should be an immediate cut to black.
+      fadeDurationMsRef.current = 0;
 
       setIsOverlayVisible(true);
-      setOverlayOpacity(0);
+      setOverlayOpacity(1);
       setVisibleCount(0);
 
       const totalLines = BOOT_LINES.length;
@@ -515,15 +516,11 @@ const BootLoaderScreen: FunctionComponent = () => {
         }, bootDurationMs);
       };
 
-      window.requestAnimationFrame(() => {
-        if (tokenRef.current !== myToken) return;
-        setOverlayOpacity(1);
-        if (preFadeMs <= 0) {
-          startBootSequence();
-          return;
-        }
-        window.setTimeout(startBootSequence, preFadeMs);
-      });
+      if (preFadeMs <= 0) {
+        startBootSequence();
+        return;
+      }
+      window.setTimeout(startBootSequence, preFadeMs);
     };
 
     listeners.add(handleTrigger);

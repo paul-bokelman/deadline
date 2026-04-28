@@ -1,5 +1,4 @@
 import type { GameFlags } from '../game/state';
-import { Q3_ATTACHMENT_PASSWORD } from './passwords';
 
 export type EmailAccountId = 'corpMail' | 'personalMail' | 'corpMailLegacy';
 export type EmailFolder = 'inbox' | 'promotions' | 'spam' | 'sent' | 'trash';
@@ -352,27 +351,6 @@ const CORP_INBOX_NOISE: EmailRecord[] = [
       deliveryRule: EMAIL_ACCESS_RULE,
     };
   }),
-  {
-    id: 'corp-011-password-hint',
-    accountId: 'corpMail',
-    folder: 'inbox',
-    sender: 'records@corp.internal',
-    subject: 'Encryption key for Q3 Report',
-    timestamp: '11:39',
-    preview: 'Encrypted message.',
-    body: `Attachment encryption key: ${Q3_ATTACHMENT_PASSWORD}`,
-    bodyHtml: richBody(
-      [
-        'You requested the decryption key for the encrypted Q3 attachment because nothing can ever be simple.',
-        `Encryption key: <b>${Q3_ATTACHMENT_PASSWORD}</b>`,
-      ],
-      [
-        'Use key only on trusted sender attachment, not random inbox jump scares.',
-        'Do not post this in public channels, break-room whiteboards, or karaoke lyrics.',
-      ]
-    ),
-    deliveryRule: EMAIL_ACCESS_RULE,
-  },
   {
     id: 'corp-submission-portal-link',
     accountId: 'corpMail',

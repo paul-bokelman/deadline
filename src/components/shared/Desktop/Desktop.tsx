@@ -388,6 +388,20 @@ const Desktop: FunctionComponent<Props> = ({
       const desktopElement = desktopRef.current;
       if (!desktopElement) return;
 
+      const isDynamicItem = !files.some((candidate) => candidate.id === file.id);
+      if (selectedIds.has(file.id) && selectedIds.size > 1) {
+        // Keep multi-selection intact when dragging an already-selected item.
+        setFocusedDynamicItemId(null);
+      } else {
+        setFocusedDynamicItemId(isDynamicItem ? file.id : null);
+        setSelectedIds(new Set([file.id]));
+        if (isDynamicItem) {
+          removeFocus();
+        } else {
+          focusOnFile(file.id);
+        }
+      }
+
       const desktopRect = desktopElement.getBoundingClientRect();
       const position = iconPositions[file.id];
       if (!position) return;
@@ -425,7 +439,7 @@ const Desktop: FunctionComponent<Props> = ({
         // setPointerCapture can throw if the pointer is no longer active.
       }
     },
-    [iconPositions, selectedIds]
+    [files, focusOnFile, iconPositions, removeFocus, selectedIds]
   );
 
   const handlePointerMove = useCallback(

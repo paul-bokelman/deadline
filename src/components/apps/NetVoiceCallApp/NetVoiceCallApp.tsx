@@ -24,8 +24,8 @@ import {
 import style from './NetVoiceCallApp.module.css';
 
 const CALL_AUDIO_VOLUME = 0.75;
-const AUTO_ACCEPT_DELAY_MS = 5000;
-const AUTO_HANGUP_DELAY_MS = 4000;
+const AUTO_ACCEPT_DELAY_MS = 4000;
+const AUTO_HANGUP_DELAY_MS = 2000;
 const RING_TICK_MS = 1700;
 
 const MENU_OPTIONS = ['File', 'Edit', 'View', 'Call', 'Help'];

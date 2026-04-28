@@ -4,6 +4,8 @@ export type IntrusivePopupSpawnMode = 'random' | 'cursorExact';
 
 export interface IntrusivePopupBehavior {
   autoSpawnEverySeconds?: number;
+  bounceSpeedMaxPxPerSecond?: number;
+  bounceSpeedMinPxPerSecond?: number;
   bounceSpeedPxPerSecond?: number;
   closeOtherPopupOnCloseClick?: boolean;
   desktopClickSpawnChance?: number;
@@ -49,6 +51,7 @@ export interface ActiveIntrusivePopup {
   isMaximized: boolean;
   nextAutoSpawnAt: number | null;
   nextSpontaneousAt: number | null;
+  pausedVelocity: { x: number; y: number } | null;
   shouldSnapOnNextClick: boolean;
   velocity: { x: number; y: number } | null;
   zIndex: number;

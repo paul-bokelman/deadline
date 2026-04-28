@@ -21,7 +21,6 @@ export interface GameFlags {
   hasReceivedIntroCall: boolean;
   hasEmailAccess: boolean;
   hasFoundRealEmail: boolean;
-  hasReceivedPasswordHintCall: boolean;
   hasUnlockedAttachment: boolean;
   hasDownloadStarted: boolean;
   hasDownloadFailed: boolean;
@@ -70,7 +69,6 @@ const initialFlags: GameFlags = {
   hasReceivedIntroCall: false,
   hasEmailAccess: true,
   hasFoundRealEmail: false,
-  hasReceivedPasswordHintCall: false,
   hasUnlockedAttachment: false,
   hasDownloadStarted: false,
   hasDownloadFailed: false,
@@ -252,12 +250,10 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
     setActiveNetVoiceCallIdState(null);
     setIsNetVoiceCallAcceptedState(false);
     emitGameRebooted();
-    void playRebootSfx()
-      .then((rebootSfxDurationMs) =>
-        triggerBootLoaderScreen({
-          preFadeMs: rebootSfxDurationMs,
-        })
-      )
+    void playRebootSfx();
+    void triggerBootLoaderScreen({
+      preFadeMs: 500,
+    })
       .then(() => applyInitialGameState());
   };
 
@@ -268,18 +264,11 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
   }, []);
 
   useEffect(() => {
-    return gameEventBus.on('netvoice:call_accepted', ({ callId }) => {
+    return gameEventBus.on('netvoice:call_ended', ({ callId }) => {
       if (callId !== 'greg_3rd_0') return;
-      // Force hang up, then reboot the run.
       window.setTimeout(() => {
-        gameEventBus.emit('netvoice:call_ended', {
-          callId: 'greg_3rd_0',
-          autoTriggerNextStage: false,
-        });
-        window.setTimeout(() => {
-          rebootGame();
-        }, 100);
-      }, 1200);
+        rebootGame();
+      }, 100);
     });
   }, [rebootGame]);
 
