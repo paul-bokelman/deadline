@@ -11,6 +11,7 @@ type MailboxListener = () => void;
 const EVENT_DELIVERED_ONLY_EMAIL_IDS = new Set<string>([
   'corp-promotions-012-real',
   'corp-winrar-download-link',
+  'corp-winrar-download-link-fake',
   'corp-password-reset-link',
 ]);
 

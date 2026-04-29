@@ -207,10 +207,19 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
   }, [selectedFolder, accountId]);
 
   const triggerMalwareEvent = (
-    _sourceEmail: EmailRecord,
+    sourceEmail: EmailRecord,
     source: 'email_open' | 'attachment_open'
   ) => {
-    const burstCount = source === 'attachment_open' ? 3 : 2;
+    const configuredBurstCount =
+      source === 'attachment_open'
+        ? sourceEmail.malwarePopupBurstCountOnAttachmentOpen
+        : sourceEmail.malwarePopupBurstCountOnEmailOpen;
+    const burstCount =
+      typeof configuredBurstCount === 'number' && configuredBurstCount > 0
+        ? Math.round(configuredBurstCount)
+        : source === 'attachment_open'
+          ? 3
+          : 2;
     for (let i = 0; i < burstCount; i += 1) {
       gameEventBus.emit('popup:test_spawn_random', {
         x: 140 + i * 80,

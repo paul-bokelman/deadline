@@ -23,6 +23,8 @@ import { playClickSfx } from '../../../utils/audio/sfx';
 import DeadPixelOverlay from '../../../system/deadPixels/DeadPixelOverlay';
 import BackgroundFlyOverlay from '../../../system/backgroundFly/BackgroundFlyOverlay';
 import { gameEventBus } from '../../../game/events';
+import ClippyAssistant from '../../../system/clippy/ClippyAssistant';
+import FullscreenRecommendation from '../../../system/fullscreen/FullscreenRecommendation';
 
 import style from './Win96Container.module.css';
 
@@ -132,6 +134,8 @@ const Win96Container: FunctionComponent = () => {
                 <MalwarePopupManager />
                 <IntrusivePopupManager />
                 <WindowsUpdateNag />
+                <FullscreenRecommendation />
+                <ClippyAssistant />
                 <Narrator />
                 <SaveHotkeyTrap />
                 <NetVoiceCallWindowSync />

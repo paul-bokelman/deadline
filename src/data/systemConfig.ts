@@ -12,7 +12,7 @@ export interface SystemConfig {
 
 export const systemConfig: SystemConfig = {
   windowsUpdate: {
-    enabled: false,
+    enabled: true,
     enabledAfterStage: 'desktop_intro',
     countdownMs: 15 * 60 * 1000,
   },

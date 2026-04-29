@@ -83,7 +83,7 @@ const createInitialOpenWindows = (): OpenWindow[] => {
 };
 
 const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
-  const { flags, rebootGame } = useGameState();
+  const { rebootGame } = useGameState();
   const [openWindows, setOpenWindows] = useState<OpenWindow[]>(
     createInitialOpenWindows
   );
@@ -99,15 +99,11 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
     workingDir?: FileSystemDir,
     workingFile?: FileSystemFile
   ): string => {
-    const translatedAppName = translateLiteralForLocale(
-      flags.language,
-      app.name
-    );
+    const translatedAppName = translateLiteralForLocale('en', app.name);
     if (workingFile && workingFile.name) {
       return `${workingFile.name} - ${translatedAppName}`;
     }
-    if (workingDir)
-      return translateLiteralForLocale(flags.language, workingDir.name);
+    if (workingDir) return translateLiteralForLocale('en', workingDir.name);
     return translatedAppName;
   };
 
@@ -159,7 +155,7 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
         {
           app,
           canMaximize: true,
-          canMinimize: true,
+          canMinimize: !isEulaWindow,
           iconId,
           id: uuid(),
           coords: isEulaWindow
@@ -169,10 +165,12 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
                 y: 50 + Math.round(Math.random() * 200),
               },
           hasFocus: true,
-          isDraggable: app.isDraggable ?? true,
+          isDraggable: isEulaWindow ? false : app.isDraggable ?? true,
           isMinimized: false,
           isMaximized: false,
-          isResizeable: isProjectDeadlineWindow
+          isResizeable: isEulaWindow
+            ? false
+            : isProjectDeadlineWindow
             ? true
             : app.isResizeable ?? true,
           showCloseButton: isEulaWindow ? false : !isProjectDeadlineWindow,
@@ -293,19 +291,6 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
       );
     });
   };
-
-  useEffect(() => {
-    setOpenWindows((windows) =>
-      windows.map((window) => ({
-        ...window,
-        title: getWindowTitle(
-          window.app,
-          window.workingDir,
-          window.workingFile
-        ),
-      }))
-    );
-  }, [flags.language]);
 
   useEffect(() => {
     return gameEventBus.on('game:rebooted', () => {

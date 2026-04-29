@@ -183,7 +183,6 @@ const BluescreenSequence: FunctionComponent = () => {
       setFlag('malwareLevel', 2);
       setFlag('narrator', true);
       setFlag('hasDesktopScrambled', true);
-      setFlag('language', 'zh');
       setFlag('isBluescreenSequenceActive', false);
       setPhase('done');
     }, 2200);

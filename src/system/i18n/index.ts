@@ -1,7 +1,6 @@
 import { h, FunctionComponent, ComponentChildren, createContext } from 'preact';
 import { useContext, useMemo } from 'preact/hooks';
 
-import { useGameState } from '../../game/state';
 import en from './locales/en';
 import zh from './locales/zh';
 
@@ -48,8 +47,7 @@ interface I18nProviderProps {
 export const I18nProvider: FunctionComponent<I18nProviderProps> = ({
   children,
 }: I18nProviderProps) => {
-  const { flags } = useGameState();
-  const locale = flags.language;
+  const locale: Locale = 'en';
 
   const value = useMemo<I18nContextValue>(
     () => ({

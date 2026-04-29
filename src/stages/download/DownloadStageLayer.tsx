@@ -34,6 +34,9 @@ const DownloadStageLayer: FunctionComponent = () => {
             gameEventBus.emit('email:delivered', {
               emailId: 'corp-winrar-download-link',
             });
+            gameEventBus.emit('email:delivered', {
+              emailId: 'corp-winrar-download-link-fake',
+            });
           }
         }
 

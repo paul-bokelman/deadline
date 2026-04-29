@@ -74,7 +74,6 @@ const replaceExtension = (fileName: string, nextExtension: string): string => {
 
 const FileConverterApp: FunctionComponent<AppProps> = ({
   closeWindow,
-  openApp,
 }: AppProps) => {
   const { flags, setFlags } = useGameState();
   const desktopFiles = useMemo<ShellItem[]>(
@@ -168,9 +167,6 @@ const FileConverterApp: FunctionComponent<AppProps> = ({
               setStatusMessage(
                 `Converted ${selectedFile.name} to ${nextName}.`
               );
-              if (targetType === 'pngFile') {
-                openApp({ appId: 'tipOfDay' });
-              }
             }}
           >
             Convert

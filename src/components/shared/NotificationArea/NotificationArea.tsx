@@ -2,8 +2,8 @@ import { h, FunctionComponent } from 'preact';
 import { useContext, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
 import Icon from '../Icon/Icon';
-import maximizeIcon from '../../../assets/img/ui/maximize.svg';
-import restoreIcon from '../../../assets/img/ui/restore.svg';
+import fullscreenEnterIcon from '../../../assets/img/ui/fullscreen-enter.svg';
+import fullscreenExitIcon from '../../../assets/img/ui/fullscreen-exit.svg';
 import { gameEventBus } from '../../../game/events';
 import { useGameState } from '../../../game/state';
 import OpenWindowsContext from '../../../context/OpenWindowsContext';
@@ -361,7 +361,7 @@ const NotificationArea: FunctionComponent = () => {
         <img
           alt=""
           className={style.zoomIcon}
-          src={isFullscreen ? restoreIcon : maximizeIcon}
+          src={isFullscreen ? fullscreenExitIcon : fullscreenEnterIcon}
         />
       </button>
       <div className={style.clock}>{clockText}</div>

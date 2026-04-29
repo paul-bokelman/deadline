@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'preact/hooks';
+import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 
 import { systemConfig } from '../../data/systemConfig';
 import { GameStage, useGameState } from '../../game/state';
@@ -22,140 +16,95 @@ const stageOrder: Record<GameStage, number> = {
 };
 
 interface UseUpdateSchedulerResult {
-  countdownMs: number;
   isNagVisible: boolean;
+  onDismissNag: () => void;
   onRemindLater: () => void;
   onRebootNow: () => void;
 }
 
-const REMIND_LATER_MS = 45_000;
+const REMINDER_DELAY_MIN_MS = 50_000;
+const REMINDER_DELAY_MAX_MS = 70_000;
+
+const randomReminderDelayMs = (): number =>
+  Math.floor(
+    REMINDER_DELAY_MIN_MS +
+      Math.random() * (REMINDER_DELAY_MAX_MS - REMINDER_DELAY_MIN_MS)
+  );
 
 export const useUpdateScheduler = (): UseUpdateSchedulerResult => {
   const { flags, rebootGame, setFlags, stage } = useGameState();
-  const [countdownMs, setCountdownMs] = useState(
-    systemConfig.windowsUpdate.countdownMs
-  );
-  const [snoozedUntil, setSnoozedUntil] = useState<number>(0);
-
-  const countdownIntervalRef = useRef<number | null>(null);
-  const hasTriggeredRebootRef = useRef(false);
+  const [isNagVisible, setIsNagVisible] = useState(false);
 
   const isEligible =
     stageOrder[stage] >=
     stageOrder[systemConfig.windowsUpdate.enabledAfterStage];
-  const isNagVisible =
-    systemConfig.windowsUpdate.enabled &&
-    flags.windowsUpdateActive &&
-    Date.now() >= snoozedUntil;
 
-  const clearCountdownInterval = useCallback(() => {
-    if (countdownIntervalRef.current !== null) {
-      window.clearInterval(countdownIntervalRef.current);
-      countdownIntervalRef.current = null;
-    }
-  }, []);
-
-  const startRebootTimer = useCallback(() => {
-    const rebootAt = Date.now() + systemConfig.windowsUpdate.countdownMs;
-    hasTriggeredRebootRef.current = false;
-    setCountdownMs(systemConfig.windowsUpdate.countdownMs);
-    setFlags({
-      windowsUpdateActive: true,
-      windowsUpdateRebootAt: rebootAt,
-    });
-  }, [setFlags]);
-
-  const deactivateWindowsUpdate = useCallback(() => {
-    setFlags({
-      windowsUpdateActive: false,
-      windowsUpdateRebootAt: null,
-    });
+  const activateWindowsUpdate = useCallback(() => {
+    setFlags({ windowsUpdateActive: true, windowsUpdateRebootAt: null });
   }, [setFlags]);
 
   useEffect(() => {
     if (!systemConfig.windowsUpdate.enabled) {
-      clearCountdownInterval();
-      hasTriggeredRebootRef.current = false;
-      if (flags.windowsUpdateActive || flags.windowsUpdateRebootAt !== null) {
-        deactivateWindowsUpdate();
-      }
+      setIsNagVisible(false);
+      if (flags.windowsUpdateActive || flags.windowsUpdateRebootAt !== null)
+        setFlags({ windowsUpdateActive: false, windowsUpdateRebootAt: null });
       return;
     }
 
     if (!isEligible) {
-      clearCountdownInterval();
-      hasTriggeredRebootRef.current = false;
-      if (flags.windowsUpdateActive || flags.windowsUpdateRebootAt !== null) {
-        deactivateWindowsUpdate();
-      }
+      setIsNagVisible(false);
+      if (flags.windowsUpdateActive || flags.windowsUpdateRebootAt !== null)
+        setFlags({ windowsUpdateActive: false, windowsUpdateRebootAt: null });
       return;
     }
 
-    if (!flags.windowsUpdateActive || flags.windowsUpdateRebootAt === null) {
-      startRebootTimer();
-    }
+    if (!flags.windowsUpdateActive) activateWindowsUpdate();
   }, [
     flags.windowsUpdateActive,
     flags.windowsUpdateRebootAt,
     isEligible,
-    clearCountdownInterval,
-    deactivateWindowsUpdate,
-    startRebootTimer,
+    activateWindowsUpdate,
+    setFlags,
   ]);
 
   useEffect(() => {
-    const rebootAt = flags.windowsUpdateRebootAt;
-    if (!isNagVisible || rebootAt === null) {
-      clearCountdownInterval();
+    if (
+      !systemConfig.windowsUpdate.enabled ||
+      !isEligible ||
+      !flags.windowsUpdateActive
+    ) {
+      setIsNagVisible(false);
       return;
     }
 
-    clearCountdownInterval();
-    const tick = () => {
-      const remainingMs = Math.max(0, rebootAt - Date.now());
-      setCountdownMs(remainingMs);
-      if (remainingMs > 0 || hasTriggeredRebootRef.current) return;
+    if (isNagVisible) return;
 
-      hasTriggeredRebootRef.current = true;
-      clearCountdownInterval();
-      deactivateWindowsUpdate();
-      rebootGame();
+    const timeoutId = window.setTimeout(() => {
+      setIsNagVisible(true);
+    }, randomReminderDelayMs());
+
+    return () => {
+      window.clearTimeout(timeoutId);
     };
+  }, [flags.windowsUpdateActive, isEligible, isNagVisible]);
 
-    tick();
-    countdownIntervalRef.current = window.setInterval(tick, 1_000);
-    return clearCountdownInterval;
-  }, [
-    isNagVisible,
-    flags.windowsUpdateRebootAt,
-    clearCountdownInterval,
-    deactivateWindowsUpdate,
-    rebootGame,
-  ]);
-
-  const onRebootNow = useCallback(() => {
-    hasTriggeredRebootRef.current = true;
-    deactivateWindowsUpdate();
-    rebootGame();
-  }, [deactivateWindowsUpdate, rebootGame]);
-
-  const onRemindLater = useCallback(() => {
-    setSnoozedUntil(Date.now() + REMIND_LATER_MS);
+  const onDismissNag = useCallback(() => {
+    setIsNagVisible(false);
   }, []);
 
-  useEffect(() => {
-    return () => {
-      clearCountdownInterval();
-    };
-  }, [clearCountdownInterval]);
+  const rebootForUpdate = useCallback(() => {
+    setIsNagVisible(false);
+    setFlags({ windowsUpdateActive: false, windowsUpdateRebootAt: null });
+    rebootGame();
+  }, [rebootGame, setFlags]);
 
   return useMemo(
     () => ({
-      countdownMs,
       isNagVisible,
-      onRemindLater,
-      onRebootNow,
+      onDismissNag,
+      onRemindLater: rebootForUpdate,
+      onRebootNow: rebootForUpdate,
     }),
-    [countdownMs, isNagVisible, onRemindLater, onRebootNow]
+    [isNagVisible, onDismissNag, rebootForUpdate]
   );
 };

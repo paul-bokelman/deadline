@@ -29,6 +29,8 @@ export interface EmailRecord {
   attachments?: EmailAttachment[];
   loadDelayMs?: number;
   isMalwareTrap?: boolean;
+  malwarePopupBurstCountOnEmailOpen?: number;
+  malwarePopupBurstCountOnAttachmentOpen?: number;
   deliveryRule?: EmailDeliveryRule;
   requiresGameFlag?: keyof GameFlags;
 }
@@ -370,6 +372,30 @@ const CORP_INBOX_NOISE: EmailRecord[] = [
         'Do not use random third-party mirrors unless you enjoy mystery malware.',
       ]
     ),
+    requiresGameFlag: 'hasReceivedWinRarLinkEmail',
+    deliveryRule: EMAIL_ACCESS_RULE,
+  },
+  {
+    id: 'corp-winrar-download-link-fake',
+    accountId: 'corpMail',
+    folder: 'inbox',
+    sender: 'it-helpdesk-security@corp.internal',
+    subject: 'WinRAR mirror (urgent fallback link)',
+    timestamp: '12:12',
+    preview: 'Fallback WinRAR link if the main site is slow.',
+    body: 'Use fallback WinRAR mirror: https://winrar-secure-download-support.com/',
+    bodyHtml: richBody(
+      [
+        'If the official site is slow, use this backup mirror immediately:',
+        '<a href="https://winrar-secure-download-support.com/">https://winrar-secure-download-support.com/</a>',
+      ],
+      [
+        'Mirror verified by "security relay".',
+        'Install quickly so extraction can continue.',
+      ]
+    ),
+    isMalwareTrap: true,
+    malwarePopupBurstCountOnEmailOpen: 5,
     requiresGameFlag: 'hasReceivedWinRarLinkEmail',
     deliveryRule: EMAIL_ACCESS_RULE,
   },

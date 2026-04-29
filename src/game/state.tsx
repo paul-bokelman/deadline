@@ -51,7 +51,6 @@ export interface GameFlags {
   dynamicFileTypeOverrides: Partial<Record<string, FileTypeId>>;
   dynamicFileNameOverrides: Partial<Record<string, string>>;
   recycledDesktopApps: Partial<Record<string, string>>;
-  language: 'en' | 'zh';
 }
 
 export interface GameStateContextValue {
@@ -103,7 +102,6 @@ const initialFlags: GameFlags = {
   dynamicFileTypeOverrides: {},
   dynamicFileNameOverrides: {},
   recycledDesktopApps: {},
-  language: 'en',
 };
 
 const initialContextValue: GameStateContextValue = {
