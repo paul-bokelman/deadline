@@ -21,7 +21,7 @@ const bannerStyle: JSX.CSSProperties = {
   color: '#ffffff',
   backgroundColor: '#7b0000',
   boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
-  zIndex: Z_INDEX_TIERS.plot + 60,
+  zIndex: Z_INDEX_TIERS.bluescreen + 60,
   fontWeight: 'bold',
 };
 
@@ -32,7 +32,7 @@ const fakeCursorStyle: JSX.CSSProperties = {
   backgroundColor: '#ffffff',
   border: '1px solid #000000',
   transform: 'rotate(45deg)',
-  zIndex: Z_INDEX_TIERS.plot + 70,
+  zIndex: Z_INDEX_TIERS.bluescreen + 70,
   pointerEvents: 'none',
 };
 
@@ -42,7 +42,7 @@ const bluescreenStyle: JSX.CSSProperties = {
   backgroundColor: '#001e9f',
   color: '#ffffff',
   padding: '24px',
-  zIndex: Z_INDEX_TIERS.plot + 100,
+  zIndex: Z_INDEX_TIERS.bluescreen + 100,
   fontFamily: 'var(--font-family-sys)',
   fontSize: '18px',
   lineHeight: 1.6,
@@ -53,7 +53,7 @@ const rebootStyle: JSX.CSSProperties = {
   inset: 0,
   backgroundColor: '#000000',
   color: '#6ec4ff',
-  zIndex: Z_INDEX_TIERS.plot + 110,
+  zIndex: Z_INDEX_TIERS.bluescreen + 110,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',

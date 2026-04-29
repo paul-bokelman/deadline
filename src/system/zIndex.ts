@@ -13,6 +13,10 @@ export const Z_INDEX_TIERS = {
   plot: 2_000_000,
   progress: 3_000_000,
   voiceCall: 4_000_000,
+  // Ambient critters sit above all gameplay layers but below the bluescreen
+  // sequence and the bootloader takeover.
+  ambientCritter: 5_000_000,
+  bluescreen: 6_000_000,
 } as const;
 
 type ZIndexTier = keyof typeof Z_INDEX_TIERS;

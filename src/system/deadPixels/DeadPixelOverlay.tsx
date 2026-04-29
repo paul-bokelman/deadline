@@ -2,6 +2,7 @@ import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 
 import { gameEventBus } from '../../game/events';
+import { Z_INDEX_TIERS } from '../zIndex';
 
 // Editable tuning values.
 const DEAD_PIXEL_SIZE_PX = 2;
@@ -19,8 +20,9 @@ const generateRandomRgbCss = (): string => {
 const overlayStyle: JSX.CSSProperties = {
   position: 'absolute',
   inset: 0,
-  // Above all windows/popups, below top-priority system overlays.
-  zIndex: 9_999_998,
+  // Sits in the "rest" band: above normal windows/popups, but below voice
+  // calls, the fly, the bluescreen, and the bootloader.
+  zIndex: Z_INDEX_TIERS.progress + 500,
   pointerEvents: 'none',
 };
 

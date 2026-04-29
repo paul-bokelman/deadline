@@ -21,6 +21,7 @@ import BootLoaderScreen, {
 } from '../../shared/BootLoaderScreen/BootLoaderScreen';
 import { playClickSfx } from '../../../utils/audio/sfx';
 import DeadPixelOverlay from '../../../system/deadPixels/DeadPixelOverlay';
+import BackgroundFlyOverlay from '../../../system/backgroundFly/BackgroundFlyOverlay';
 import { gameEventBus } from '../../../game/events';
 
 import style from './Win96Container.module.css';
@@ -142,6 +143,7 @@ const Win96Container: FunctionComponent = () => {
               </div>
               <BootLoaderScreen />
               <DeadPixelOverlay />
+              <BackgroundFlyOverlay />
             </OpenWindowsProvider>
           </I18nProvider>
         </GameStateProvider>
