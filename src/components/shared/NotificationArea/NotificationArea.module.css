@@ -70,7 +70,7 @@
 .ramCrashOverlay {
   position: fixed;
   inset: 0;
-  z-index: 100500;
+  z-index: 9999999;
   background: #0000aa;
   color: #ffffff;
   font-family: var(--font-family-sys);

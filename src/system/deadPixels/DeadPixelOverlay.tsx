@@ -3,11 +3,15 @@ import { useEffect, useRef } from 'preact/hooks';
 
 import { gameEventBus } from '../../game/events';
 import { systemConfig } from '../../data/systemConfig';
+import { Z_INDEX_TIERS } from '../zIndex';
 
 // Editable tuning values.
 const DEAD_PIXEL_SIZE_PX = 2;
-const DEAD_PIXEL_START_DELAY_MS = 20_000;
-const DEAD_PIXEL_SCREEN_COVERAGE_RATIO = 0.4;
+const DEAD_PIXEL_START_DELAY_MS = 60_000;
+const DEAD_PIXEL_SCREEN_COVERAGE_RATIO = 0.2;
+// Exponential ramp constant used to map the [0..1] time ratio into a
+// non-linear "fill more later" curve, normalized so it hits exactly 1 at t=1.
+const DEAD_PIXEL_EXPONENTIAL_RAMP_K = 6;
 
 const generateRandomRgbCss = (): string => {
   const r = Math.floor(Math.random() * 256);
@@ -19,7 +23,9 @@ const generateRandomRgbCss = (): string => {
 const overlayStyle: JSX.CSSProperties = {
   position: 'absolute',
   inset: 0,
-  zIndex: 50,
+  // Cover everything except system overlays (bootloader + bluescreen/reboot).
+  // Those use `Z_INDEX_TIERS.systemOverlay` and higher.
+  zIndex: Z_INDEX_TIERS.systemOverlay - 1,
   pointerEvents: 'none',
 };
 
@@ -106,7 +112,7 @@ const DeadPixelOverlay: FunctionComponent = () => {
     gridColsRef.current = gridCols;
     targetCellCountRef.current = targetCells;
 
-    // Pick unique cells so our “40%” target is closer to reality.
+    // Pick unique cells so our "20%" target is closer to reality.
     const selected = new Set<number>();
     while (selected.size < targetCells) {
       selected.add(Math.floor(Math.random() * cellCount));
@@ -168,11 +174,18 @@ const DeadPixelOverlay: FunctionComponent = () => {
       );
       const ratio = elapsedMs / spawnDurationMs;
 
-      // Linear ramp: reach the target by the end of the game.
+      // Exponential ramp: reach the target by the end of the game,
+      // but fill earlier more slowly than a linear ramp.
+      const normalizedExponentialRamp =
+        ratio <= 0
+          ? 0
+          : (1 - Math.exp(-DEAD_PIXEL_EXPONENTIAL_RAMP_K * ratio)) /
+            (1 - Math.exp(-DEAD_PIXEL_EXPONENTIAL_RAMP_K));
+
       const desiredCount =
         rafNow >= spawnEndAtMsRef.current
           ? targetCellCount
-          : Math.floor(targetCellCount * ratio);
+          : Math.floor(targetCellCount * normalizedExponentialRamp);
 
       const currentCount = currentSpawnIndexRef.current;
       const toAdd = desiredCount - currentCount;
