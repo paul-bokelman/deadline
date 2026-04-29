@@ -19,8 +19,6 @@ export const Z_INDEX_TIERS = {
   bluescreen: 6_000_000,
 } as const;
 
-type ZIndexTier = keyof typeof Z_INDEX_TIERS;
-
 let normalCounter = Z_INDEX_TIERS.normalBase + 1;
 let leaderboardCounter = Z_INDEX_TIERS.leaderboard;
 let voiceCallCounter = Z_INDEX_TIERS.voiceCall;
@@ -68,14 +66,5 @@ export const allocateLeaderboardZIndex = () => {
  */
 export const allocateVoiceCallZIndex = () => {
   return voiceCallCounter++;
-};
-
-/**
- * Convenience for determining which tier an OpenWindow belongs to.
- */
-export const getZIndexTierForAppId = (appId: string): ZIndexTier => {
-  if (appId === 'netVoiceCall') return 'voiceCall';
-  if (appId === 'leaderboard') return 'leaderboard';
-  return 'normalBase';
 };
 

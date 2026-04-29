@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'preact/hooks';
 import { systemConfig } from '../../data/systemConfig';
 import { NetVoiceCallId } from '../../game/netvoice/calls';
 import { useGameState } from '../../game/state';
+import { pickRandom } from '../../utils/random';
 
 const ALICE_HALFWAY_CALL_EVENT_ID = 'people:alice_halfway:triggered';
 const RANDOM_CALL_POOL: NetVoiceCallId[] = [
@@ -10,10 +11,6 @@ const RANDOM_CALL_POOL: NetVoiceCallId[] = [
   'mom_www_issues',
   'mom_maryjane',
 ];
-
-const pickRandomItem = <T,>(items: T[]): T => {
-  return items[Math.floor(Math.random() * items.length)];
-};
 
 export const usePeopleCallScheduler = (): void => {
   const {
@@ -60,7 +57,8 @@ export const usePeopleCallScheduler = (): void => {
       // Small recurring chance while idle keeps this feeling organic.
       if (Math.random() >= 0.18) return;
 
-      const selectedCallId = pickRandomItem(availableRandomCalls);
+      const selectedCallId = pickRandom(availableRandomCalls);
+      if (!selectedCallId) return;
       markEventFired(`people:random:${selectedCallId}:triggered`);
       triggerNetVoiceCall(selectedCallId);
     }, 12000);

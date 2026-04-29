@@ -3,17 +3,10 @@ import { useEffect } from 'preact/hooks';
 import { allEmails, getEmailsForAccount } from '../../data/emails';
 import { gameEventBus } from '../../game/events';
 import { useGameState } from '../../game/state';
+import { pickRandom, randomIntBetween } from '../../utils/random';
 
 const MIN_DELAY_MS = 20_000;
 const MAX_DELAY_MS = 60_000;
-
-const randomBetween = (min: number, max: number): number =>
-  Math.floor(min + Math.random() * (max - min + 1));
-
-const pickRandom = <T,>(items: T[]): T | null => {
-  if (!items.length) return null;
-  return items[Math.floor(Math.random() * items.length)] ?? null;
-};
 
 export const useEmailDripScheduler = (): void => {
   const { flags } = useGameState();
@@ -26,7 +19,7 @@ export const useEmailDripScheduler = (): void => {
 
     const scheduleNext = () => {
       if (stopped) return;
-      const delay = randomBetween(MIN_DELAY_MS, MAX_DELAY_MS);
+      const delay = randomIntBetween(MIN_DELAY_MS, MAX_DELAY_MS);
       timerId = window.setTimeout(() => {
         const available = [
           ...getEmailsForAccount('corpMail', flags),
@@ -52,4 +45,3 @@ export const useEmailDripScheduler = (): void => {
     };
   }, [flags]);
 };
-

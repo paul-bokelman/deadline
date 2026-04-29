@@ -1,11 +1,8 @@
 const DEFAULT_PORTAL_EMAIL = 'conner.work@aol.com';
-const PORTAL_RESET_URL = 'http://identity.corp.internal/reset-password';
 
 let portalLoginEmail = DEFAULT_PORTAL_EMAIL;
 let pendingResetEmail = DEFAULT_PORTAL_EMAIL;
 let portalPassword: string | null = null;
-
-export const getPortalResetUrl = (): string => PORTAL_RESET_URL;
 
 export const hasPortalPassword = (): boolean => portalPassword !== null;
 

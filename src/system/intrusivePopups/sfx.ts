@@ -1,3 +1,5 @@
+import { pickRandom } from '../../utils/random';
+
 const SPAWN_SOURCES = ['/audio/popups/popup1.mp3', '/audio/popups/popup2.mp3'];
 const LOOP_SOURCES = [
   '/audio/popups/advertise.mp3',
@@ -16,14 +18,9 @@ const CLICK_END_SECONDS = 0.74;
 const CLICK_CLIP_MS = (CLICK_END_SECONDS - CLICK_START_SECONDS) * 1000;
 
 const CLOSE_POOL_SIZE = 3;
-const HOVER_POOL_SIZE = 3;
-
 let closePool: HTMLAudioElement[] | null = null;
-let hoverPool: HTMLAudioElement[] | null = null;
 
 let nextCloseIndex = 0;
-let nextHoverIndex = 0;
-let lastHoverAt = 0;
 
 const clipStopTimers = new WeakMap<HTMLAudioElement, number>();
 
@@ -32,10 +29,6 @@ const createAudio = (source: string, volume: number): HTMLAudioElement => {
   audio.preload = 'auto';
   audio.volume = volume;
   return audio;
-};
-
-const randomFrom = <T,>(items: T[]): T => {
-  return items[Math.floor(Math.random() * items.length)];
 };
 
 const buildPool = (
@@ -55,13 +48,6 @@ const getClosePool = (): HTMLAudioElement[] => {
     closePool = buildPool(CLICK_SOURCE, 0.45, CLOSE_POOL_SIZE);
   }
   return closePool;
-};
-
-const getHoverPool = (): HTMLAudioElement[] => {
-  if (!hoverPool) {
-    hoverPool = buildPool(CLICK_SOURCE, 0.22, HOVER_POOL_SIZE);
-  }
-  return hoverPool;
 };
 
 const playClippedClick = (pool: HTMLAudioElement[], index: number): number => {
@@ -95,13 +81,17 @@ const playClippedClick = (pool: HTMLAudioElement[], index: number): number => {
 };
 
 export const playIntrusivePopupSpawnSfx = (): void => {
-  const audio = createAudio(randomFrom(SPAWN_SOURCES), 0.42);
+  const source = pickRandom(SPAWN_SOURCES);
+  if (!source) return;
+  const audio = createAudio(source, 0.42);
   audio.play().catch(() => undefined);
 };
 
 export const createIntrusivePopupLoopSfx = (): HTMLAudioElement | null => {
   if (Math.random() >= 0.5) return null;
-  const audio = createAudio(randomFrom(LOOP_SOURCES), 0.36);
+  const source = pickRandom(LOOP_SOURCES);
+  if (!source) return null;
+  const audio = createAudio(source, 0.36);
   audio.loop = true;
   return audio;
 };
@@ -120,12 +110,4 @@ export const stopIntrusivePopupLoopSfx = (
 
 export const playIntrusivePopupCloseSfx = (): void => {
   nextCloseIndex = playClippedClick(getClosePool(), nextCloseIndex);
-};
-
-export const playIntrusivePopupHoverSfx = (): void => {
-  const now = Date.now();
-  if (now - lastHoverAt < 110) return;
-  lastHoverAt = now;
-
-  nextHoverIndex = playClippedClick(getHoverPool(), nextHoverIndex);
 };

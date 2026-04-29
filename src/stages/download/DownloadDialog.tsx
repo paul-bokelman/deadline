@@ -26,7 +26,7 @@ const actionsStyle: JSX.CSSProperties = {
 const DownloadDialog: FunctionComponent<DownloadDialogProps> = ({
   onReboot,
   onStartDownload,
-}: DownloadDialogProps) => {
+}) => {
   const [coords, setCoords] = useState({ x: 230, y: 120 });
   const [containerEl, setContainerEl] = useState<HTMLDivElement | null>(null);
 
