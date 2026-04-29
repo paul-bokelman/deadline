@@ -67,6 +67,7 @@ export type CoreGameEvents = {
   'blackjack:hand_finished': { at: number };
   'shell:directory_updated': { dir: FileSystemDir };
   'screen:mirror_toggled': Record<string, never>;
+  'trap:instant_bsod': { source: 'desktop_shortcut' };
 };
 
 type EventHandler<TPayload> = (payload: TPayload) => void;

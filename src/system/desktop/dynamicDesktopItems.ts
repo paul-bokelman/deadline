@@ -110,7 +110,12 @@ export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
   const fileTypeOverrides = flags.dynamicFileTypeOverrides ?? {};
   const fileNameOverrides = flags.dynamicFileNameOverrides ?? {};
   const dynamicItems: ShellItem[] = [
-    createAppShellItem('click-me-reset', 'clickMeReset', 'click me'),
+    createAppShellItem(
+      'click-me-reset',
+      'clickMeReset',
+      'TotallyNotAVirus.exe',
+      'msDos'
+    ),
     createAppShellItem(
       'draft-document-link',
       'draftDocumentLink',

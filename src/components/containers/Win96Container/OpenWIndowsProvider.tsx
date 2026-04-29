@@ -128,6 +128,11 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
     }
 
     if (appId === 'clickMeReset') {
+      gameEventBus.emit('trap:instant_bsod', { source: 'desktop_shortcut' });
+      return;
+    }
+
+    if (appId === 'myComputer' && workingDir?.name === 'DoNotOpen') {
       rebootGame();
       return;
     }

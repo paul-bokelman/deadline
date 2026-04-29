@@ -25,6 +25,7 @@ import BackgroundFlyOverlay from '../../../system/backgroundFly/BackgroundFlyOve
 import { gameEventBus } from '../../../game/events';
 import ClippyAssistant from '../../../system/clippy/ClippyAssistant';
 import FullscreenRecommendation from '../../../system/fullscreen/FullscreenRecommendation';
+import InstantBsodTrap from '../../../system/traps/InstantBsodTrap';
 
 import style from './Win96Container.module.css';
 
@@ -152,6 +153,7 @@ const Win96Container: FunctionComponent = () => {
                 <IntrusivePopupManager />
                 <WindowsUpdateNag />
                 <FullscreenRecommendation />
+                <InstantBsodTrap />
                 <ClippyAssistant />
                 <Narrator />
                 <SaveHotkeyTrap />
