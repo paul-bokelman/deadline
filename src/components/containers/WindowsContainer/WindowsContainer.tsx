@@ -45,12 +45,9 @@ const WindowsContainer: FunctionComponent = () => {
         const isNetVoiceCallWindow = window.app.id === 'netVoiceCall';
         const canClose =
           !isNetVoiceCallWindow && (window.showCloseButton ?? true);
-        const canMinimize =
-          !isNetVoiceCallWindow && (window.canMinimize ?? true);
-        const canMaximize =
-          !isNetVoiceCallWindow && (window.canMaximize ?? window.isResizeable);
-        const showMaximizeButton =
-          !isNetVoiceCallWindow && (window.showMaximizeButton ?? true);
+        const canMinimize = window.canMinimize ?? true;
+        const canMaximize = window.canMaximize ?? true;
+        const showMaximizeButton = window.showMaximizeButton ?? true;
         const windowTitle = isNetVoiceCallWindow
           ? `NetVoice \u2013 ${
               isNetVoiceCallAccepted ? 'Connected' : 'Incoming Call'

@@ -2,6 +2,7 @@
     display: flex;
     flex-direction: column;
     position: relative;
+    box-sizing: border-box;
     padding: 3px;
     background: var(--surface);
     box-shadow: var(--border-window-outer), var(--border-window-inner);
@@ -9,9 +10,8 @@
 
 .windowMain {
     flex: 1 1 auto;
-}
-
-.windowMain {
+    min-height: 0;
+    min-width: 0;
     overflow: hidden;
 }
 

@@ -20,6 +20,32 @@ interface Props {
 
 const TASKBAR_DOCK_HEIGHT = 34;
 const MIN_WINDOW_HEIGHT = 150;
+const MIN_WINDOW_WIDTH = 200;
+const DEFAULT_WINDOW_WIDTH = 360;
+const DEFAULT_WINDOW_HEIGHT = 300;
+const WINDOW_SCREEN_MARGIN = 12;
+
+const clampWindowSizeToViewport = (size: { x: number; y: number }) => {
+  const maxWidth = Math.max(
+    MIN_WINDOW_WIDTH,
+    globalThis.innerWidth - WINDOW_SCREEN_MARGIN * 2
+  );
+  const maxHeight = Math.max(
+    MIN_WINDOW_HEIGHT,
+    globalThis.innerHeight - TASKBAR_DOCK_HEIGHT - WINDOW_SCREEN_MARGIN * 2
+  );
+  return {
+    x: Math.max(MIN_WINDOW_WIDTH, Math.min(size.x, maxWidth)),
+    y: Math.max(MIN_WINDOW_HEIGHT, Math.min(size.y, maxHeight)),
+  };
+};
+
+const getDefaultWindowSize = (app: App): { x: number; y: number } => {
+  const requestedSize = app.size
+    ? { x: app.size.width, y: app.size.height }
+    : { x: DEFAULT_WINDOW_WIDTH, y: DEFAULT_WINDOW_HEIGHT };
+  return clampWindowSizeToViewport(requestedSize);
+};
 
 const createInitialOpenWindows = (): OpenWindow[] => {
   const timerApp = appList.timer;
@@ -108,12 +134,13 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
       const iconId = getWindowIconId(app, workingDir);
       const title = getWindowTitle(app, workingDir, workingFile);
       const zIndex = getBiggestZIndex(windows) + 1;
-      const eulaWidth = Math.round(window.innerWidth * 0.75);
-      const eulaHeight = Math.round(window.innerHeight * 0.75);
+      const eulaWidth = Math.round(window.innerWidth * 0.8);
+      const eulaHeight = Math.round(window.innerHeight * 0.8);
       const eulaCoords = {
         x: Math.max(0, Math.round((window.innerWidth - eulaWidth) / 2)),
         y: Math.max(0, Math.round((window.innerHeight - eulaHeight) / 2)),
       };
+      const defaultSize = getDefaultWindowSize(app);
       const existingWindows = windows.map((window) => ({
         ...window,
         hasFocus: false,
@@ -122,12 +149,8 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
         ...existingWindows,
         {
           app,
-          canMaximize: isProjectDeadlineWindow
-            ? true
-            : isEulaWindow
-            ? false
-            : app.isResizeable ?? true,
-          canMinimize: isEulaWindow ? false : true,
+          canMaximize: true,
+          canMinimize: true,
           iconId,
           id: uuid(),
           coords: isEulaWindow
@@ -140,17 +163,14 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
           isDraggable: app.isDraggable ?? true,
           isMinimized: false,
           isMaximized: false,
-          isResizeable: isEulaWindow
-            ? false
-            : isProjectDeadlineWindow
+          isResizeable: isProjectDeadlineWindow
             ? true
             : app.isResizeable ?? true,
           showCloseButton: isEulaWindow ? false : !isProjectDeadlineWindow,
-          showMaximizeButton: isEulaWindow ? false : true,
-          size: {
-            x: isEulaWindow ? eulaWidth : app.size ? app.size.width : 300,
-            y: isEulaWindow ? eulaHeight : app.size ? app.size.height : 300,
-          },
+          showMaximizeButton: true,
+          size: isEulaWindow
+            ? clampWindowSizeToViewport({ x: eulaWidth, y: eulaHeight })
+            : defaultSize,
           title,
           workingDir,
           workingFile,
@@ -218,14 +238,23 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
           MIN_WINDOW_HEIGHT,
           globalThis.innerHeight - TASKBAR_DOCK_HEIGHT - window.coords.y
         );
+        const maxAllowedWidth = Math.max(
+          MIN_WINDOW_WIDTH,
+          globalThis.innerWidth - window.coords.x - WINDOW_SCREEN_MARGIN
+        );
         const clampedHeight = Math.max(
           MIN_WINDOW_HEIGHT,
           Math.min(size.y, maxAllowedHeight)
+        );
+        const clampedWidth = Math.max(
+          MIN_WINDOW_WIDTH,
+          Math.min(size.x, maxAllowedWidth)
         );
         return {
           ...window,
           size: {
             ...size,
+            x: clampedWidth,
             y: clampedHeight,
           },
         };

@@ -28,11 +28,16 @@ const groupStyle: JSX.CSSProperties = {
 };
 
 const buttonStyle: JSX.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  maxWidth: '100%',
+  boxSizing: 'border-box',
   border: 'none',
   backgroundColor: 'var(--surface)',
   boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
   padding: '4px 8px',
-  margin: '4px 4px 0 0',
+  margin: 0,
 };
 
 const disabledStyle: JSX.CSSProperties = {
@@ -172,7 +177,9 @@ const WinRarExtractor: FunctionComponent<AppProps> = () => {
             </button>
           ))}
         </div>
-        <div style={{ marginTop: '8px' }}>
+        <div
+          style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}
+        >
           <button
             type="button"
             style={selectedProgram ? buttonStyle : disabledStyle}
@@ -190,9 +197,11 @@ const WinRarExtractor: FunctionComponent<AppProps> = () => {
               WinRAR selected for extraction.
             </div>
             {flags.hasZipFile ? (
-              <button onClick={handleExtract} style={buttonStyle} type="button">
-                Extract to Desktop
-              </button>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                <button onClick={handleExtract} style={buttonStyle} type="button">
+                  Extract to Desktop
+                </button>
+              </div>
             ) : (
               <div>No archive is currently available.</div>
             )}

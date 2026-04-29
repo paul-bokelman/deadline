@@ -1,3 +1,5 @@
+import { FileSystemDir } from '../types/FileSystem';
+
 export type CoreGameEvents = {
   'boot:complete': { at: number };
   'bootloader:started': { at: number };
@@ -61,6 +63,7 @@ export type CoreGameEvents = {
   };
   'blackjack:hand_started': { at: number };
   'blackjack:hand_finished': { at: number };
+  'shell:directory_updated': { dir: FileSystemDir };
 };
 
 type EventHandler<TPayload> = (payload: TPayload) => void;

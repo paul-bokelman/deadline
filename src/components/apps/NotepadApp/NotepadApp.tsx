@@ -10,7 +10,11 @@ import style from './NotepadApp.module.css';
 const DEFAULT_NOTES_TEXT = `todo:
 - get new job
 - call back ex-wife
-- appear at court tomorrow (IMPORTANT)`;
+- appear at court tomorrow (IMPORTANT)
+
+Favorite number:4
+Favorite animal: beaver
+Favorite city Barcelona`;
 
 const NotepadApp: FunctionComponent<AppProps> = ({ workingFile }: AppProps) => {
   const textContent = workingFile ? workingFile.content : DEFAULT_NOTES_TEXT;

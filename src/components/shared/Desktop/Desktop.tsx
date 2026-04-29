@@ -17,6 +17,7 @@ import useShellFilesState from '../../../hooks/useShellFilesState';
 import { getDynamicDesktopItems } from '../../../system/desktop/dynamicDesktopItems';
 import { scrambleDesktop } from '../../../system/desktop/scrambleDesktop';
 import ScreenshotWallpaper from '../../../system/wallpaper/ScreenshotWallpaper';
+import { FileSystemApp } from '../../../types/FileSystem';
 import { ShellItem } from '../../../types/Shell';
 import { getDirFromPath } from '../../../utils/win96/FileSystemUtils';
 import Icon from '../Icon/Icon';
@@ -31,6 +32,7 @@ const ICON_PADDING_Y = 4;
 const DRAG_THRESHOLD_PX = 4;
 const FALLBACK_DESKTOP_W = 800;
 const FALLBACK_DESKTOP_H = 600;
+const PASSWORD_VAULT_FOLDER_NAME = 'PasswordVault';
 
 interface IconPosition {
   left: number;
@@ -73,6 +75,8 @@ type Props = {
 const clamp = (value: number, min: number, max: number): number =>
   Math.min(max, Math.max(min, value));
 
+const positionKey = (left: number, top: number): string => `${left}:${top}`;
+
 const iconRectFromPosition = (
   position: IconPosition,
   width = 78,
@@ -92,8 +96,9 @@ const Desktop: FunctionComponent<Props> = ({
   openApp,
 }: Props) => {
   const { flags, setFlags } = useGameState();
+  const desktopWorkingDir = getDirFromPath('C:/Windows/Desktop', myComputerFs);
   const { files, focusOnFile, removeFocus } = useShellFilesState(
-    getDirFromPath('C:/Windows/Desktop', myComputerFs),
+    desktopWorkingDir,
     false
   );
   const [focusedDynamicItemId, setFocusedDynamicItemId] = useState<
@@ -130,6 +135,15 @@ const Desktop: FunctionComponent<Props> = ({
       ) ?? null,
     [desktopItems]
   );
+  const passwordVaultItem = useMemo(
+    () =>
+      desktopItems.find(
+        (item) =>
+          item.type === 'dir' &&
+          item.fileSystemDir.name === PASSWORD_VAULT_FOLDER_NAME
+      ) ?? null,
+    [desktopItems]
+  );
 
   const desktopRef = useRef<HTMLDivElement>(null);
   const [iconPositions, setIconPositions] = useState<
@@ -150,6 +164,7 @@ const Desktop: FunctionComponent<Props> = ({
     h: FALLBACK_DESKTOP_H,
   });
   const [isRecycleBinDropHover, setIsRecycleBinDropHover] = useState(false);
+  const [isPasswordVaultDropHover, setIsPasswordVaultDropHover] = useState(false);
 
   useLayoutEffect(() => {
     const element = desktopRef.current;
@@ -178,26 +193,42 @@ const Desktop: FunctionComponent<Props> = ({
       const ICON_H = CELL_HEIGHT;
       const maxLeft = Math.max(ICON_PADDING_X, desktopSize.w - ICON_W);
       const maxTop = Math.max(ICON_PADDING_Y, desktopSize.h - ICON_H);
+      const occupiedPositions = new Set<string>();
+
+      const buildOrderedSlots = (): IconPosition[] => {
+        const slots: IconPosition[] = [];
+        for (let left = ICON_PADDING_X; left <= maxLeft; left += ICON_W) {
+          for (let top = ICON_PADDING_Y; top <= maxTop; top += ICON_H) {
+            slots.push({ left, top });
+          }
+        }
+        return slots;
+      };
+      const orderedSlots = buildOrderedSlots();
 
       desktopItems.forEach((item) => {
         const existing = current[item.id];
         if (!existing) return;
-        next[item.id] = {
+        const clampedPosition = {
           left: clamp(existing.left, ICON_PADDING_X, maxLeft),
           top: clamp(existing.top, ICON_PADDING_Y, maxTop),
         };
+        next[item.id] = clampedPosition;
+        occupiedPositions.add(positionKey(clampedPosition.left, clampedPosition.top));
       });
 
       desktopItems.forEach((item) => {
         if (next[item.id]) return;
-        // Completely random placement on the desktop.
-        const left =
-          ICON_PADDING_X +
-          Math.floor(Math.random() * Math.max(1, maxLeft - ICON_PADDING_X));
-        const top =
-          ICON_PADDING_Y +
-          Math.floor(Math.random() * Math.max(1, maxTop - ICON_PADDING_Y));
-        next[item.id] = { left, top };
+        const availableSlot = orderedSlots.find(
+          (slot) => !occupiedPositions.has(positionKey(slot.left, slot.top))
+        );
+        const fallbackPosition = {
+          left: ICON_PADDING_X,
+          top: ICON_PADDING_Y,
+        };
+        const nextPosition = availableSlot ?? fallbackPosition;
+        next[item.id] = nextPosition;
+        occupiedPositions.add(positionKey(nextPosition.left, nextPosition.top));
       });
 
       const currentIds = Object.keys(current);
@@ -248,6 +279,57 @@ const Desktop: FunctionComponent<Props> = ({
     [flags.recycledDesktopApps, removeFocus, setFlags]
   );
 
+  const moveAppsToPasswordVault = useCallback(
+    (items: ShellItem[]): boolean => {
+      if (!passwordVaultItem || passwordVaultItem.type !== 'dir') return false;
+      const appsToMove = items.filter(
+        (item): item is Extract<ShellItem, { type: 'app' }> => item.type === 'app'
+      );
+      if (appsToMove.length === 0) return false;
+
+      const desktopEntries = Object.entries(desktopWorkingDir.dir);
+      const consumedDesktopKeys = new Set<string>();
+      let movedCount = 0;
+
+      appsToMove.forEach((appItem, index) => {
+        const matchingDesktopEntry = desktopEntries.find(([entryKey, entryValue]) => {
+          if (consumedDesktopKeys.has(entryKey)) return false;
+          if (entryValue.type !== 'app') return false;
+          if (entryValue.appId !== appItem.appId) return false;
+          if (entryValue.name && entryValue.name !== appItem.name) return false;
+          return true;
+        });
+        if (!matchingDesktopEntry) return;
+
+        const [desktopEntryKey] = matchingDesktopEntry;
+        consumedDesktopKeys.add(desktopEntryKey);
+        delete desktopWorkingDir.dir[desktopEntryKey];
+
+        const entryKey = `vaultedApp_${Date.now()}_${index}_${Math.random()
+          .toString(36)
+          .slice(2, 7)}`;
+        const appEntry: FileSystemApp = {
+          type: 'app',
+          appId: appItem.appId,
+          name: appItem.name,
+        };
+        passwordVaultItem.fileSystemDir.dir[entryKey] = appEntry;
+        movedCount += 1;
+      });
+
+      if (movedCount === 0) return false;
+      gameEventBus.emit('shell:directory_updated', {
+        dir: passwordVaultItem.fileSystemDir,
+      });
+      gameEventBus.emit('shell:directory_updated', { dir: desktopWorkingDir });
+      setFocusedDynamicItemId(null);
+      setSelectedIds(new Set());
+      removeFocus();
+      return true;
+    },
+    [desktopWorkingDir, passwordVaultItem, removeFocus]
+  );
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.key !== 'Delete' && event.key !== 'Backspace') return;
@@ -295,6 +377,7 @@ const Desktop: FunctionComponent<Props> = ({
     dragRef.current = null;
     pendingPointerEventRef.current = null;
     setIsRecycleBinDropHover(false);
+    setIsPasswordVaultDropHover(false);
     if (rafIdRef.current !== null) {
       cancelAnimationFrame(rafIdRef.current);
       rafIdRef.current = null;
@@ -378,35 +461,56 @@ const Desktop: FunctionComponent<Props> = ({
 
     if (!recycleBinItem) {
       setIsRecycleBinDropHover(false);
-      return;
-    }
-    const recycleBinPosition = iconPositions[recycleBinItem.id];
-    if (!recycleBinPosition) {
-      setIsRecycleBinDropHover(false);
-      return;
-    }
-    const recycleRect = iconRectFromPosition(recycleBinPosition);
-    const hover = updated.draggedFileIds.some((id) => {
-      const draggedItem = desktopItems.find((item) => item.id === id);
-      if (!draggedItem) return false;
-      if (
-        draggedItem.type === 'dir' &&
-        draggedItem.fileSystemDir.dirType === 'recycleBin'
-      ) {
-        return false;
+    } else {
+      const recycleBinPosition = iconPositions[recycleBinItem.id];
+      if (!recycleBinPosition) {
+        setIsRecycleBinDropHover(false);
+      } else {
+        const recycleRect = iconRectFromPosition(recycleBinPosition);
+        const hover = updated.draggedFileIds.some((id) => {
+          const draggedItem = desktopItems.find((item) => item.id === id);
+          if (!draggedItem) return false;
+          if (
+            draggedItem.type === 'dir' &&
+            draggedItem.fileSystemDir.dirType === 'recycleBin'
+          ) {
+            return false;
+          }
+          const startPos = updated.startPositions[id];
+          if (!startPos) return false;
+          const nextPos = clampToDesktop(startPos.left + dx, startPos.top + dy);
+          return rectsIntersect(iconRectFromPosition(nextPos), recycleRect);
+        });
+        setIsRecycleBinDropHover(hover);
       }
+    }
+
+    if (!passwordVaultItem || passwordVaultItem.type !== 'dir') {
+      setIsPasswordVaultDropHover(false);
+      return;
+    }
+    const passwordVaultPosition = iconPositions[passwordVaultItem.id];
+    if (!passwordVaultPosition) {
+      setIsPasswordVaultDropHover(false);
+      return;
+    }
+    const vaultRect = iconRectFromPosition(passwordVaultPosition);
+    const isHoveringVault = updated.draggedFileIds.some((id) => {
+      const draggedItem = desktopItems.find((item) => item.id === id);
+      if (!draggedItem || draggedItem.type !== 'app') return false;
       const startPos = updated.startPositions[id];
       if (!startPos) return false;
       const nextPos = clampToDesktop(startPos.left + dx, startPos.top + dy);
-      return rectsIntersect(iconRectFromPosition(nextPos), recycleRect);
+      return rectsIntersect(iconRectFromPosition(nextPos), vaultRect);
     });
-    setIsRecycleBinDropHover(hover);
+    setIsPasswordVaultDropHover(isHoveringVault);
   }, [
     clampToDesktop,
     desktopItems,
     desktopSize.h,
     desktopSize.w,
     iconPositions,
+    passwordVaultItem,
     recycleBinItem,
   ]);
 
@@ -635,6 +739,30 @@ const Desktop: FunctionComponent<Props> = ({
         }
       }
 
+      if (passwordVaultItem && passwordVaultItem.type === 'dir') {
+        const passwordVaultPosition = iconPositions[passwordVaultItem.id];
+        if (passwordVaultPosition) {
+          const vaultRect = iconRectFromPosition(passwordVaultPosition);
+          const draggedItems = desktopItems.filter((item) =>
+            finalState.draggedFileIds.includes(item.id)
+          );
+          const appsDroppedOnVault = draggedItems.filter((item) => {
+            if (item.type !== 'app') return false;
+            const startPos = finalState.startPositions[item.id];
+            if (!startPos) return false;
+            const nextPos = clampToDesktop(
+              startPos.left + finalState.deltaX,
+              startPos.top + finalState.deltaY
+            );
+            return rectsIntersect(iconRectFromPosition(nextPos), vaultRect);
+          });
+          if (appsDroppedOnVault.length > 0 && moveAppsToPasswordVault(appsDroppedOnVault)) {
+            endDrag();
+            return;
+          }
+        }
+      }
+
       setIconPositions((currentPositions) => {
         let changed = false;
         const next: Record<string, IconPosition> = { ...currentPositions };
@@ -663,6 +791,8 @@ const Desktop: FunctionComponent<Props> = ({
       endDrag,
       flushPointerMove,
       iconPositions,
+      moveAppsToPasswordVault,
+      passwordVaultItem,
       recycleDesktopItems,
       recycleBinItem,
     ]
@@ -799,6 +929,10 @@ const Desktop: FunctionComponent<Props> = ({
       file.type === 'dir' &&
       file.fileSystemDir.dirType === 'recycleBin' &&
       isRecycleBinDropHover;
+    const isPasswordVaultHighlighted =
+      file.type === 'dir' &&
+      file.fileSystemDir.name === PASSWORD_VAULT_FOLDER_NAME &&
+      isPasswordVaultDropHover;
 
     return (
       <div
@@ -806,7 +940,9 @@ const Desktop: FunctionComponent<Props> = ({
         className={`${style.iconSlot} ${fileGridStyle.file} ${
           file.hasFocus ? fileGridStyle.focus : ''
         } ${file.hasSoftFocus ? fileGridStyle.softFocus : ''} ${
-          isRecycleBinHighlighted ? `${fileGridStyle.focus} ${fileGridStyle.softFocus}` : ''
+          isRecycleBinHighlighted || isPasswordVaultHighlighted
+            ? `${fileGridStyle.focus} ${fileGridStyle.softFocus}`
+            : ''
         }`}
         draggable={false}
         onClick={(event) => handleClickFile(event, file)}

@@ -5,6 +5,7 @@ import Icon from '../Icon/Icon';
 import maximizeIcon from '../../../assets/img/ui/maximize.svg';
 import restoreIcon from '../../../assets/img/ui/restore.svg';
 import { gameEventBus } from '../../../game/events';
+import { useGameState } from '../../../game/state';
 
 import style from './NotificationArea.module.css';
 import { getGameDate } from '../../../system/clock/gameClock';
@@ -22,6 +23,7 @@ const formatTrayTime = (date: Date) =>
   });
 
 const NotificationArea: FunctionComponent = () => {
+  const { rebootGame } = useGameState();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const autoplayRetryCountRef = useRef(0);
   const autoplayRetryTimeoutRef = useRef<number | null>(null);
@@ -230,6 +232,14 @@ const NotificationArea: FunctionComponent = () => {
         type="button"
       >
         <Icon iconId={isPlaying ? 'sound' : 'soundOff'} />
+      </button>
+      <button
+        className={style.statusIcon}
+        onClick={rebootGame}
+        title="Reboot"
+        type="button"
+      >
+        <Icon iconId="power" />
       </button>
       <button
         className={style.statusIcon}
