@@ -7,6 +7,7 @@ import FileConverterApp from './fileConverter/FileConverterApp';
 import TipOfDayApp from './tipOfDay/TipOfDayApp';
 import EmailClient from './email/EmailClient';
 import BlackjackApp from './blackjack/BlackjackApp';
+import LeaderboardApp from './leaderboard/LeaderboardApp';
 import WalletApp from './wallet/WalletApp';
 import PasswordsFile from './notepad/PasswordsFile';
 import PortalApp from './portal/PortalApp';
@@ -82,6 +83,7 @@ export const appComponents: Record<AppId, FunctionComponent<AppProps>> = {
   wordpad: VoidApp,
   portal: PortalApp,
   blackjack: BlackjackApp,
+  leaderboard: LeaderboardApp,
   bank: WalletApp,
   worldWideWeb: WorldWideWebApp,
 };

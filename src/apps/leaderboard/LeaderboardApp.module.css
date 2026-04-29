@@ -1,0 +1,261 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: var(--surface);
+  font-family: var(--font-family-ui);
+  font-size: 11px;
+  color: #000;
+}
+
+.hero {
+  background: linear-gradient(180deg, #000080 0%, #1084d0 100%);
+  color: #fff;
+  padding: 10px 14px;
+  box-shadow: inset 1px 1px 0 0 var(--button-face), inset -1px -1px 0 0 var(--window-frame);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.heroBadge {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  image-rendering: pixelated;
+  display: block;
+  object-fit: contain;
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4);
+}
+
+.heroTitle {
+  font-family: 'Times New Roman', Georgia, serif;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 24px;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 0 #000;
+}
+
+.heroSub {
+  font-size: 11px;
+  opacity: 0.88;
+}
+
+.podiumStage {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px 0;
+  min-height: 170px;
+  background-image: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.06) 0 1px, transparent 1px 3px);
+}
+
+.podiumCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.podiumAvatar {
+  width: 48px;
+  height: 48px;
+  background: #fff;
+  box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Times New Roman', Georgia, serif;
+  font-size: 24px;
+  font-weight: 700;
+  position: relative;
+}
+
+.podiumMedal {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Times New Roman', Georgia, serif;
+  font-weight: 700;
+  font-size: 11px;
+  border: 1px solid #000;
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4);
+}
+
+.medalGold { background: #ffcc00; }
+.medalSilver { background: #d4d4d4; }
+.medalBronze { background: #cd7f32; color: #fff; }
+
+.podiumName {
+  font-size: 11px;
+  font-weight: 700;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.podiumTime {
+  font-family: var(--font-family-sys);
+  font-size: 11px;
+  background: #000;
+  color: #00ff66;
+  padding: 1px 5px;
+  box-shadow: inset 1px 1px 0 var(--button-shadow), inset -1px -1px 0 var(--button-highlight);
+}
+
+.podiumBlock {
+  width: 100px;
+  background: var(--surface);
+  box-shadow: var(--border-raised-outer), var(--border-raised-inner);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 8px;
+}
+
+.podiumRank {
+  font-family: 'Times New Roman', Georgia, serif;
+  font-weight: 700;
+  font-size: 34px;
+  line-height: 1;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+.rankGold { color: #ffcc00; }
+.rankSilver { color: #d4d4d4; }
+.rankBronze { color: #cd7f32; }
+
+.tableWrap {
+  padding: 8px 10px 0;
+}
+
+.tableTitle {
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.tableInset {
+  height: 150px;
+  background: #fff;
+  box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+}
+
+.list {
+  padding: 2px;
+  overflow: auto;
+  height: 100%;
+}
+
+.list table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.list th {
+  background: var(--surface);
+  font-weight: 400;
+  text-align: left;
+  padding: 2px 6px;
+  box-shadow: inset 1px 1px 0 0 var(--button-highlight), inset -1px -1px 0 0 var(--button-shadow);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.list td {
+  padding: 3px 6px;
+  border-bottom: 1px dotted #d8d8d8;
+}
+
+.rowYou td {
+  background: #000080;
+  color: #fff;
+  font-weight: 700;
+}
+
+.rankCell {
+  font-family: 'Times New Roman', Georgia, serif;
+  font-weight: 700;
+  font-size: 13px;
+  width: 32px;
+}
+
+.timeCell {
+  font-family: var(--font-family-sys);
+  text-align: right;
+  width: 80px;
+}
+
+.rowYou .timeCell {
+  color: #00ff66;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  gap: 8px;
+}
+
+.btn {
+  background: var(--surface);
+  box-shadow: var(--border-raised-outer), var(--border-raised-inner);
+  padding: 6px 14px;
+  font-family: inherit;
+  font-size: 11px;
+  color: #000;
+  min-width: 80px;
+  border: none;
+  cursor: var(--cursor-hover, default);
+}
+
+.btn:not(:disabled):active {
+  box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+  padding: 7px 13px 5px 15px;
+}
+
+.btnDefault {
+  outline: 1px dotted #000;
+  outline-offset: -4px;
+}
+
+.btn:disabled {
+  color: var(--button-shadow);
+  text-shadow: 1px 1px 0 var(--button-highlight);
+  cursor: default;
+}
+
+.statusBar {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+}
+
+.statusCell {
+  padding: 2px 6px;
+  box-shadow: inset 1px 1px 0 0 var(--button-shadow), inset -1px -1px 0 0 var(--button-highlight);
+}
+
+.statusCellLeft {
+  composes: statusCell;
+  flex: 3;
+}
+
+.statusCellRight {
+  composes: statusCell;
+  flex: 1;
+}

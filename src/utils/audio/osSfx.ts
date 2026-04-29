@@ -109,7 +109,7 @@ export const stopCallOverSfx = (audio?: HTMLAudioElement | null): void => {
 };
 
 export const playTadaSfx = (): void => {
-  void SFX_PATHS.tada;
+  void playOneShot(SFX_PATHS.tada, 0.7);
 };
 
 export const playNotifySfx = (): void => {

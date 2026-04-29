@@ -288,6 +288,12 @@ export const appList: AppList = {
     name: 'BlackJack 96',
     size: { width: 720, height: 510 },
   },
+  leaderboard: {
+    id: 'leaderboard',
+    iconId: 'leaderboard',
+    name: 'Leaderboard',
+    size: { width: 560, height: 510 },
+  },
   bank: {
     id: 'bank',
     iconId: 'exchange',

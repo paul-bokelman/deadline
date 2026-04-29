@@ -46,6 +46,7 @@ export const appIds = [
   'wordpad',
   'portal',
   'blackjack',
+  'leaderboard',
   'bank',
   'worldWideWeb',
 ] as const;

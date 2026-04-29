@@ -182,6 +182,7 @@ export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
     createAppShellItem('submission-portal', 'portal', 'Submission Portal'),
     createAppShellItem('bank', 'bank', 'America #1 Bank'),
     createAppShellItem('blackjack', 'blackjack', 'BlackJack 96'),
+    createAppShellItem('leaderboard', 'leaderboard', 'Leaderboard'),
     createAppShellItem('world-wide-web', 'worldWideWeb', 'World Wide Web'),
     createFileShellItem(
       'funny-password-dump',

@@ -40,6 +40,7 @@ export const iconIds = [
   'internet',
   'joystick',
   'keyboard',
+  'leaderboard',
   'mediaPlayer',
   'menuArrow',
   'midiFile',
