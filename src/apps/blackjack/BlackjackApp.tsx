@@ -1,11 +1,31 @@
-import { h, FunctionComponent, JSX } from 'preact';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks';
+/**
+ * BlackJack 96 — port of the design at /Users/pab/Downloads/designs/blackjack.jsx
+ * into the deadline OS shell.
+ *
+ * The native <Window> chrome (titlebar, surface frame, resize handle) is
+ * provided by the OS — this component only fills the windowMain body.
+ *
+ * Bankroll is sourced from the shared `flags.bankBalance` (the wallet) so
+ * blackjack losses drain the same pot used by AntiVirus / WinRAR / etc.
+ * The bailout / reboot system in src/game/state.tsx handles bankruptcy.
+ */
 
-import Dropdown from '../../components/shared/Dropdown/Dropdown';
+import { h, Fragment, FunctionComponent, JSX } from 'preact';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+
+import MenuBar from '../../components/shared/MenuBar/MenuBar';
+import StatusBar from '../../components/shared/StatusBar/StatusBar';
 import { AppProps } from '../../types/App';
 import { useGameState } from '../../game/state';
 import { gameEventBus } from '../../game/events';
 
+import chipRedUrl from '../../assets/img/blackjack/chip_red.png';
+import chipBlueUrl from '../../assets/img/blackjack/chip_blue.png';
+import chipGoldUrl from '../../assets/img/blackjack/chip_gold.png';
+
+import style from './BlackjackApp.module.css';
+
+// ─── Card model ───────────────────────────────────────────────────
 type Suit = '♠' | '♥' | '♦' | '♣';
 type Rank =
   | 'A'
@@ -21,192 +41,61 @@ type Rank =
   | 'J'
   | 'Q'
   | 'K';
+type CardModel = { rank: Rank; suit: Suit };
 
-type Card = { rank: Rank; suit: Suit; id: string };
-
-type RoundState = 'idle' | 'playerTurn' | 'dealerTurn' | 'done';
-type Outcome = 'win' | 'lose' | 'push' | 'blackjack' | null;
-
-const panelStyle: JSX.CSSProperties = {
-  margin: '8px',
-  padding: '10px',
-  backgroundColor: 'var(--button-highlight)',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
-  height: 'calc(100% - 16px)',
-  boxSizing: 'border-box',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '10px',
-  minHeight: 0,
-  overflowY: 'auto',
+const SUITS: Suit[] = ['♠', '♥', '♦', '♣'];
+const RANKS: Rank[] = [
+  'A',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8',
+  '9',
+  '10',
+  'J',
+  'Q',
+  'K',
+];
+const SUIT_COLOR: Record<Suit, 'red' | 'black'> = {
+  '♠': 'black',
+  '♣': 'black',
+  '♥': 'red',
+  '♦': 'red',
 };
 
-const headerStyle: JSX.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'baseline',
-  gap: '10px',
-};
+const DECK_COUNT = 4; // 4 decks → 208 cards, matches the design's status strip
 
-const brandStyle: JSX.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  lineHeight: 1.1,
-};
-
-const tableStyle: JSX.CSSProperties = {
-  backgroundColor: '#0c5d2a',
-  backgroundImage:
-    'linear-gradient(0deg, rgba(0,0,0,0.18), rgba(0,0,0,0.18)), radial-gradient(circle at 25% 20%, rgba(255,255,255,0.08), transparent 55%)',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
-  padding: '10px',
-  flex: '1 1 160px',
-  minHeight: 140,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '10px',
-  overflow: 'hidden',
-};
-
-const statusStripStyle: JSX.CSSProperties = {
-  display: 'flex',
-  gap: '8px',
-  flexWrap: 'wrap',
-};
-
-const statusPillStyle: JSX.CSSProperties = {
-  padding: '2px 8px',
-  backgroundColor: 'var(--surface)',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
-  fontFamily: 'monospace',
-  fontSize: '12px',
-};
-
-const rowStyle: JSX.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '6px',
-};
-
-const handStyle: JSX.CSSProperties = {
-  display: 'flex',
-  gap: '6px',
-  flexWrap: 'wrap',
-};
-
-const cardStyle: JSX.CSSProperties = {
-  width: '54px',
-  height: '72px',
-  backgroundColor: '#ffffff',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'space-between',
-  padding: '4px',
-  fontFamily: 'monospace',
-  userSelect: 'none',
-};
-
-const cardBackStyle: JSX.CSSProperties = {
-  ...cardStyle,
-  backgroundColor: '#0b3d91',
-  color: '#ffffff',
-  justifyContent: 'center',
-  alignItems: 'center',
-  fontFamily: 'monospace',
-};
-
-const actionsStyle: JSX.CSSProperties = {
-  display: 'flex',
-  gap: '8px',
-  flexWrap: 'wrap',
-  justifyContent: 'center',
-};
-
-const smallButtonStyle: JSX.CSSProperties = {
-  border: 'none',
-  backgroundColor: 'var(--surface)',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
-  padding: '1px 6px',
-  fontSize: '12px',
-  lineHeight: 1.2,
-};
-
-const disabledSmallButtonStyle: JSX.CSSProperties = {
-  ...smallButtonStyle,
-  color: 'var(--button-shadow)',
-  textShadow: '1px 1px 0 var(--button-highlight)',
-};
-
-const dangerSmallButtonStyle: JSX.CSSProperties = {
-  ...smallButtonStyle,
-  backgroundColor: '#7b0000',
-  color: '#ffffff',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
-};
-
-const buttonStyle: JSX.CSSProperties = {
-  border: 'none',
-  backgroundColor: 'var(--surface)',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
-  padding: '4px 10px',
-};
-
-const disabledButtonStyle: JSX.CSSProperties = {
-  ...buttonStyle,
-  color: 'var(--button-shadow)',
-  textShadow: '1px 1px 0 var(--button-highlight)',
-};
-
-const inputStyle: JSX.CSSProperties = {
-  border: 'none',
-  backgroundColor: '#ffffff',
-  boxShadow: 'var(--border-field)',
-  padding: '1px 4px',
-  fontFamily: 'monospace',
-  width: '56px',
-};
-
-const suits: Suit[] = ['♠', '♥', '♦', '♣'];
-const ranks: Rank[] = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-
-const isRedSuit = (s: Suit): boolean => s === '♥' || s === '♦';
-
-const buildDeck = (seed: number): Card[] => {
-  const deck: Card[] = [];
-  let n = seed >>> 0;
-  for (let d = 0; d < 6; d += 1) {
-    for (const suit of suits) {
-      for (const rank of ranks) {
-        n = (n * 1664525 + 1013904223) >>> 0;
-        deck.push({ rank, suit, id: `${d}-${rank}-${suit}-${n}` });
-      }
+const buildShoe = (): CardModel[] => {
+  const shoe: CardModel[] = [];
+  for (let d = 0; d < DECK_COUNT; d += 1) {
+    for (const s of SUITS) {
+      for (const r of RANKS) shoe.push({ rank: r, suit: s });
     }
   }
-  // Fisher–Yates shuffle
-  for (let i = deck.length - 1; i > 0; i -= 1) {
-    n = (n * 1103515245 + 12345) >>> 0;
-    const j = n % (i + 1);
-    const tmp = deck[i];
-    deck[i] = deck[j];
-    deck[j] = tmp;
+  // Fisher–Yates
+  for (let i = shoe.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shoe[i], shoe[j]] = [shoe[j], shoe[i]];
   }
-  return deck;
+  return shoe;
 };
 
-const cardValue = (rank: Rank): number => {
-  if (rank === 'A') return 11;
-  if (rank === 'K' || rank === 'Q' || rank === 'J') return 10;
-  return Number(rank);
-};
-
-const scoreHand = (hand: Card[]): number => {
+const handValue = (hand: CardModel[]): number => {
   let total = 0;
   let aces = 0;
-  hand.forEach((c) => {
-    total += cardValue(c.rank);
-    if (c.rank === 'A') aces += 1;
-  });
+  for (const c of hand) {
+    if (c.rank === 'A') {
+      total += 11;
+      aces += 1;
+    } else if (c.rank === 'J' || c.rank === 'Q' || c.rank === 'K') {
+      total += 10;
+    } else {
+      total += parseInt(c.rank, 10);
+    }
+  }
   while (total > 21 && aces > 0) {
     total -= 10;
     aces -= 1;
@@ -214,514 +103,602 @@ const scoreHand = (hand: Card[]): number => {
   return total;
 };
 
+const isBlackjack = (h: CardModel[]): boolean =>
+  h.length === 2 && handValue(h) === 21;
+
+const formatMoney = (n: number): string =>
+  '$' + Math.round(n).toLocaleString('en-US');
+
+/** Round to nearest $5, floored at $5 (matches design's niceBet). */
+const niceBet = (n: number): number => Math.max(5, Math.round(n / 5) * 5);
+
+// ─── Phase model ──────────────────────────────────────────────────
+type Phase = 'betting' | 'playing' | 'dealer' | 'settled';
+type Outcome = 'win' | 'lose' | 'push' | 'bj' | null;
+
+// ─── Sub-components ───────────────────────────────────────────────
+interface CardProps {
+  card?: CardModel;
+  hidden?: boolean;
+}
+
+const Card: FunctionComponent<CardProps> = ({ card, hidden }: CardProps) => {
+  if (hidden || !card) {
+    return <div className={style.cardBack} />;
+  }
+  const colorClass =
+    SUIT_COLOR[card.suit] === 'red' ? style.cardRed : style.cardBlack;
+  return (
+    <div className={`${style.card} ${colorClass}`}>
+      <div className={style.cardCornerTop}>
+        <div className={style.cardRank}>{card.rank}</div>
+        <div className={style.cardSuitCorner}>{card.suit}</div>
+      </div>
+      <div className={style.cardPipBig}>{card.suit}</div>
+      <div className={style.cardCornerBottom}>
+        <div className={style.cardRank}>{card.rank}</div>
+        <div className={style.cardSuitCorner}>{card.suit}</div>
+      </div>
+    </div>
+  );
+};
+
+interface HandProps {
+  cards: CardModel[];
+  hideHole: boolean;
+  score: number | null;
+  scoreState: 'bust' | 'bj' | '';
+  label: string;
+}
+
+const Hand: FunctionComponent<HandProps> = ({
+  cards,
+  hideHole,
+  score,
+  scoreState,
+  label,
+}: HandProps) => {
+  const bubbleClass =
+    scoreState === 'bust'
+      ? `${style.scoreBubble} ${style.scoreBubbleBust}`
+      : scoreState === 'bj'
+      ? `${style.scoreBubble} ${style.scoreBubbleBj}`
+      : style.scoreBubble;
+  return (
+    <div>
+      <div className={style.handLabelRow}>
+        <span className={style.feltLabel}>{label}</span>
+        {score !== null && <span className={bubbleClass}>{score}</span>}
+      </div>
+      <div className={style.hand}>
+        {cards.map((c, i) => (
+          <Card
+            // Position-based key is fine — cards never reorder mid-hand.
+            // eslint-disable-next-line react/no-array-index-key
+            key={`${label}-${i}`}
+            card={c}
+            hidden={hideHole && i === 1}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+interface ChipBtnProps {
+  imgUrl: string;
+  label: string;
+  title: string;
+  onClick: () => void;
+  disabled?: boolean;
+}
+
+const ChipBtn: FunctionComponent<ChipBtnProps> = ({
+  imgUrl,
+  label,
+  title,
+  onClick,
+  disabled,
+}: ChipBtnProps) => (
+  <button
+    type="button"
+    className={style.chipBtn}
+    onClick={onClick}
+    disabled={disabled}
+    title={title}
+  >
+    <img className={style.chipBtnImg} src={imgUrl} alt="" />
+    <span className={style.chipLabel}>{label}</span>
+  </button>
+);
+
+// ─── Main game component ──────────────────────────────────────────
 const BlackjackApp: FunctionComponent<AppProps> = () => {
   const { flags, setFlags } = useGameState();
-  const panelRef = useRef<HTMLDivElement>(null);
-  const seedRef = useRef<number>(Date.now());
-  const deckRef = useRef<Card[]>(buildDeck(seedRef.current));
-  const discardRef = useRef<Card[]>([]);
-  const hasActiveHandRef = useRef(false);
-  const tableAfterBetRef = useRef<number>(0);
+  const bankroll = flags.bankBalance;
 
-  const [roundState, setRoundState] = useState<RoundState>('idle');
-  const [dealerHand, setDealerHand] = useState<Card[]>([]);
-  const [playerHand, setPlayerHand] = useState<Card[]>([]);
-  const [hideDealerHole, setHideDealerHole] = useState(true);
+  const [shoe, setShoe] = useState<CardModel[]>(() => buildShoe());
+  const [phase, setPhase] = useState<Phase>('betting');
+  const [bet, setBet] = useState<number>(0);
+  const [player, setPlayer] = useState<CardModel[]>([]);
+  const [dealer, setDealer] = useState<CardModel[]>([]);
   const [outcome, setOutcome] = useState<Outcome>(null);
-  const [message, setMessage] = useState('Click Deal to start.');
-  const [handSize, setHandSize] = useState(10);
-  const [currentBet, setCurrentBet] = useState<number | null>(null);
-  const [depositInput, setDepositInput] = useState('10');
-  const [withdrawInput, setWithdrawInput] = useState('10');
-  const [layoutScale, setLayoutScale] = useState(1);
+  const [moneyFx, setMoneyFx] = useState<'flash' | 'loss' | null>(null);
+  const [tableShake, setTableShake] = useState(false);
 
-  const bank = flags.bankBalance;
-  const table = flags.blackjackBalance;
-  const currentMood =
-    outcome === 'blackjack' || outcome === 'win'
-      ? 'Hot Streak'
-      : outcome === 'lose'
-      ? 'Dealer Advantage'
-      : roundState === 'playerTurn'
-      ? 'Decision Time'
-      : 'Open Table';
+  // Refs to hold the latest values for async dealer playout / settlement,
+  // since setTimeout callbacks otherwise capture stale state.
+  const shoeRef = useRef(shoe);
+  shoeRef.current = shoe;
+  const betRef = useRef(bet);
+  betRef.current = bet;
 
-  useLayoutEffect(() => {
-    const element = panelRef.current;
-    if (!element) return undefined;
-    const BASE_WIDTH = 700;
-    const BASE_HEIGHT = 520;
-    const updateScale = (): void => {
-      const rect = element.getBoundingClientRect();
-      const nextScale = Math.max(
-        0.62,
-        Math.min(1, Math.min(rect.width / BASE_WIDTH, rect.height / BASE_HEIGHT))
-      );
-      setLayoutScale(nextScale);
-    };
-    updateScale();
-    const observer = new ResizeObserver(updateScale);
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-
-  const cardWidth = Math.max(34, Math.round(54 * layoutScale));
-  const cardHeight = Math.max(46, Math.round(72 * layoutScale));
-  const cardPadding = Math.max(2, Math.round(4 * layoutScale));
-  const cardFontSize = Math.max(9, Math.round(12 * layoutScale));
+  // Track whether a hand is currently in progress so we emit the
+  // events the bailout system listens to in src/game/state.tsx.
+  const hasActiveHandRef = useRef(false);
 
   useEffect(() => {
-    const inProgress = roundState === 'playerTurn' || roundState === 'dealerTurn';
+    const inProgress = phase === 'playing' || phase === 'dealer';
     if (inProgress && !hasActiveHandRef.current) {
       hasActiveHandRef.current = true;
       gameEventBus.emit('blackjack:hand_started', { at: Date.now() });
-      return;
-    }
-    if (!inProgress && hasActiveHandRef.current) {
+    } else if (!inProgress && hasActiveHandRef.current) {
       hasActiveHandRef.current = false;
       gameEventBus.emit('blackjack:hand_finished', { at: Date.now() });
     }
-  }, [roundState]);
+  }, [phase]);
 
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       if (hasActiveHandRef.current) {
         hasActiveHandRef.current = false;
         gameEventBus.emit('blackjack:hand_finished', { at: Date.now() });
       }
+    },
+    []
+  );
+
+  // Pop one card off the shoe; reshuffle when it gets thin.
+  const drawFrom = (s: CardModel[]): [CardModel, CardModel[]] => {
+    const local = s.length < 15 ? buildShoe() : s;
+    const [c, ...rest] = local;
+    return [c, rest];
+  };
+
+  // Atomic settlement: takes the final hands and adjusts bankroll.
+  const settleRound = (
+    finalPlayer: CardModel[],
+    finalDealer: CardModel[],
+    betAmt: number
+  ): void => {
+    const pv = handValue(finalPlayer);
+    const dv = handValue(finalDealer);
+    const pBJ = isBlackjack(finalPlayer);
+    const dBJ = isBlackjack(finalDealer);
+
+    let result: Exclude<Outcome, null>;
+    let payout = 0; // amount returned to bankroll, includes bet on win/push
+
+    if (pBJ && dBJ) {
+      result = 'push';
+      payout = betAmt;
+    } else if (pBJ) {
+      result = 'bj';
+      payout = betAmt + Math.round(betAmt * 1.5); // 3:2
+    } else if (dBJ) {
+      result = 'lose';
+      payout = 0;
+    } else if (pv > 21) {
+      result = 'lose';
+      payout = 0;
+    } else if (dv > 21) {
+      result = 'win';
+      payout = betAmt * 2;
+    } else if (pv > dv) {
+      result = 'win';
+      payout = betAmt * 2;
+    } else if (pv < dv) {
+      result = 'lose';
+      payout = 0;
+    } else {
+      result = 'push';
+      payout = betAmt;
+    }
+
+    setFlags({ bankBalance: flags.bankBalance + payout });
+    setOutcome(result);
+    setPhase('settled');
+
+    if (result === 'win' || result === 'bj') {
+      setMoneyFx('flash');
+    } else if (result === 'lose') {
+      setMoneyFx('loss');
+      setTableShake(true);
+      window.setTimeout(() => setTableShake(false), 350);
+    }
+    window.setTimeout(() => setMoneyFx(null), 900);
+  };
+
+  const startRound = (betAmount: number): void => {
+    if (betAmount <= 0 || betAmount > bankroll) return;
+
+    let s = shoe;
+    const draw = (): CardModel => {
+      const [c, rest] = drawFrom(s);
+      s = rest;
+      return c;
     };
-  }, []);
+    const p1 = draw();
+    const d1 = draw();
+    const p2 = draw();
+    const d2 = draw();
+    const playerHand = [p1, p2];
+    const dealerHand = [d1, d2];
 
-  const playerScore = useMemo(() => scoreHand(playerHand), [playerHand]);
-  const dealerScore = useMemo(
-    () => scoreHand(hideDealerHole ? dealerHand.slice(0, 1) : dealerHand),
-    [dealerHand, hideDealerHole]
-  );
-
-  const betOptions = useMemo(() => {
-    const base = [5, 10, 25, 50, 100];
-    const filtered = base.filter((b) => b <= table);
-    if (!filtered.includes(handSize) && handSize <= table) filtered.push(handSize);
-    return filtered.sort((a, b) => a - b);
-  }, [handSize, table]);
-
-  const clampAmount = (value: string): number => {
-    const n = Number(value);
-    if (!Number.isFinite(n)) return 0;
-    return Math.max(0, Math.floor(n));
-  };
-
-  const depositAmount = useMemo(() => clampAmount(depositInput), [depositInput]);
-  const withdrawAmount = useMemo(
-    () => clampAmount(withdrawInput),
-    [withdrawInput]
-  );
-  const canDeposit = depositAmount > 0 && depositAmount <= bank;
-  const canWithdraw = withdrawAmount > 0 && withdrawAmount <= table;
-  const canAdjustBet = roundState === 'idle' || roundState === 'done';
-  const canAllIn = canAdjustBet && table > 0;
-
-  const handleDeposit = () => {
-    if (!canDeposit) return;
-    setFlags({
-      bankBalance: bank - depositAmount,
-      blackjackBalance: table + depositAmount,
-    });
-    setMessage(`Deposited $${depositAmount} to table.`);
-  };
-
-  const handleWithdraw = () => {
-    if (!canWithdraw) return;
-    setFlags({
-      bankBalance: bank + withdrawAmount,
-      blackjackBalance: table - withdrawAmount,
-    });
-    setMessage(`Withdrew $${withdrawAmount} back to bank.`);
-  };
-
-  const drawCard = (): Card => {
-    if (deckRef.current.length < 20) {
-      discardRef.current = [];
-      seedRef.current = (seedRef.current + 1) >>> 0;
-      deckRef.current = buildDeck(seedRef.current);
-      setMessage('Shuffling new shoe...');
-    }
-    const card = deckRef.current.pop();
-    if (!card) {
-      seedRef.current = (seedRef.current + 7) >>> 0;
-      deckRef.current = buildDeck(seedRef.current);
-      return deckRef.current.pop() as Card;
-    }
-    return card;
-  };
-
-  const resetRound = () => {
-    discardRef.current.push(...dealerHand, ...playerHand);
-    setDealerHand([]);
-    setPlayerHand([]);
-    setHideDealerHole(true);
+    setShoe(s);
+    setBet(betAmount);
+    setFlags({ bankBalance: bankroll - betAmount });
+    setPlayer(playerHand);
+    setDealer(dealerHand);
     setOutcome(null);
-    setCurrentBet(null);
-    setRoundState('idle');
-    setMessage('Click Deal to start.');
-  };
+    setPhase('playing');
 
-  const endRound = (
-    nextOutcome: Outcome,
-    nextMessage: string,
-    payoutMultiplier: number
-  ) => {
-    setOutcome(nextOutcome);
-    setRoundState('done');
-    setMessage(nextMessage);
-    setHideDealerHole(false);
-
-    if (currentBet !== null) {
-      const payout = Math.round(currentBet * payoutMultiplier);
-      setFlags({ blackjackBalance: tableAfterBetRef.current + payout });
+    // Natural blackjack — auto-settle after a beat.
+    if (isBlackjack(playerHand) || isBlackjack(dealerHand)) {
+      window.setTimeout(() => {
+        // Reveal dealer's hole card by transitioning out of 'playing' first.
+        setPhase('dealer');
+        window.setTimeout(
+          () => settleRound(playerHand, dealerHand, betAmount),
+          250
+        );
+      }, 700);
     }
   };
 
-  const auto21Check = (finalDealer: Card[], finalPlayer: Card[]) => {
-    const p = scoreHand(finalPlayer);
-    const d = scoreHand(finalDealer);
-    if (p === 21 && d === 21) return endRound('push', 'Both hit 21. Push.', 1);
-    if (p === 21) return endRound('win', '21. You win.', 2);
-    if (d === 21) return endRound('lose', 'Dealer hit 21.', 0);
-    return null;
+  const onHit = (): void => {
+    if (phase !== 'playing') return;
+    const [c, nextShoe] = drawFrom(shoeRef.current);
+    const newHand = [...player, c];
+    setShoe(nextShoe);
+    setPlayer(newHand);
+    if (handValue(newHand) >= 21) {
+      // bust or 21 — auto-stand.
+      window.setTimeout(() => stand(newHand), 350);
+    }
   };
 
-  const settle = (finalDealer: Card[], finalPlayer: Card[]) => {
-    const auto = auto21Check(finalDealer, finalPlayer);
-    if (auto) return auto;
+  const stand = (overrideHand?: CardModel[]): void => {
+    if (phase !== 'playing' && !overrideHand) return;
+    const ph = overrideHand || player;
+    setPhase('dealer');
 
-    const p = scoreHand(finalPlayer);
-    const d = scoreHand(finalDealer);
-    if (p > 21) return endRound('lose', 'Bust. Dealer wins.', 0);
-    if (d > 21) return endRound('win', 'Dealer busts. You win.', 2);
-    if (p === d) return endRound('push', 'Push.', 1);
-    if (p > d) return endRound('win', 'You win.', 2);
-    return endRound('lose', 'Dealer wins.', 0);
-  };
+    // Capture the current dealer hand and play it out.
+    const dealerSnapshot = [...dealer];
+    let s = shoeRef.current;
+    let d = dealerSnapshot;
 
-  const dealerPlay = (startingDealer: Card[], startingPlayer: Card[]) => {
-    setRoundState('dealerTurn');
-    setHideDealerHole(false);
-    setMessage('Dealer plays...');
-
-    let currentDealer = [...startingDealer];
-    const step = () => {
-      const auto = auto21Check(currentDealer, startingPlayer);
-      if (auto) return;
-
-      const d = scoreHand(currentDealer);
-      if (d >= 17) {
-        setDealerHand(currentDealer);
-        settle(currentDealer, startingPlayer);
-        return;
+    const playOut = (): void => {
+      // Dealer hits to 17 (stands on all 17, including soft).
+      const v = handValue(d);
+      if (v < 17) {
+        const [c, nextShoe] = drawFrom(s);
+        s = nextShoe;
+        d = [...d, c];
+        setShoe(s);
+        setDealer(d);
+        window.setTimeout(playOut, 600);
+      } else {
+        window.setTimeout(() => settleRound(ph, d, betRef.current), 500);
       }
-      currentDealer = [...currentDealer, drawCard()];
-      setDealerHand(currentDealer);
-      window.setTimeout(step, 350);
     };
-
-    window.setTimeout(step, 350);
+    window.setTimeout(playOut, 500);
   };
 
-  const handleDeal = () => {
-    if (roundState !== 'idle' && roundState !== 'done') return;
-    if (table <= 0) {
-      setMessage('Deposit money to the table to play.');
-      return;
-    }
-    const bet = Math.max(1, Math.min(handSize, table));
-    setCurrentBet(bet);
-    tableAfterBetRef.current = table - bet;
-    setFlags({ blackjackBalance: table - bet });
-
+  const nextRound = (): void => {
+    setPlayer([]);
+    setDealer([]);
     setOutcome(null);
-    setMessage('Dealing...');
-    const p1 = drawCard();
-    const d1 = drawCard();
-    const p2 = drawCard();
-    const d2 = drawCard();
-    const nextPlayer = [p1, p2];
-    const nextDealer = [d1, d2];
-    setPlayerHand(nextPlayer);
-    setDealerHand(nextDealer);
-    setHideDealerHole(true);
-
-    const pScore = scoreHand(nextPlayer);
-    const dScore = scoreHand(nextDealer);
-    if (pScore === 21 && dScore === 21) {
-      endRound('push', 'Both hit 21. Push.', 1);
-      return;
-    }
-    if (pScore === 21) {
-      endRound('blackjack', '21. You win.', 2);
-      return;
-    }
-    if (dScore === 21) {
-      endRound('lose', 'Dealer hit 21.', 0);
-      return;
-    }
-
-    setRoundState('playerTurn');
-    setMessage('Your move.');
+    setBet(0);
+    setPhase('betting');
   };
 
-  const handleHit = () => {
-    if (roundState !== 'playerTurn') return;
-    const next = [...playerHand, drawCard()];
-    setPlayerHand(next);
-    const s = scoreHand(next);
-    if (s === 21) {
-      endRound('win', '21. You win.', 2);
-      return;
+  // ─── Derived UI state ──────────────────────────────────────────
+  const playerScore: number | null = player.length ? handValue(player) : null;
+  const dealerScore: number | null = dealer.length
+    ? phase === 'playing'
+      ? handValue([dealer[0]])
+      : handValue(dealer)
+    : null;
+
+  const playerScoreState: 'bust' | 'bj' | '' =
+    playerScore !== null && playerScore === 21 && player.length === 2
+      ? 'bj'
+      : playerScore !== null && playerScore > 21
+      ? 'bust'
+      : '';
+  const dealerScoreState: 'bust' | 'bj' | '' =
+    phase !== 'playing' &&
+    dealerScore !== null &&
+    dealerScore === 21 &&
+    dealer.length === 2
+      ? 'bj'
+      : dealerScore !== null && dealerScore > 21
+      ? 'bust'
+      : '';
+
+  const broke = bankroll <= 0 && phase === 'betting';
+
+  const status =
+    phase === 'betting'
+      ? broke
+        ? 'Out of money. Hold on, the phone is ringing\u2026'
+        : 'Place your bet.'
+      : phase === 'playing'
+      ? 'Your turn. Hit or stand?'
+      : phase === 'dealer'
+      ? 'Dealer is playing\u2026'
+      : outcome === 'bj'
+      ? 'Blackjack! Pays 3:2.'
+      : outcome === 'win'
+      ? 'You win!'
+      : outcome === 'lose'
+      ? handValue(player) > 21
+        ? 'Bust. House wins.'
+        : 'House wins.'
+      : outcome === 'push'
+      ? 'Push. Bet returned.'
+      : '';
+
+  const bannerText: string | null =
+    outcome === 'bj'
+      ? 'BLACKJACK!'
+      : outcome === 'win'
+      ? 'YOU WIN'
+      : outcome === 'lose'
+      ? handValue(player) > 21
+        ? 'BUST'
+        : 'YOU LOSE'
+      : outcome === 'push'
+      ? 'PUSH'
+      : null;
+
+  const bannerClass: string =
+    outcome === 'bj'
+      ? `${style.banner} ${style.bannerBlackjack}`
+      : outcome === 'win'
+      ? `${style.banner} ${style.bannerWin}`
+      : outcome === 'lose'
+      ? `${style.banner} ${style.bannerLose}`
+      : outcome === 'push'
+      ? `${style.banner} ${style.bannerPush}`
+      : style.banner;
+
+  // Bet sizes recomputed on every render off the live bankroll.
+  const betSizes = useMemo(
+    () => [
+      {
+        key: 'red' as const,
+        amount: niceBet(bankroll * 0.1),
+        imgUrl: chipRedUrl,
+        sub: '10%',
+      },
+      {
+        key: 'blue' as const,
+        amount: niceBet(bankroll * 0.25),
+        imgUrl: chipBlueUrl,
+        sub: '25%',
+      },
+      {
+        key: 'gold' as const,
+        amount: bankroll, // ALL IN — no rounding floor
+        imgUrl: chipGoldUrl,
+        sub: 'ALL IN',
+      },
+    ],
+    [bankroll]
+  );
+  const defaultDealAmount = betSizes[1].amount;
+
+  // ─── Render ────────────────────────────────────────────────────
+  const moneyMeterClass = `${style.moneyMeter}${
+    moneyFx === 'flash'
+      ? ' ' + style.moneyMeterFlash
+      : moneyFx === 'loss'
+      ? ' ' + style.moneyMeterLoss
+      : ''
+  }`;
+
+  const settledFooter = ((): JSX.Element | null => {
+    if (phase !== 'settled') return null;
+    if (outcome === 'bj') {
+      return (
+        <span className={style.actionFooterMoneyWin}>
+          {`+${formatMoney(Math.round(bet * 1.5))} (3:2)`}
+        </span>
+      );
     }
-    if (s > 21) endRound('lose', 'Bust. Dealer wins.', 0);
-    else setMessage('Hit or Stand?');
-  };
-
-  const handleStand = () => {
-    if (roundState !== 'playerTurn') return;
-    dealerPlay(dealerHand, playerHand);
-  };
-
-  const renderCard = (card: Card): JSX.Element => {
-    const red = isRedSuit(card.suit);
-    const scaledCardStyle: JSX.CSSProperties = {
-      width: `${cardWidth}px`,
-      height: `${cardHeight}px`,
-      backgroundColor: '#ffffff',
-      boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between',
-      padding: `${cardPadding}px`,
-      fontFamily: 'monospace',
-      fontSize: `${cardFontSize}px`,
-      userSelect: 'none',
-      boxSizing: 'border-box',
-      flex: '0 0 auto',
-    };
+    if (outcome === 'win') {
+      return (
+        <span className={style.actionFooterMoneyWin}>
+          {`+${formatMoney(bet)}`}
+        </span>
+      );
+    }
+    if (outcome === 'push') {
+      return <span className={style.actionFooterMoney}>±$0</span>;
+    }
     return (
-      <div key={card.id} style={scaledCardStyle}>
-        <div style={{ color: red ? '#a00000' : '#000000' }}>
-          {card.rank}
-          {card.suit}
-        </div>
-        <div style={{ textAlign: 'right', color: red ? '#a00000' : '#000000' }}>
-          {card.suit}
-          {card.rank}
-        </div>
-      </div>
+      <span className={style.actionFooterMoneyLoss}>
+        {`\u2212${formatMoney(bet)}`}
+      </span>
     );
-  };
+  })();
 
   return (
-    <div ref={panelRef} style={panelStyle}>
-      <div style={headerStyle}>
-        <div style={brandStyle}>
-          <div style={{ fontWeight: 800, letterSpacing: '0.2px' }}>
-            Ultimate Casino
-          </div>
-          <div style={{ fontFamily: 'monospace', fontSize: '12px' }}>
-            Blackjack table
-          </div>
-        </div>
-        <div style={{ fontFamily: 'monospace' }}>
-          Bank: ${bank} | Table: ${table}{' '}
-          {currentBet !== null ? `| Hand: $${currentBet}` : ''}
-        </div>
-      </div>
-      <div style={statusStripStyle}>
-        <div style={statusPillStyle}>Table Mood: {currentMood}</div>
-        <div style={statusPillStyle}>Round: {roundState}</div>
-        {outcome && <div style={statusPillStyle}>Last: {outcome.toUpperCase()}</div>}
-      </div>
+    <div className={style.app}>
+      <MenuBar options={['File', 'Game', 'Options', 'Help']} />
 
-      <div style={{ ...tableStyle, padding: `${Math.max(6, Math.round(10 * layoutScale))}px` }}>
-        <div style={rowStyle}>
-          <div style={{ color: '#ffffff', fontWeight: 700 }}>
-            Dealer {hideDealerHole ? `(showing ${dealerScore})` : `(${scoreHand(dealerHand)})`}
-          </div>
-          <div style={{ ...handStyle, gap: `${Math.max(3, Math.round(6 * layoutScale))}px` }}>
-            {dealerHand.map((c, idx) => {
-              if (idx === 1 && hideDealerHole && roundState !== 'done') {
-                return (
-                  <div
-                    key={c.id}
-                    style={{
-                      ...cardBackStyle,
-                      width: `${cardWidth}px`,
-                      height: `${cardHeight}px`,
-                      fontSize: `${cardFontSize}px`,
-                      padding: `${cardPadding}px`,
-                      boxSizing: 'border-box',
-                      flex: '0 0 auto',
-                    }}
-                  >
-                    ##
-                  </div>
-                );
-              }
-              return renderCard(c);
-            })}
-          </div>
+      {/* Bank display strip */}
+      <div className={style.moneyStrip}>
+        <div className={style.moneyGroup}>
+          <span className={style.moneyLabel}>Bankroll:</span>
+          <div className={moneyMeterClass}>{formatMoney(bankroll)}</div>
         </div>
-
-        <div style={rowStyle}>
-          <div style={{ color: '#ffffff', fontWeight: 700 }}>
-            You ({playerScore})
-          </div>
-          <div style={{ ...handStyle, gap: `${Math.max(3, Math.round(6 * layoutScale))}px` }}>
-            {playerHand.map(renderCard)}
+        <div className={style.moneyGroup}>
+          <span className={style.moneyLabel}>Bet:</span>
+          <div className={style.moneyMeterSmall}>
+            {bet > 0 ? formatMoney(bet) : '—'}
           </div>
         </div>
       </div>
 
-      <div
-        style={{
-          textAlign: 'center',
-          minHeight: '18px',
-          background: 'var(--surface)',
-          boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
-          padding: '4px 8px',
-          fontFamily: 'monospace',
-        }}
-      >
-        {message}
-      </div>
-
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: '6px',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-        }}
-      >
-        <div style={{ fontFamily: 'monospace', fontSize: '12px' }}>Dep</div>
-        <input
-          style={inputStyle}
-          value={depositInput}
-          disabled={roundState !== 'idle' && roundState !== 'done'}
-          onInput={(e) =>
-            setDepositInput((e.currentTarget as HTMLInputElement).value ?? '')
-          }
-        />
-        <button
-          type="button"
-          onClick={handleDeposit}
-          style={canDeposit ? smallButtonStyle : disabledSmallButtonStyle}
-          disabled={!canDeposit || (roundState !== 'idle' && roundState !== 'done')}
-        >
-          Deposit
-        </button>
-
-        <div style={{ fontFamily: 'monospace', fontSize: '12px' }}>W/D</div>
-        <input
-          style={inputStyle}
-          value={withdrawInput}
-          disabled={roundState !== 'idle' && roundState !== 'done'}
-          onInput={(e) =>
-            setWithdrawInput((e.currentTarget as HTMLInputElement).value ?? '')
-          }
-        />
-        <button
-          type="button"
-          onClick={handleWithdraw}
-          style={canWithdraw ? smallButtonStyle : disabledSmallButtonStyle}
-          disabled={
-            !canWithdraw || (roundState !== 'idle' && roundState !== 'done')
-          }
-        >
-          Withdraw
-        </button>
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontFamily: 'monospace' }}>Hand size:</span>
-          <div style={{ width: '110px' }}>
-            <Dropdown
-              id="blackjack-hand-size"
-              selected={String(handSize)}
-              disabled={!canAdjustBet}
-              onChange={(value) => setHandSize(Number(value))}
-              options={betOptions.map((b) => ({
-                value: String(b),
-                label: `$${b}`,
-              }))}
-            />
+      {/* Felt table */}
+      <div className={`${style.felt}${tableShake ? ' ' + style.shake : ''}`}>
+        <div className={style.dealerRow}>
+          <Hand
+            cards={dealer}
+            hideHole={phase === 'playing'}
+            score={dealer.length ? dealerScore : null}
+            scoreState={dealerScoreState}
+            label="DEALER"
+          />
+          <div className={style.feltLabel} style={{ marginTop: '6px' }}>
+            BLACKJACK PAYS 3 TO 2 · DEALER STANDS ON ALL 17
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              const next = Math.max(1, Math.floor(table));
-              setHandSize(next);
-              setMessage(`All in. Next bet: $${next}.`);
-            }}
-            style={canAllIn ? dangerSmallButtonStyle : disabledSmallButtonStyle}
-            disabled={!canAllIn}
-            title="Set next bet to your full table balance"
-          >
-            All In
-          </button>
+        </div>
+
+        <div className={style.spacer}>
+          {bet > 0 && phase !== 'betting' && !bannerText && (
+            <div className={style.chipStack}>
+              {[0, 1, 2].map((i) => (
+                <img
+                  // eslint-disable-next-line react/no-array-index-key
+                  key={i}
+                  className={style.chipStackImg}
+                  src={
+                    i === 2 ? chipGoldUrl : i === 1 ? chipBlueUrl : chipRedUrl
+                  }
+                  alt=""
+                  style={{ top: `${18 - i * 4}px` }}
+                />
+              ))}
+            </div>
+          )}
+          {bannerText && <div className={bannerClass}>{bannerText}</div>}
+        </div>
+
+        <div className={style.playerRow}>
+          <Hand
+            cards={player}
+            hideHole={false}
+            score={player.length ? playerScore : null}
+            scoreState={playerScoreState}
+            label="YOU"
+          />
         </div>
       </div>
 
-      <div style={actionsStyle}>
-        <button
-          onClick={handleDeal}
-          style={
-            roundState === 'idle' || roundState === 'done'
-              ? buttonStyle
-              : disabledButtonStyle
-          }
-          disabled={!(roundState === 'idle' || roundState === 'done') || table <= 0}
-          type="button"
-        >
-          Deal
-        </button>
-        <button
-          onClick={handleHit}
-          style={roundState === 'playerTurn' ? buttonStyle : disabledButtonStyle}
-          disabled={roundState !== 'playerTurn'}
-          type="button"
-        >
-          Hit
-        </button>
-        <button
-          onClick={handleStand}
-          style={roundState === 'playerTurn' ? buttonStyle : disabledButtonStyle}
-          disabled={roundState !== 'playerTurn'}
-          type="button"
-        >
-          Stand
-        </button>
-        <button
-          onClick={resetRound}
-          style={
-            roundState !== 'dealerTurn' ? buttonStyle : disabledButtonStyle
-          }
-          disabled={roundState === 'dealerTurn'}
-          type="button"
-        >
-          New Round
-        </button>
+      {/* Action bar */}
+      <div className={style.actionBar}>
+        {phase === 'betting' && !broke && (
+          <Fragment>
+            <span className={style.actionLabel}>Deal amount:</span>
+            <div className={style.chipRow}>
+              {betSizes.map((b) => (
+                <ChipBtn
+                  key={b.key}
+                  imgUrl={b.imgUrl}
+                  label={formatMoney(b.amount)}
+                  title={`${formatMoney(b.amount)} — ${b.sub}`}
+                  onClick={() => startRound(b.amount)}
+                  disabled={b.amount <= 0 || b.amount > bankroll}
+                />
+              ))}
+            </div>
+            <div className={style.actionFiller} />
+            <button
+              type="button"
+              className={`${style.btn} ${style.btnDefault}`}
+              onClick={() => startRound(defaultDealAmount)}
+              disabled={defaultDealAmount <= 0 || defaultDealAmount > bankroll}
+            >
+              <span>
+                <u>D</u>eal
+              </span>
+            </button>
+          </Fragment>
+        )}
+
+        {phase === 'playing' && (
+          <Fragment>
+            <button
+              type="button"
+              className={`${style.btn} ${style.btnDefault}`}
+              onClick={onHit}
+            >
+              <span>
+                <u>H</u>it
+              </span>
+            </button>
+            <button type="button" className={style.btn} onClick={() => stand()}>
+              <span>
+                <u>S</u>tand
+              </span>
+            </button>
+            <div className={style.actionFiller} />
+            <span className={style.actionFooterText}>
+              Press a button to continue.
+            </span>
+          </Fragment>
+        )}
+
+        {phase === 'dealer' && (
+          <Fragment>
+            <button type="button" className={style.btn} disabled>
+              <span>
+                <u>H</u>it
+              </span>
+            </button>
+            <button type="button" className={style.btn} disabled>
+              <span>
+                <u>S</u>tand
+              </span>
+            </button>
+            <div className={style.actionFiller} />
+            <span className={style.actionFooterText}>Dealer playing…</span>
+          </Fragment>
+        )}
+
+        {phase === 'settled' && (
+          <Fragment>
+            <button
+              type="button"
+              className={`${style.btn} ${style.btnDefault}`}
+              onClick={nextRound}
+            >
+              <span>
+                <u>N</u>ext Round
+              </span>
+            </button>
+            <div className={style.actionFiller} />
+            {settledFooter}
+          </Fragment>
+        )}
+
+        {broke && (
+          <Fragment>
+            <div className={style.actionFiller} />
+            <span className={style.actionFooterText}>
+              Out of money. Hold tight…
+            </span>
+          </Fragment>
+        )}
       </div>
 
-      {outcome && (
-        <div style={{ textAlign: 'center', fontFamily: 'monospace' }}>
-          Outcome: {outcome.toUpperCase()}
-        </div>
-      )}
+      <StatusBar textLeft={status} textRight={`Shoe: ${shoe.length} cards`} />
     </div>
   );
 };
 
 export default BlackjackApp;
-

@@ -284,9 +284,9 @@ export const appList: AppList = {
   },
   blackjack: {
     id: 'blackjack',
-    iconId: 'calc',
-    name: 'Ultimate Casino',
-    size: { width: 640, height: 430 },
+    iconId: 'blackjack',
+    name: 'BlackJack 96',
+    size: { width: 720, height: 510 },
   },
   bank: {
     id: 'bank',

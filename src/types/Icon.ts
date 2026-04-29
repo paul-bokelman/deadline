@@ -6,6 +6,7 @@ export const iconIds = [
   'addRemovePrograms',
   'binEmpty',
   'binFull',
+  'blackjack',
   'bmpFile',
   'briefcase',
   'calc',

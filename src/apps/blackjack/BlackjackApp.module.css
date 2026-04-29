@@ -1,0 +1,506 @@
+/* BlackJack 96 — felt + cards + chips + banners.
+ *
+ * The window chrome (titlebar, surface bg, outer borders) is provided by the
+ * shared <Window> component. The content here fills 100% of windowMain.
+ */
+
+.app {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    background: var(--surface);
+    color: #000;
+    font-family: var(--font-family-ui);
+    font-size: 11px;
+    box-sizing: border-box;
+}
+
+/* ─── Money strip (Bankroll on left, Bet on right) ───────────── */
+.moneyStrip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 8px;
+}
+
+.moneyGroup {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.moneyLabel {
+    font-size: 11px;
+}
+
+.moneyMeter {
+    background: #000;
+    color: #00ff66;
+    font-family: var(--font-family-sys);
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    box-shadow:
+        inset 1px 1px 0 0 var(--button-shadow),
+        inset -1px -1px 0 0 var(--button-highlight);
+    min-width: 120px;
+    text-align: right;
+}
+
+.moneyMeterSmall {
+    composes: moneyMeter;
+    min-width: 80px;
+    font-size: 14px;
+}
+
+.moneyMeterFlash {
+    animation: bj-flash 0.4s ease-out 2;
+}
+
+.moneyMeterLoss {
+    animation: bj-flash-loss 0.4s ease-out 2;
+}
+
+@keyframes bj-flash {
+    50% {
+        color: #ffcc00;
+        background: #3a3000;
+    }
+}
+
+@keyframes bj-flash-loss {
+    50% {
+        color: #ff5050;
+        background: #3a0000;
+    }
+}
+
+/* ─── Felt table ─────────────────────────────────────────────── */
+.felt {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 6px 14px;
+    margin: 0 3px;
+    overflow: hidden;
+    background:
+        radial-gradient(ellipse 90% 70% at 50% 50%,
+            #0e8a3a 0%, #0a6b2c 50%, #073d18 100%);
+    box-shadow:
+        inset 1px 1px 0 0 var(--button-shadow),
+        inset -1px -1px 0 0 var(--button-highlight),
+        inset 2px 2px 0 0 var(--window-frame),
+        inset -2px -2px 0 0 var(--button-face);
+}
+
+.felt::before {
+    /* Soft gold dashed arc, table-edge hint */
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 2px dashed rgba(255, 204, 0, 0.18);
+    border-radius: 50% / 30%;
+    pointer-events: none;
+}
+
+.feltLabel {
+    color: rgba(255, 204, 0, 0.7);
+    font-family: 'Times New Roman', Georgia, serif;
+    font-style: italic;
+    font-size: 11px;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
+    letter-spacing: 1px;
+}
+
+.shake {
+    animation: bj-shake 0.3s;
+}
+
+@keyframes bj-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+}
+
+.dealerRow,
+.playerRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
+}
+
+.playerRow {
+    justify-content: flex-start;
+}
+
+.spacer {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    min-height: 0;
+}
+
+/* ─── Hand ───────────────────────────────────────────────────── */
+.handLabelRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.scoreBubble {
+    background: #000;
+    color: #ffcc00;
+    font-family: var(--font-family-sys);
+    font-weight: 700;
+    padding: 2px 8px;
+    font-size: 12px;
+    box-shadow:
+        inset 1px 1px 0 0 var(--button-shadow),
+        inset -1px -1px 0 0 var(--button-highlight);
+    letter-spacing: 1px;
+    min-width: 48px;
+    text-align: center;
+}
+
+.scoreBubbleBust {
+    color: #ff5050;
+}
+
+.scoreBubbleBj {
+    color: #ffcc00;
+    animation: bj-pulse 0.8s ease-in-out infinite;
+}
+
+@keyframes bj-pulse {
+    50% { background: #3a3000; }
+}
+
+.hand {
+    display: flex;
+    min-height: 80px;
+    align-items: center;
+}
+
+.hand > * + * {
+    margin-left: -20px;
+}
+
+/* ─── Card ───────────────────────────────────────────────────── */
+.card {
+    width: 54px;
+    height: 76px;
+    background: #fff;
+    border: 1px solid #000;
+    border-radius: 4px;
+    box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.4);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 3px 4px;
+    box-sizing: border-box;
+    animation: bj-deal 0.25s ease-out;
+    flex: 0 0 auto;
+}
+
+@keyframes bj-deal {
+    from {
+        transform: translateY(-30px) rotate(-8deg);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) rotate(0);
+        opacity: 1;
+    }
+}
+
+.cardRed { color: #aa0000; }
+.cardBlack { color: #000; }
+
+.cardBack {
+    composes: card;
+    background:
+        repeating-linear-gradient(45deg, #000080 0 4px, #1a1a8a 4px 8px),
+        #000080;
+}
+
+.cardBack::before {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 1px solid rgba(255, 204, 0, 0.5);
+    border-radius: 3px;
+    pointer-events: none;
+}
+
+.cardBack::after {
+    content: '★';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 204, 0, 0.8);
+    font-size: 24px;
+    text-shadow: 1px 1px 0 #000;
+    pointer-events: none;
+}
+
+.cardCornerTop {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1;
+}
+
+.cardRank {
+    font-family: 'Times New Roman', Georgia, serif;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.cardSuitCorner {
+    font-size: 10px;
+    line-height: 1;
+    margin-top: 1px;
+}
+
+.cardPipBig {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    line-height: 1;
+}
+
+.cardCornerBottom {
+    align-self: flex-end;
+    transform: rotate(180deg);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1;
+}
+
+.cardCornerBottom .cardSuitCorner {
+    font-size: 10px;
+}
+
+/* ─── Banner (YOU WIN / YOU LOSE / etc) ──────────────────────── */
+.banner {
+    position: absolute;
+    left: 50%;
+    top: 38%;
+    transform: translate(-50%, -50%) rotate(-4deg);
+    background: var(--surface);
+    box-shadow:
+        inset 1px 1px 0 0 var(--button-highlight),
+        inset -1px -1px 0 0 var(--window-frame),
+        inset 2px 2px 0 0 var(--button-face),
+        inset -2px -2px 0 0 var(--button-shadow),
+        4px 6px 0 rgba(0, 0, 0, 0.4);
+    padding: 8px 22px;
+    font-family: 'Times New Roman', Georgia, serif;
+    font-weight: 700;
+    font-size: 26px;
+    letter-spacing: 2px;
+    animation: bj-banner-in 0.35s ease-out;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+@keyframes bj-banner-in {
+    from {
+        transform: translate(-50%, -50%) rotate(-4deg) scale(0.6);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, -50%) rotate(-4deg) scale(1);
+        opacity: 1;
+    }
+}
+
+.bannerWin {
+    color: #ffcc00;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.bannerLose {
+    color: #aa0000;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.bannerPush {
+    color: #000;
+}
+
+.bannerBlackjack {
+    color: #ffcc00;
+    text-shadow: 2px 2px 0 #000;
+    font-size: 32px;
+}
+
+/* ─── Chip stack on the felt during play ─────────────────────── */
+.chipStack {
+    position: relative;
+    width: 48px;
+    height: 56px;
+}
+
+.chipStackImg {
+    position: absolute;
+    left: 8px;
+    width: 32px;
+    height: 32px;
+    image-rendering: pixelated;
+}
+
+/* ─── Action bar ─────────────────────────────────────────────── */
+.actionBar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 6px 10px;
+    border-top: 1px solid var(--button-highlight);
+    margin-top: 3px;
+    min-height: 54px;
+    flex: 0 0 auto;
+}
+
+.actionLabel {
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.actionFiller {
+    flex: 1 1 auto;
+}
+
+.actionFooterText {
+    font-size: 11px;
+    color: #444;
+}
+
+.actionFooterMoney {
+    font-size: 11px;
+    font-family: var(--font-family-sys);
+    font-weight: 700;
+}
+
+.actionFooterMoneyWin {
+    composes: actionFooterMoney;
+    color: #006400;
+}
+
+.actionFooterMoneyLoss {
+    composes: actionFooterMoney;
+    color: #7b0000;
+}
+
+/* ─── Chip buttons (betting) ─────────────────────────────────── */
+.chipRow {
+    display: flex;
+    gap: 18px;
+    padding-bottom: 6px;
+}
+
+.chipBtn {
+    width: 52px;
+    height: 60px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: var(--cursor-hover, default);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.chipBtn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.chipBtnImg {
+    width: 48px;
+    height: 48px;
+    image-rendering: pixelated;
+    transition: transform 0.1s;
+}
+
+.chipBtn:not(:disabled):hover .chipBtnImg {
+    transform: translateY(-2px);
+}
+
+.chipBtn:not(:disabled):active .chipBtnImg {
+    transform: translateY(1px);
+}
+
+.chipLabel {
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #000;
+    color: #ffcc00;
+    padding: 1px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    font-family: var(--font-family-sys);
+    box-shadow:
+        inset 1px 1px 0 var(--button-shadow),
+        inset -1px -1px 0 var(--button-highlight);
+    white-space: nowrap;
+}
+
+/* ─── Win98 button (Hit / Stand / Deal / Next Round) ─────────── */
+.btn {
+    background: var(--surface);
+    box-shadow: var(--border-raised-outer), var(--border-raised-inner);
+    padding: 6px 10px;
+    font-family: inherit;
+    font-size: 11px;
+    color: #000;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: var(--cursor-hover, default);
+    user-select: none;
+    min-width: 80px;
+    border: none;
+}
+
+.btn:not(:disabled):active {
+    box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+    padding: 7px 9px 5px 11px;
+}
+
+.btn:disabled {
+    color: var(--button-shadow);
+    text-shadow: 1px 1px 0 var(--button-highlight);
+    cursor: default;
+}
+
+.btn:disabled u {
+    text-decoration: none;
+}
+
+.btnDefault {
+    outline: 1px dotted #000;
+    outline-offset: -4px;
+}
