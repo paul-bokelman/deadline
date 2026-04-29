@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import Window from '../../components/shared/Window/Window';
 import { createLoadingSfxController } from '../../utils/audio/sfx';
 import { getErraticProgressStep } from '../../utils/loading/erraticProgress';
+import { Z_INDEX_TIERS } from '../../system/zIndex';
 
 interface ProgressBarWindowProps {
   onClose: () => void;
@@ -14,7 +15,7 @@ const containerStyle: JSX.CSSProperties = {
   position: 'absolute',
   inset: 0,
   pointerEvents: 'none',
-  zIndex: 98000,
+  zIndex: Z_INDEX_TIERS.progress,
 };
 
 const panelStyle: JSX.CSSProperties = {
@@ -155,7 +156,7 @@ const ProgressBarWindow: FunctionComponent<ProgressBarWindowProps> = ({
           onResized={(nextSize) => setSize(nextSize)}
           size={size}
           title="Download Progress"
-          zIndex={99997}
+          zIndex={Z_INDEX_TIERS.progress + 97}
         >
           <div style={panelStyle}>
             <div>{status}</div>

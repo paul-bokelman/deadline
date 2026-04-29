@@ -14,6 +14,13 @@ import { gameEventBus } from '../../../game/events';
 import { useGameState } from '../../../game/state';
 import { translateLiteralForLocale } from '../../../system/i18n';
 import { getAppIconId } from '../../../utils/win96/AppIconUtils';
+import {
+  Z_INDEX_TIERS,
+  allocateLeaderboardZIndex,
+  allocateNormalZIndex,
+  allocateVoiceCallZIndex,
+  resetZIndexAllocators,
+} from '../../../system/zIndex';
 
 interface Props {
   children: ComponentChildren;
@@ -70,7 +77,7 @@ const createInitialOpenWindows = (): OpenWindow[] => {
         y: timerApp.size ? timerApp.size.height : 300,
       },
       title: timerApp.name,
-      zIndex: 0,
+      zIndex: Z_INDEX_TIERS.normalBase,
     },
   ];
 };
@@ -81,12 +88,10 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
     createInitialOpenWindows
   );
 
-  const getBiggestZIndex = (windows: OpenWindow[]): number => {
-    if (!windows.length) return -1;
-    return windows.reduce(
-      (acc, window) => (window.zIndex > acc ? window.zIndex : acc),
-      0
-    );
+  const allocateZIndexForAppId = (appId: string): number => {
+    if (appId === 'netVoiceCall') return allocateVoiceCallZIndex();
+    if (appId === 'leaderboard') return allocateLeaderboardZIndex();
+    return allocateNormalZIndex();
   };
 
   const getWindowTitle = (
@@ -137,7 +142,6 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
       const app = appList[appId];
       const iconId = getWindowIconId(app, workingDir);
       const title = getWindowTitle(app, workingDir, workingFile);
-      const zIndex = getBiggestZIndex(windows) + 1;
       const eulaWidth = Math.round(window.innerWidth * 0.8);
       const eulaHeight = Math.round(window.innerHeight * 0.8);
       const eulaCoords = {
@@ -145,6 +149,7 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
         y: Math.max(0, Math.round((window.innerHeight - eulaHeight) / 2)),
       };
       const defaultSize = getDefaultWindowSize(app);
+      const zIndex = allocateZIndexForAppId(appId);
       const existingWindows = windows.map((window) => ({
         ...window,
         hasFocus: false,
@@ -190,7 +195,9 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
 
   const focusOnWindow = (id: string) => {
     setOpenWindows((windows) => {
-      const zIndex = getBiggestZIndex(windows) + 1;
+      const targetWindow = windows.find((window) => window.id === id);
+      if (!targetWindow) return windows;
+      const zIndex = allocateZIndexForAppId(targetWindow.app.id);
       return windows.map((window) =>
         window.id === id
           ? { ...window, hasFocus: true, zIndex }
@@ -276,7 +283,9 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
 
   const unMinimizeWindow = (id: string) => {
     setOpenWindows((windows) => {
-      const zIndex = getBiggestZIndex(windows) + 1;
+      const targetWindow = windows.find((window) => window.id === id);
+      if (!targetWindow) return windows;
+      const zIndex = allocateZIndexForAppId(targetWindow.app.id);
       return windows.map((window) =>
         window.id === id
           ? { ...window, hasFocus: true, isMinimized: false, zIndex }
@@ -300,6 +309,7 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
 
   useEffect(() => {
     return gameEventBus.on('game:rebooted', () => {
+      resetZIndexAllocators();
       setOpenWindows(createInitialOpenWindows());
     });
   }, []);

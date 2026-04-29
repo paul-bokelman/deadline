@@ -11,13 +11,14 @@ import {
   sanitizeLeaderboardName,
   setLeaderboardPlayerEntry,
 } from '../../system/leaderboard/runtime';
+import { Z_INDEX_TIERS } from '../../system/zIndex';
 import { playTadaSfx } from '../../utils/audio/osSfx';
 
 const containerStyle: JSX.CSSProperties = {
   position: 'absolute',
   inset: 0,
   pointerEvents: 'none',
-  zIndex: 99000,
+  zIndex: Z_INDEX_TIERS.leaderboard,
 };
 
 const bodyStyle: JSX.CSSProperties = {
@@ -116,7 +117,7 @@ const WinStageLayer: FunctionComponent = () => {
           onMoved={(nextCoords) => setCoords(nextCoords)}
           size={{ x: 420, y: 248 }}
           title="New High Score!"
-          zIndex={99999}
+          zIndex={Z_INDEX_TIERS.leaderboard + 99}
         >
           <div style={{ padding: '8px' }}>
             <div style={bodyStyle}>

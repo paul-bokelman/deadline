@@ -7,6 +7,7 @@ import { ActiveIntrusivePopup, IntrusivePopupConfig } from './types';
 import { createRandomIntrusivePopupConfig } from '../../data/intrusivePopupConfigs';
 import { gameEventBus } from '../../game/events';
 import { useGameState } from '../../game/state';
+import { allocateNormalZIndex } from '../zIndex';
 import {
   createIntrusivePopupLoopSfx,
   playIntrusivePopupCloseSfx,
@@ -47,7 +48,6 @@ const managerLayerStyle: JSX.CSSProperties = {
   position: 'absolute',
   inset: 0,
   pointerEvents: 'none',
-  zIndex: 9,
 };
 
 const managerBoundsStyle: JSX.CSSProperties = {
@@ -62,7 +62,6 @@ const IntrusivePopupManager: FunctionComponent = () => {
   const hasAntiVirusRef = useRef(hasAntiVirus);
   const [activePopups, setActivePopups] = useState<ActiveIntrusivePopup[]>([]);
   const boundsRef = useRef<HTMLDivElement>(null);
-  const zIndexRef = useRef(1);
   const timeoutIdsRef = useRef<number[]>([]);
   const popupLoopSfxRef = useRef<Map<string, HTMLAudioElement>>(new Map());
 
@@ -135,7 +134,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
         pausedVelocity: null,
         shouldSnapOnNextClick: false,
         velocity,
-        zIndex: zIndexRef.current++,
+        zIndex: allocateNormalZIndex(),
       };
     },
     [getBounds]
@@ -209,7 +208,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
               ...popup,
               pausedVelocity: popup.velocity ?? popup.pausedVelocity,
               velocity: null,
-              zIndex: zIndexRef.current++,
+              zIndex: allocateNormalZIndex(),
             }
           : popup
       )
@@ -261,7 +260,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
           ? {
               ...popup,
               isMaximized: !popup.isMaximized,
-              zIndex: zIndexRef.current++,
+              zIndex: allocateNormalZIndex(),
             }
           : popup
       )

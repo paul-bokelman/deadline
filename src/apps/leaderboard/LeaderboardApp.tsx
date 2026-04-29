@@ -137,7 +137,7 @@ const LeaderboardApp: FunctionComponent<AppProps> = () => {
           onClick={rebootGame}
           type="button"
         >
-          <u>P</u>lay Again
+          <u>R</u>eboot
         </button>
       </div>
 

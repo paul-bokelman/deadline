@@ -3,6 +3,7 @@ import { useState } from 'preact/hooks';
 
 import Button from '../../components/shared/Button/Button';
 import Window from '../../components/shared/Window/Window';
+import { Z_INDEX_TIERS } from '../../system/zIndex';
 
 interface DownloadDialogProps {
   onReboot: () => void;
@@ -36,7 +37,7 @@ const DownloadDialog: FunctionComponent<DownloadDialogProps> = ({
         position: 'absolute',
         inset: 0,
         pointerEvents: 'none',
-        zIndex: 98000,
+        zIndex: Z_INDEX_TIERS.progress,
       }}
     >
       <div style={{ pointerEvents: 'auto' }}>
@@ -50,7 +51,7 @@ const DownloadDialog: FunctionComponent<DownloadDialogProps> = ({
           onMoved={(nextCoords) => setCoords(nextCoords)}
           size={{ x: 360, y: 170 }}
           title="Download File"
-          zIndex={99998}
+          zIndex={Z_INDEX_TIERS.progress + 98}
         >
           <div style={{ padding: '8px' }}>
             <div style={bodyStyle}>

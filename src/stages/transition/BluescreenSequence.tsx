@@ -4,6 +4,7 @@ import { useContext, useEffect, useState } from 'preact/hooks';
 import OpenWindowsContext from '../../context/OpenWindowsContext';
 import { gameEventBus } from '../../game/events';
 import { useGameState } from '../../game/state';
+import { Z_INDEX_TIERS } from '../../system/zIndex';
 
 type TransitionPhase = 'idle' | 'remote' | 'bluescreen' | 'rebooting' | 'done';
 
@@ -20,7 +21,7 @@ const bannerStyle: JSX.CSSProperties = {
   color: '#ffffff',
   backgroundColor: '#7b0000',
   boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
-  zIndex: 99960,
+  zIndex: Z_INDEX_TIERS.plot + 60,
   fontWeight: 'bold',
 };
 
@@ -31,7 +32,7 @@ const fakeCursorStyle: JSX.CSSProperties = {
   backgroundColor: '#ffffff',
   border: '1px solid #000000',
   transform: 'rotate(45deg)',
-  zIndex: 99970,
+  zIndex: Z_INDEX_TIERS.plot + 70,
   pointerEvents: 'none',
 };
 
@@ -41,7 +42,7 @@ const bluescreenStyle: JSX.CSSProperties = {
   backgroundColor: '#001e9f',
   color: '#ffffff',
   padding: '24px',
-  zIndex: 100100,
+  zIndex: Z_INDEX_TIERS.plot + 100,
   fontFamily: 'var(--font-family-sys)',
   fontSize: '18px',
   lineHeight: 1.6,
@@ -52,7 +53,7 @@ const rebootStyle: JSX.CSSProperties = {
   inset: 0,
   backgroundColor: '#000000',
   color: '#6ec4ff',
-  zIndex: 100110,
+  zIndex: Z_INDEX_TIERS.plot + 110,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',

@@ -343,7 +343,8 @@ const containerStyle: JSX.CSSProperties = {
   fontSize: '17px',
   lineHeight: 1.25,
   padding: '14px 18px',
-  zIndex: 200500,
+  // Bootloader must visually sit above *all* windows and overlays.
+  zIndex: 9999999,
   overflow: 'hidden',
   whiteSpace: 'pre',
   letterSpacing: '0.3px',
