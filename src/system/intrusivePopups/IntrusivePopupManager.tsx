@@ -240,6 +240,11 @@ const IntrusivePopupManager: FunctionComponent = () => {
         gameEventBus.emit('desktop:scatter_icons', {});
       }
 
+      // 25% chance: mirror the entire screen.
+      if (Math.random() < 0.25) {
+        gameEventBus.emit('screen:mirror_toggled', {});
+      }
+
       spawnedPopupIds.forEach((spawnedPopupId) => {
         playIntrusivePopupSpawnSfx();
         const loopAudio = createIntrusivePopupLoopSfx();

@@ -1,5 +1,5 @@
 import { h, FunctionComponent } from 'preact';
-import { useContext, useEffect } from 'preact/hooks';
+import { useContext, useEffect, useState } from 'preact/hooks';
 
 import DesktopContainer from '../DesktopContainer/DesktopContainer';
 import TaskbarContainer from '../TaskbarContainer/TaskbarContainer';
@@ -103,6 +103,8 @@ const SaveHotkeyTrap: FunctionComponent = () => {
 };
 
 const Win96Container: FunctionComponent = () => {
+  const [isMirrored, setIsMirrored] = useState(false);
+
   useEffect(() => {
     void triggerBootLoaderScreen();
   }, []);
@@ -119,9 +121,24 @@ const Win96Container: FunctionComponent = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const unsubscribeMirror = gameEventBus.on('screen:mirror_toggled', () => {
+      setIsMirrored((current) => !current);
+    });
+    const unsubscribeRebooted = gameEventBus.on('game:rebooted', () => {
+      setIsMirrored(false);
+    });
+    return () => {
+      unsubscribeMirror();
+      unsubscribeRebooted();
+    };
+  }, []);
+
   return (
     <div className={style.win96}>
-      <div className={style.shell}>
+      <div
+        className={`${style.shell} ${isMirrored ? style.shellMirrored : ''}`}
+      >
         <GameStateProvider>
           <I18nProvider>
             <OpenWindowsProvider>

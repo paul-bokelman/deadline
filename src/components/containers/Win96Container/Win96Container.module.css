@@ -13,6 +13,11 @@
   background-color: #008080;
 }
 
+.shellMirrored {
+  transform: scaleX(-1);
+  transform-origin: center;
+}
+
 .mainView, .taskbarView {
   position: relative;
 }
