@@ -13,6 +13,7 @@ import OpenWindowsContext, {
 import { gameEventBus } from '../../../game/events';
 import { useGameState } from '../../../game/state';
 import { translateLiteralForLocale } from '../../../system/i18n';
+import { getAppIconId } from '../../../utils/win96/AppIconUtils';
 
 interface Props {
   children: ComponentChildren;
@@ -56,7 +57,7 @@ const createInitialOpenWindows = (): OpenWindow[] => {
       canMinimize: true,
       coords: { x: 420, y: 56 },
       hasFocus: true,
-      iconId: timerApp.iconId,
+      iconId: getAppIconId(timerApp.id),
       id: uuid(),
       isDraggable: timerApp.isDraggable ?? true,
       isMaximized: false,
@@ -105,11 +106,14 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
     return translatedAppName;
   };
 
+  // Window + taskbar icons should match the app's desktop icon when one
+  // exists; otherwise fall back to whatever icon the app declares.
   const getWindowIconId = (app: App, workingDir?: FileSystemDir): IconId => {
-    if (app.id !== 'myComputer') return app.iconId;
-    if (workingDir && workingDir.iconId) return workingDir.iconId;
-    if (workingDir) return 'folderOpen';
-    return app.iconId;
+    if (app.id === 'myComputer') {
+      if (workingDir && workingDir.iconId) return workingDir.iconId;
+      if (workingDir) return 'folderOpen';
+    }
+    return getAppIconId(app.id);
   };
 
   const openApp: OpenWindowsContextType['openApp'] = ({

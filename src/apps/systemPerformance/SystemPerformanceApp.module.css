@@ -1,0 +1,162 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  padding: 10px;
+  background: var(--surface);
+  box-sizing: border-box;
+  font-family: var(--font-family-ui);
+  font-size: 11px;
+  color: #000000;
+}
+
+.hero {
+  padding: 10px;
+  color: #ffffff;
+  background: linear-gradient(180deg, #000080 0%, #0b54a6 100%);
+  box-shadow: inset 1px 1px 0 0 #6fb0ff, inset -1px -1px 0 0 #001f52;
+}
+
+.heroTitle {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.heroSubtitle {
+  margin-top: 3px;
+  opacity: 0.9;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.metricCard {
+  background: var(--button-highlight);
+  box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+  padding: 8px;
+}
+
+.metricLabel {
+  color: #000080;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.7px;
+}
+
+.metricValue {
+  margin-top: 4px;
+  font-size: 22px;
+  line-height: 1;
+  font-family: var(--font-family-sys);
+  color: #000000;
+  text-shadow: 1px 1px 0 var(--button-highlight);
+}
+
+.metricNote {
+  margin-top: 6px;
+  color: #2c2c2c;
+}
+
+.panel {
+  background: var(--button-highlight);
+  box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+  padding: 8px;
+}
+
+.panelTitle {
+  font-weight: 700;
+  margin-bottom: 7px;
+}
+
+.memoryBar {
+  display: flex;
+  width: 100%;
+  height: 14px;
+  background: #c0c0c0;
+  box-shadow: var(--border-field);
+  overflow: hidden;
+}
+
+.memoryBase {
+  background: repeating-linear-gradient(
+    90deg,
+    #000080 0 6px,
+    #0e48a6 6px 12px
+  );
+}
+
+.memoryWindowLoad {
+  background: #e8e8e8;
+}
+
+.legend {
+  margin-top: 7px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: #1d1d1d;
+}
+
+.legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.legendBase,
+.legendWindow {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  box-shadow: var(--border-field);
+}
+
+.legendBase {
+  background: #000080;
+}
+
+.legendWindow {
+  background: #e8e8e8;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 6px;
+  background: #ffffff;
+  box-shadow: inset 1px 1px 0 #f4f4f4, inset -1px -1px 0 #b0b0b0;
+}
+
+.row:nth-child(3) {
+  font-weight: 700;
+  background: #dfe8ff;
+}
+
+.actions {
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn {
+  border: none;
+  background: var(--surface);
+  box-shadow: var(--border-raised-outer), var(--border-raised-inner);
+  padding: 4px 10px;
+  font-size: 11px;
+}
+
+.btn:active {
+  box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+}

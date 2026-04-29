@@ -236,6 +236,11 @@ const IntrusivePopupManager: FunctionComponent = () => {
         return [...current, ...spawned];
       });
 
+      // 50% chance: simulate "systems falling over" and scatter desktop icons.
+      if (Math.random() < 0.5) {
+        gameEventBus.emit('desktop:scatter_icons', {});
+      }
+
       spawnedPopupIds.forEach((spawnedPopupId) => {
         playIntrusivePopupSpawnSfx();
         const loopAudio = createIntrusivePopupLoopSfx();
@@ -503,6 +508,10 @@ const IntrusivePopupManager: FunctionComponent = () => {
       popupLoopSfxRef.current.clear();
     };
   }, []);
+
+  useEffect(() => {
+    gameEventBus.emit('popup:count_changed', { count: activePopups.length });
+  }, [activePopups.length]);
 
   return (
     <div style={managerLayerStyle}>

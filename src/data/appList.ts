@@ -27,7 +27,14 @@ export const appList: AppList = {
     iconId: 'quickView',
     isResizeable: false,
     name: 'File Converter',
-    size: { width: 540, height: 340 },
+    size: { width: 620, height: 460 },
+  },
+  systemPerformance: {
+    id: 'systemPerformance',
+    iconId: 'system',
+    isResizeable: false,
+    name: 'System Performance',
+    size: { width: 520, height: 420 },
   },
   tipOfDay: {
     id: 'tipOfDay',

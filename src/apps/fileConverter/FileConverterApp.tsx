@@ -120,6 +120,7 @@ const FileConverterApp: FunctionComponent<AppProps> = ({
         <div style={{ marginBottom: '6px' }}>Choose file:</div>
         <Dropdown
           id="file-converter-file-select"
+          emptyLabel="No files available"
           selected={selectedFileId}
           onChange={(value) => setSelectedFileId(value)}
           options={desktopFiles.map((entry) => ({

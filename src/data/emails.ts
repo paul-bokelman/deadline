@@ -352,25 +352,6 @@ const CORP_INBOX_NOISE: EmailRecord[] = [
     };
   }),
   {
-    id: 'corp-submission-portal-link',
-    accountId: 'corpMail',
-    folder: 'inbox',
-    sender: 'assistant_relay@corp.internal',
-    subject: 'Submission Portal Link',
-    timestamp: '12:08',
-    preview: 'Open this portal to submit the report.',
-    body: 'Submission portal link: https://portal.corp.internal/submit',
-    bodyHtml: richBody(
-      [
-        'Submission portal link for end-of-quarter filing and mild existential dread:',
-        '<a href="https://portal.corp.internal/submit">https://portal.corp.internal/submit</a>',
-      ],
-      ['Use standard corporate credentials.', 'Deadline remains unchanged, cruel, and very real.']
-    ),
-    requiresGameFlag: 'hasReceivedPortalIntroCall',
-    deliveryRule: EMAIL_ACCESS_RULE,
-  },
-  {
     id: 'corp-winrar-download-link',
     accountId: 'corpMail',
     folder: 'inbox',

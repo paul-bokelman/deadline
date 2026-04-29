@@ -11,6 +11,7 @@ interface Option {
 
 interface Props {
   disabled?: boolean;
+  emptyLabel?: string;
   id: string;
   label?: string;
   options: Option[];
@@ -20,6 +21,7 @@ interface Props {
 
 const Dropdown: FunctionComponent<Props> = ({
   disabled = false,
+  emptyLabel = 'No options available',
   id,
   label = '',
   onChange,
@@ -28,6 +30,8 @@ const Dropdown: FunctionComponent<Props> = ({
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const hasOptions = options.length > 0;
+  const isDisabled = disabled || !hasOptions;
 
   const selectedOption = useMemo(
     () => options.find((option) => option.value === selected) ?? null,
@@ -35,7 +39,7 @@ const Dropdown: FunctionComponent<Props> = ({
   );
 
   useEffect(() => {
-    if (!isOpen) return undefined;
+    if (!isOpen || isDisabled) return undefined;
     const onPointerDown = (event: PointerEvent): void => {
       const target = event.target as Node | null;
       if (!target) return;
@@ -51,7 +55,12 @@ const Dropdown: FunctionComponent<Props> = ({
       document.removeEventListener('pointerdown', onPointerDown);
       document.removeEventListener('keydown', onKeyDown);
     };
-  }, [isOpen]);
+  }, [isDisabled, isOpen]);
+
+  useEffect(() => {
+    if (!isDisabled || !isOpen) return;
+    setIsOpen(false);
+  }, [isDisabled, isOpen]);
 
   return (
     <div className={style.root} ref={rootRef}>
@@ -60,17 +69,17 @@ const Dropdown: FunctionComponent<Props> = ({
         aria-controls={`${id}-menu`}
         aria-expanded={isOpen}
         className={style.trigger}
-        disabled={disabled}
+        disabled={isDisabled}
         id={id}
         onClick={() => setIsOpen((current) => !current)}
         type="button"
       >
         <span className={style.triggerLabel}>
-          {selectedOption?.label ?? '(select)'}
+          {selectedOption?.label ?? (hasOptions ? '(select)' : emptyLabel)}
         </span>
         <span className={style.triggerArrow}>▼</span>
       </button>
-      {isOpen && !disabled && (
+      {isOpen && !isDisabled && (
         <div className={style.menu} id={`${id}-menu`} role="listbox">
           {options.map((option) => {
             const isSelected = option.value === selected;

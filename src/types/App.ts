@@ -7,6 +7,7 @@ export const appIds = [
   'draftDocumentLink',
   'eula',
   'fileConverter',
+  'systemPerformance',
   'tipOfDay',
   'calc',
   'cdPlayer',

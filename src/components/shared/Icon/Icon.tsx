@@ -14,7 +14,14 @@ const Icon: FunctionComponent<Props> = ({
   iconId = 'briefcase',
   size = 16,
 }: Props) => {
-  const src = iconList[iconId][size] ?? '';
+  const iconUrls = iconList[iconId];
+  const src =
+    iconUrls[size] ??
+    iconUrls[24] ??
+    iconUrls[32] ??
+    iconUrls[16] ??
+    iconUrls[8] ??
+    '';
   return (
     <img
       className={style.icon}

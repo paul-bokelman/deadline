@@ -1,4 +1,3 @@
-import { appList } from '../../data/appList';
 import fileTypeList from '../../data/fileTypeList';
 import { myComputerFs } from '../../data/fileSystem';
 import { getZipNameForLevel } from '../../game/download/archive';
@@ -7,7 +6,12 @@ import { GameFlags } from '../../game/state';
 import { AppId } from '../../types/App';
 import { FileSystemFile } from '../../types/FileSystem';
 import { FileTypeId } from '../../types/FileType';
+import { IconId } from '../../types/Icon';
 import { ShellItem } from '../../types/Shell';
+import {
+  getAppIconId,
+  registerDynamicDesktopAppIcon,
+} from '../../utils/win96/AppIconUtils';
 import { getFileFromPath } from '../../utils/win96/FileSystemUtils';
 
 const ATTACHMENT_KEY_FILE_PATH =
@@ -58,16 +62,20 @@ export const getAttachmentDecryptionKeyFromDump = (): string => {
 const createAppShellItem = (
   id: string,
   appId: AppId,
-  name: string
-): ShellItem => ({
-  appId,
-  hasFocus: false,
-  hasSoftFocus: false,
-  iconId: appList[appId].iconId,
-  id,
-  name,
-  type: 'app',
-});
+  name: string,
+  iconId?: IconId
+): ShellItem => {
+  if (iconId) registerDynamicDesktopAppIcon(appId, iconId);
+  return {
+    appId,
+    hasFocus: false,
+    hasSoftFocus: false,
+    iconId: iconId ?? getAppIconId(appId),
+    id,
+    name,
+    type: 'app',
+  };
+};
 
 const createFileShellItem = (
   id: string,
@@ -109,6 +117,11 @@ export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
       'Draft.Document.lnk'
     ),
     createAppShellItem('file-converter', 'fileConverter', 'File Converter'),
+    createAppShellItem(
+      'system-performance',
+      'systemPerformance',
+      'System Performance'
+    ),
     createAppShellItem('anti-virus', 'antiVirus', 'Anti-Virus'),
     createAppShellItem('popup-launcher', 'timer', 'Popup'),
     createAppShellItem('submission-portal', 'portal', 'Submission Portal'),

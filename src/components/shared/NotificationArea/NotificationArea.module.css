@@ -30,6 +30,52 @@
   height: 16px;
 }
 
+.ramUsage {
+  margin: 0 6px 0 1px;
+  border: none;
+  background: var(--surface);
+  box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+  height: 18px;
+  padding: 0 6px;
+  font-family: var(--font-family-sys);
+  font-size: 10px;
+  line-height: 1;
+}
+
+.ramUsageWarning {
+  color: #ffffff;
+  background: #b00000;
+  animation: ramFlash 700ms steps(1) infinite;
+}
+
+@keyframes ramFlash {
+  0% {
+    background: #b00000;
+    color: #ffffff;
+  }
+  50% {
+    background: #ff8080;
+    color: #3a0000;
+  }
+  100% {
+    background: #b00000;
+    color: #ffffff;
+  }
+}
+
 .clock {
-  margin: 0 10px;
+  margin: 0 8px;
+}
+
+.ramCrashOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100500;
+  background: #0000aa;
+  color: #ffffff;
+  font-family: var(--font-family-sys);
+  font-size: 18px;
+  line-height: 1.45;
+  padding: 28px;
+  pointer-events: all;
 }

@@ -127,7 +127,9 @@ const addItemToFs = (
         type === 'app' &&
         isContentValid(content, currentPath, ['appId'])
       ) {
-        currentFsNode.dir[currentPath] = getFsApp(content as { appId: string });
+        currentFsNode.dir[currentPath] = getFsApp(
+          content as { appId: string; iconId?: string; name?: string }
+        );
       }
 
       // If Shortcut
@@ -187,12 +189,20 @@ const updateFsDirInfos = (
   fsDir.name = content.name ?? fsDir.name;
 };
 
-const getFsApp = (content: { appId: string, name?: string }): FileSystemApp => {
+const getFsApp = (content: {
+  appId: string;
+  iconId?: string;
+  name?: string;
+}): FileSystemApp => {
   if (!appExists(content.appId)) {
     console.error(`App Id "${content.appId}" doesn't exist in App List`);
   }
+  if (content.iconId && !iconExists(content.iconId)) {
+    console.error(`Icon Id "${content.iconId}" doesn't exist in Icon List`);
+  }
   return {
     appId: content.appId as AppId,
+    iconId: content.iconId as IconId | undefined,
     name: content.name,
     type: 'app',
   };

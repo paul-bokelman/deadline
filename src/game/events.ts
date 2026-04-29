@@ -46,6 +46,8 @@ export type CoreGameEvents = {
   'popup:test_spawn_random': { x: number; y: number };
   'popup:closed': { popupId: string };
   'popup:clear_all': { source: 'antivirus_app' | 'taskbar_button' };
+  'popup:count_changed': { count: number };
+  'desktop:scatter_icons': Record<string, never>;
   'windows_update:tab_state': {
     isActive: boolean;
     isVisible: boolean;

@@ -4,6 +4,7 @@ import AntiVirusApp from './antiVirus/AntiVirusApp';
 import DraftDocumentLinkApp from './draftDocumentLink/DraftDocumentLinkApp';
 import EulaApp from './eula/EulaApp';
 import FileConverterApp from './fileConverter/FileConverterApp';
+import SystemPerformanceApp from './systemPerformance/SystemPerformanceApp';
 import TipOfDayApp from './tipOfDay/TipOfDayApp';
 import EmailClient from './email/EmailClient';
 import BlackjackApp from './blackjack/BlackjackApp';
@@ -44,6 +45,7 @@ export const appComponents: Record<AppId, FunctionComponent<AppProps>> = {
   draftDocumentLink: DraftDocumentLinkApp,
   eula: EulaApp,
   fileConverter: FileConverterApp,
+  systemPerformance: SystemPerformanceApp,
   tipOfDay: TipOfDayApp,
   calc: VoidApp,
   cdPlayer: VoidApp,

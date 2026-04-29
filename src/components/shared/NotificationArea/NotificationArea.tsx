@@ -1,11 +1,14 @@
 import { h, FunctionComponent } from 'preact';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useContext, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
 import Icon from '../Icon/Icon';
 import maximizeIcon from '../../../assets/img/ui/maximize.svg';
 import restoreIcon from '../../../assets/img/ui/restore.svg';
 import { gameEventBus } from '../../../game/events';
 import { useGameState } from '../../../game/state';
+import OpenWindowsContext from '../../../context/OpenWindowsContext';
+import { useIntrusivePopupCount } from '../../../system/intrusivePopups/useIntrusivePopupCount';
+import { calculateUsedRamMb, MAX_RAM_MB } from '../../../system/performance/ramUsage';
 
 import style from './NotificationArea.module.css';
 import { getGameDate } from '../../../system/clock/gameClock';
@@ -24,15 +27,27 @@ const formatTrayTime = (date: Date) =>
 
 const NotificationArea: FunctionComponent = () => {
   const { rebootGame } = useGameState();
+  const { focusOnWindow, openApp, unMinimizeWindow, windows } =
+    useContext(OpenWindowsContext);
+  const popupCount = useIntrusivePopupCount();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const autoplayRetryCountRef = useRef(0);
   const autoplayRetryTimeoutRef = useRef<number | null>(null);
   const shouldAutoPlayGeneralMusicRef = useRef(true);
+  const ramCrashTimeoutRef = useRef<number | null>(null);
   const hasBootloaderEndedRef = useRef(false);
   const hasStartupSfxEndedRef = useRef(false);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isRamCrashActive, setIsRamCrashActive] = useState(false);
   const [clockText, setClockText] = useState(formatTrayTime(getGameDate()));
+  const totalWindowCount = windows.length + popupCount;
+  const usedRamMb = useMemo(
+    () => calculateUsedRamMb(totalWindowCount),
+    [totalWindowCount]
+  );
+  const ramUsagePercent = (usedRamMb / MAX_RAM_MB) * 100;
+  const isRamUsageCritical = ramUsagePercent >= 85;
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -137,8 +152,38 @@ const NotificationArea: FunctionComponent = () => {
       if (autoplayRetryTimeoutRef.current !== null) {
         window.clearTimeout(autoplayRetryTimeoutRef.current);
       }
+      if (ramCrashTimeoutRef.current !== null) {
+        window.clearTimeout(ramCrashTimeoutRef.current);
+      }
     };
   }, []);
+
+  useEffect(() => {
+    const unsubscribeRebooted = gameEventBus.on('game:rebooted', () => {
+      setIsRamCrashActive(false);
+      if (ramCrashTimeoutRef.current !== null) {
+        window.clearTimeout(ramCrashTimeoutRef.current);
+        ramCrashTimeoutRef.current = null;
+      }
+    });
+    return () => unsubscribeRebooted();
+  }, []);
+
+  useEffect(() => {
+    if (isRamCrashActive) return;
+    if (usedRamMb < MAX_RAM_MB) return;
+    setIsRamCrashActive(true);
+    shouldAutoPlayGeneralMusicRef.current = false;
+    audioRef.current?.pause();
+    if (ramCrashTimeoutRef.current !== null) {
+      window.clearTimeout(ramCrashTimeoutRef.current);
+    }
+    ramCrashTimeoutRef.current = window.setTimeout(() => {
+      ramCrashTimeoutRef.current = null;
+      setIsRamCrashActive(false);
+      rebootGame();
+    }, 3000);
+  }, [isRamCrashActive, rebootGame, usedRamMb]);
 
   useEffect(() => {
     const audio = new Audio(AUDIO_SOURCE_WEBM);
@@ -223,8 +268,74 @@ const NotificationArea: FunctionComponent = () => {
     }
   };
 
+  const handleOpenSystemPerformance = () => {
+    const existingWindow = windows.find(
+      (window) => window.app.id === 'systemPerformance'
+    );
+    if (!existingWindow) {
+      openApp({ appId: 'systemPerformance' });
+      return;
+    }
+    if (existingWindow.isMinimized) {
+      unMinimizeWindow(existingWindow.id);
+      return;
+    }
+    focusOnWindow(existingWindow.id);
+  };
+
   return (
     <div className={style.notificationArea}>
+      {isRamCrashActive && (
+        <div className={style.ramCrashOverlay}>
+          <div>
+            A fatal exception 0E has occurred at 0028:C0011E36 in VXD
+            VMM(01) + 00010E36.
+          </div>
+          <div style={{ marginTop: '14px' }}>
+            The current application will be terminated.
+          </div>
+          <div style={{ marginTop: '14px' }}>
+            Memory manager detected an unrecoverable allocation fault.
+          </div>
+          <div>Available memory pool exceeded safe limits.</div>
+          <div style={{ marginTop: '14px' }}>
+            If this is the first time you've seen this Stop error screen,
+            restart your computer.
+          </div>
+          <div>
+            If this screen appears again, follow these steps:
+          </div>
+          <div>
+            Check to make sure any new hardware or software is properly installed.
+          </div>
+          <div>
+            Disable or remove newly installed components if this is a new install.
+          </div>
+          <div>
+            Press F8 to select Advanced Startup Options and choose Safe Mode.
+          </div>
+          <div style={{ marginTop: '14px' }}>
+            * Press any key to terminate the current application.
+          </div>
+          <div>* Press CTRL+ALT+DEL again to restart your computer.</div>
+          <div style={{ marginTop: '14px' }}>Technical information:</div>
+          <div>*** STOP: 0x0000008E (0xC0000005, 0x804E37B4, 0xF2B9F7A8, 0x00000000)</div>
+          <div>*** RAM_LIMIT_OVERFLOW - Address F2B9F7A8 base at F2A00000, DateStamp 3d6dd67c</div>
+          <div style={{ marginTop: '14px' }}>
+            System is rebooting due to memory exhaustion...
+          </div>
+        </div>
+      )}
+      <button
+        className={`${style.ramUsage} ${
+          isRamUsageCritical ? style.ramUsageWarning : ''
+        }`}
+        onClick={handleOpenSystemPerformance}
+        title="Open System Performance"
+        type="button"
+      >
+        RAM {usedRamMb.toFixed(1)}/{MAX_RAM_MB.toFixed(1)} MB
+      </button>
       <button
         className={style.statusIcon}
         onClick={handleSoundToggle}

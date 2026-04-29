@@ -66,9 +66,9 @@ const MICRO_GRID_OUTER_SIZE =
   MICRO_GRID_PADDING * 2;
 const FLEE_BOX_WIDTH = 138;
 const FLEE_BOX_HEIGHT = 28;
-const FLEE_TRIGGER_RADIUS = 185;
+const FLEE_TRIGGER_RADIUS = 9999;
 const FLEE_MIN_RADIUS = 0.001;
-const FLEE_MAX_PUSH = 26;
+const FLEE_MAX_PUSH = 72;
 
 const tinyGridStyle: JSX.CSSProperties = {
   marginTop: '8px',
@@ -480,12 +480,14 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
 
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = '#c0c0c0';
-    ctx.setLineDash([4, 4]);
-    ctx.beginPath();
-    ctx.arc(canvas.width / 2, canvas.height / 2, 56, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.setLineDash([]);
+    if (circlePoints.length === 0) {
+      ctx.strokeStyle = '#c0c0c0';
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.arc(canvas.width / 2, canvas.height / 2, 56, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
 
     if (circlePoints.length > 1) {
       ctx.strokeStyle = '#000000';
@@ -873,8 +875,9 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
               <div
                 style={{
                   marginTop: '8px',
-                  width: '320px',
-                  height: '150px',
+                  width: '100%',
+                  maxWidth: '520px',
+                  height: '240px',
                   position: 'relative',
                   backgroundColor: '#ffffff',
                   boxShadow: 'var(--border-field)',
@@ -886,6 +889,8 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
                   const mx = event.clientX - bounds.left;
                   const my = event.clientY - bounds.top;
                   setFleeCheckboxPos((prev) => {
+                    const areaWidth = Math.max(bounds.width, FLEE_BOX_WIDTH + 1);
+                    const areaHeight = Math.max(bounds.height, FLEE_BOX_HEIGHT + 1);
                     const centerX = prev.x + FLEE_BOX_WIDTH / 2;
                     const centerY = prev.y + FLEE_BOX_HEIGHT / 2;
                     const dx = centerX - mx;
@@ -897,12 +902,12 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
                     const push =
                       ((FLEE_TRIGGER_RADIUS - distance) / FLEE_TRIGGER_RADIUS) *
                       FLEE_MAX_PUSH;
-                    const jitter = ((mx + my + distance) % 2) * 6 - 3;
+                    const jitter = ((mx + my + distance) % 2) * 18 - 9;
                     const nx = prev.x + (dx / distance) * push;
                     const ny = prev.y + (dy / distance) * push + jitter;
                     return {
-                      x: clamp(nx, 0, 320 - FLEE_BOX_WIDTH),
-                      y: clamp(ny, 0, 150 - FLEE_BOX_HEIGHT),
+                      x: clamp(nx, 0, areaWidth - FLEE_BOX_WIDTH),
+                      y: clamp(ny, 0, areaHeight - FLEE_BOX_HEIGHT),
                     };
                   });
                 }}
@@ -983,16 +988,6 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
                   flexWrap: 'wrap',
                 }}
               >
-                <button
-                  style={buttonStyle}
-                  type="button"
-                  onClick={() => {
-                    setCirclePoints([]);
-                    setCircleAccuracy(null);
-                  }}
-                >
-                  Clear
-                </button>
                 <button
                   style={buttonStyle}
                   type="button"

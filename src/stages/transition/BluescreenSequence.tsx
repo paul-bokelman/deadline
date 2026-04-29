@@ -93,9 +93,6 @@ const BluescreenSequence: FunctionComponent = () => {
           if (hasEventFired(ASSISTANT_CALL_COMPLETED_EVENT_ID)) return;
           markEventFired(ASSISTANT_CALL_COMPLETED_EVENT_ID);
           setFlag('hasReceivedPortalIntroCall', true);
-          gameEventBus.emit('email:delivered', {
-            emailId: 'corp-submission-portal-link',
-          });
 
           if (cleanupTimerId !== null) window.clearTimeout(cleanupTimerId);
           cleanupTimerId = window.setTimeout(() => {

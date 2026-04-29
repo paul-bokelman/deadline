@@ -8,6 +8,7 @@ import {
 import { ShellItem } from '../../types/Shell';
 import { appList } from '../../data/appList';
 import fileTypeList from '../../data/fileTypeList';
+import { getAppIconId } from './AppIconUtils';
 
 export const getShellItems = (
   fileSystemDir: FileSystemDir,
@@ -45,7 +46,7 @@ const getShellApp = (
   return {
     appId: fileSystemApp.appId,
     id: uuid(),
-    iconId: appList[fileSystemApp.appId].iconId,
+    iconId: fileSystemApp.iconId ?? getAppIconId(fileSystemApp.appId),
     hasFocus: false,
     hasSoftFocus,
     name: fileSystemApp.name
