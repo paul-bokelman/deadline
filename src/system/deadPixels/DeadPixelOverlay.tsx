@@ -7,7 +7,7 @@ import { gameEventBus } from '../../game/events';
 const DEAD_PIXEL_SIZE_PX = 2;
 const DEAD_PIXEL_START_DELAY_MS = 60_000;
 const DEAD_PIXEL_TARGET_COUNT = 3200;
-const DEAD_PIXEL_SPAWN_INTERVAL_MS = 1200;
+const DEAD_PIXEL_SPAWN_INTERVAL_MS = 3000;
 
 const generateRandomRgbCss = (): string => {
   const r = Math.floor(Math.random() * 256);

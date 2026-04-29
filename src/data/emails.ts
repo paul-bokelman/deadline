@@ -479,15 +479,17 @@ const CORP_PROMOTIONS: EmailRecord[] = [
     id: 'corp-promotions-012-real',
     accountId: 'corpMail',
     folder: 'promotions',
-    sender: 'user_4471092@corp.internal',
-    subject: 'Q3 Report - encrypted attachment',
+    sender: 'guantummy1_11@corp.internal',
+    subject: 'Q3 REPORT !IMPORTANT!',
     timestamp: '11:22',
-    preview: 'Per your request, attached is the Q3 report.',
-    body: 'Per your request, attached is the Q3 report. File is encrypted.',
+    preview: "Here's the Q3 report. PLEASEEEE get it to Harold before 5pm!!",
+    body:
+      "Here's the Q3 report. PLEASEEEE get it to Harold before 5pm!! If you don't we're seriously gonna be in some deep troubles.. OH, also, I encrypted the file with your favorite encryption key because I don't trust the intranet... PLEASE GET MOVING !!!!!",
     bodyHtml: richBody(
       [
-        'Per your request, attached is the Q3 report package.',
-        'File is encrypted. Password is sent separately in a dedicated message.',
+        "Here's the Q3 report. PLEASEEEE get it to Harold before 5pm!! If you don't we're seriously gonna be in some deep troubles..",
+        "OH, also, I encrypted the file with your favorite encryption key because I don't trust the intranet...",
+        'PLEASE GET MOVING !!!!!',
       ],
       ['Attachment source: approved reporting relay', 'Message signature: auto-generated']
     ),

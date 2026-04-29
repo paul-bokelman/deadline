@@ -34,13 +34,13 @@ const trackStyle: JSX.CSSProperties = {
 };
 
 const PROGRESS_BEHAVIOR = {
-  // Tuned to finish ~3x faster than before while preserving some "noisy" feel.
-  maxDelayMs: 85,
-  maxIncrement: 11.2,
-  maxPauseMs: 1200,
-  minDelayMs: 28,
-  minIncrement: 1.2,
-  minPauseMs: 350,
+  // Tuned to land around ~12s total across all three cycles.
+  maxDelayMs: 128,
+  maxIncrement: 7.5,
+  maxPauseMs: 1800,
+  minDelayMs: 42,
+  minIncrement: 0.8,
+  minPauseMs: 525,
   pauseChance: 0.08,
   stepSize: 2,
 };
