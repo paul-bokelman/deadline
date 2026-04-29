@@ -2,16 +2,12 @@ import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 
 import { gameEventBus } from '../../game/events';
-import { systemConfig } from '../../data/systemConfig';
-import { Z_INDEX_TIERS } from '../zIndex';
 
 // Editable tuning values.
 const DEAD_PIXEL_SIZE_PX = 2;
 const DEAD_PIXEL_START_DELAY_MS = 60_000;
-const DEAD_PIXEL_SCREEN_COVERAGE_RATIO = 0.2;
-// Exponential ramp constant used to map the [0..1] time ratio into a
-// non-linear "fill more later" curve, normalized so it hits exactly 1 at t=1.
-const DEAD_PIXEL_EXPONENTIAL_RAMP_K = 6;
+const DEAD_PIXEL_TARGET_COUNT = 3200;
+const DEAD_PIXEL_SPAWN_INTERVAL_MS = 1200;
 
 const generateRandomRgbCss = (): string => {
   const r = Math.floor(Math.random() * 256);
@@ -23,9 +19,8 @@ const generateRandomRgbCss = (): string => {
 const overlayStyle: JSX.CSSProperties = {
   position: 'absolute',
   inset: 0,
-  // Cover everything except system overlays (bootloader + bluescreen/reboot).
-  // Those use `Z_INDEX_TIERS.systemOverlay` and higher.
-  zIndex: Z_INDEX_TIERS.systemOverlay - 1,
+  // Above all windows/popups, below top-priority system overlays.
+  zIndex: 9_999_998,
   pointerEvents: 'none',
 };
 
@@ -33,17 +28,10 @@ const DeadPixelOverlay: FunctionComponent = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const rafIdRef = useRef<number | null>(null);
+  const startTimeoutIdRef = useRef<number | null>(null);
+  const spawnIntervalIdRef = useRef<number | null>(null);
 
-  const gameStartedAtMsRef = useRef<number>(Date.now());
-
-  // Spawning state (kept in refs to avoid React re-renders per pixel).
-  const isInitializedRef = useRef(false);
-  const spawnStartAtMsRef = useRef<number>(0);
-  const spawnEndAtMsRef = useRef<number>(0);
-  const targetCellCountRef = useRef<number>(0);
-  const selectedCellIndicesRef = useRef<Uint32Array | null>(null);
-  const currentSpawnIndexRef = useRef<number>(0);
-  const gridColsRef = useRef<number>(1);
+  const spawnedCountRef = useRef<number>(0);
 
   const setupCanvas = () => {
     const canvas = canvasRef.current;
@@ -73,157 +61,69 @@ const DeadPixelOverlay: FunctionComponent = () => {
     ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
   };
 
-  const resetSpawningSchedule = () => {
-    gameStartedAtMsRef.current = Date.now();
-    spawnStartAtMsRef.current =
-      gameStartedAtMsRef.current + DEAD_PIXEL_START_DELAY_MS;
-    spawnEndAtMsRef.current =
-      gameStartedAtMsRef.current + systemConfig.windowsUpdate.countdownMs;
-
-    isInitializedRef.current = false;
-    targetCellCountRef.current = 0;
-    selectedCellIndicesRef.current = null;
-    currentSpawnIndexRef.current = 0;
-    gridColsRef.current = 1;
-
+  const resetSpawningState = () => {
+    spawnedCountRef.current = 0;
     clearCanvas();
   };
 
-  const initializeSpawnTargets = () => {
-    if (isInitializedRef.current) return;
-
-    setupCanvas();
-    clearCanvas();
-
-    const cssWidth = Math.max(1, window.innerWidth);
-    const cssHeight = Math.max(1, window.innerHeight);
-
-    const gridCols = Math.max(1, Math.floor(cssWidth / DEAD_PIXEL_SIZE_PX));
-    const gridRows = Math.max(1, Math.floor(cssHeight / DEAD_PIXEL_SIZE_PX));
-    const cellCount = gridCols * gridRows;
-    const targetCells = Math.max(
-      0,
-      Math.min(
-        cellCount,
-        Math.floor(cellCount * DEAD_PIXEL_SCREEN_COVERAGE_RATIO)
-      )
-    );
-
-    gridColsRef.current = gridCols;
-    targetCellCountRef.current = targetCells;
-
-    // Pick unique cells so our "20%" target is closer to reality.
-    const selected = new Set<number>();
-    while (selected.size < targetCells) {
-      selected.add(Math.floor(Math.random() * cellCount));
-    }
-
-    const indices = new Uint32Array(targetCells);
-    let i = 0;
-    for (const v of selected) {
-      indices[i] = v;
-      i += 1;
-      if (i >= targetCells) break;
-    }
-    selectedCellIndicesRef.current = indices;
-
-    currentSpawnIndexRef.current = 0;
-    isInitializedRef.current = true;
-  };
-
-  const drawDeadPixelCell = (cellIndex: number) => {
+  const drawRandomDeadPixel = () => {
     const ctx = ctxRef.current;
     if (!ctx) return;
-
-    const gridCols = gridColsRef.current;
-    const col = cellIndex % gridCols;
-    const row = Math.floor(cellIndex / gridCols);
-
-    const x = col * DEAD_PIXEL_SIZE_PX;
-    const y = row * DEAD_PIXEL_SIZE_PX;
+    const maxX = Math.max(0, window.innerWidth - DEAD_PIXEL_SIZE_PX);
+    const maxY = Math.max(0, window.innerHeight - DEAD_PIXEL_SIZE_PX);
+    const x = Math.floor(Math.random() * (maxX + 1));
+    const y = Math.floor(Math.random() * (maxY + 1));
 
     ctx.fillStyle = generateRandomRgbCss();
     ctx.fillRect(x, y, DEAD_PIXEL_SIZE_PX, DEAD_PIXEL_SIZE_PX);
   };
 
+  const stopSpawning = () => {
+    if (startTimeoutIdRef.current !== null) {
+      window.clearTimeout(startTimeoutIdRef.current);
+      startTimeoutIdRef.current = null;
+    }
+    if (spawnIntervalIdRef.current !== null) {
+      window.clearInterval(spawnIntervalIdRef.current);
+      spawnIntervalIdRef.current = null;
+    }
+    if (rafIdRef.current !== null) {
+      window.cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
+  };
+
+  const startSpawning = () => {
+    stopSpawning();
+    resetSpawningState();
+
+    startTimeoutIdRef.current = window.setTimeout(() => {
+      spawnIntervalIdRef.current = window.setInterval(() => {
+        if (spawnedCountRef.current >= DEAD_PIXEL_TARGET_COUNT) {
+          if (spawnIntervalIdRef.current !== null) {
+            window.clearInterval(spawnIntervalIdRef.current);
+            spawnIntervalIdRef.current = null;
+          }
+          return;
+        }
+
+        drawRandomDeadPixel();
+        spawnedCountRef.current += 1;
+      }, DEAD_PIXEL_SPAWN_INTERVAL_MS);
+    }, DEAD_PIXEL_START_DELAY_MS);
+  };
+
   useEffect(() => {
     setupCanvas();
-    resetSpawningSchedule();
-
-    const tick = () => {
-      const rafNow = Date.now();
-
-      if (rafNow < spawnStartAtMsRef.current) {
-        rafIdRef.current = window.requestAnimationFrame(tick);
-        return;
-      }
-
-      initializeSpawnTargets();
-
-      const targetCellCount = targetCellCountRef.current;
-      if (targetCellCount <= 0) return;
-
-      const spawnDurationMs = Math.max(
-        1,
-        spawnEndAtMsRef.current - spawnStartAtMsRef.current
-      );
-
-      const elapsedMs = Math.min(
-        spawnDurationMs,
-        Math.max(0, rafNow - spawnStartAtMsRef.current)
-      );
-      const ratio = elapsedMs / spawnDurationMs;
-
-      // Exponential ramp: reach the target by the end of the game,
-      // but fill earlier more slowly than a linear ramp.
-      const normalizedExponentialRamp =
-        ratio <= 0
-          ? 0
-          : (1 - Math.exp(-DEAD_PIXEL_EXPONENTIAL_RAMP_K * ratio)) /
-            (1 - Math.exp(-DEAD_PIXEL_EXPONENTIAL_RAMP_K));
-
-      const desiredCount =
-        rafNow >= spawnEndAtMsRef.current
-          ? targetCellCount
-          : Math.floor(targetCellCount * normalizedExponentialRamp);
-
-      const currentCount = currentSpawnIndexRef.current;
-      const toAdd = desiredCount - currentCount;
-      if (toAdd > 0) {
-        const indices = selectedCellIndicesRef.current;
-        if (indices) {
-          for (let i = 0; i < toAdd; i += 1) {
-            const nextIndex = currentSpawnIndexRef.current;
-            const cellIndex = indices[nextIndex];
-            drawDeadPixelCell(cellIndex);
-            currentSpawnIndexRef.current = nextIndex + 1;
-          }
-        }
-      }
-
-      const done =
-        rafNow >= spawnEndAtMsRef.current &&
-        currentSpawnIndexRef.current >= targetCellCount;
-      if (!done) {
-        rafIdRef.current = window.requestAnimationFrame(tick);
-      } else {
-        rafIdRef.current = null;
-      }
-    };
+    startSpawning();
 
     const unsubscribeRebooted = gameEventBus.on('game:rebooted', () => {
-      if (rafIdRef.current !== null) {
-        window.cancelAnimationFrame(rafIdRef.current);
-      }
-      rafIdRef.current = null;
-      resetSpawningSchedule();
-      rafIdRef.current = window.requestAnimationFrame(tick);
+      setupCanvas();
+      startSpawning();
     });
 
     return () => {
-      if (rafIdRef.current !== null) {
-        window.cancelAnimationFrame(rafIdRef.current);
-      }
+      stopSpawning();
       unsubscribeRebooted();
     };
   }, []);
