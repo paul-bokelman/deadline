@@ -3,17 +3,20 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 
 import Window from '../../components/shared/Window/Window';
 import Button from '../../components/shared/Button/Button';
+import Icon from '../../components/shared/Icon/Icon';
 import { gameEventBus } from '../../game/events';
 
 const WIDTH = 340;
-const HEIGHT = 140;
+const HEIGHT = 172;
 
 const FullscreenRecommendation: FunctionComponent = () => {
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(
+    document.fullscreenElement === null
+  );
 
   useEffect(() => {
     return gameEventBus.on('game:rebooted', () => {
-      setIsVisible(true);
+      setIsVisible(document.fullscreenElement === null);
     });
   }, []);
 
@@ -24,6 +27,15 @@ const FullscreenRecommendation: FunctionComponent = () => {
     }),
     []
   );
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      if (document.fullscreenElement) setIsVisible(false);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () =>
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
 
   if (!isVisible) return null;
 
@@ -40,8 +52,8 @@ const FullscreenRecommendation: FunctionComponent = () => {
         coords={coords}
         getBoundingElement={() => document.body}
         iconId="warning"
-        isDraggable={false}
-        isResizeable={false}
+        isDraggable
+        isResizeable
         onClickClose={() => setIsVisible(false)}
         showMaximizeButton={false}
         size={{ x: WIDTH, y: HEIGHT }}
@@ -49,19 +61,54 @@ const FullscreenRecommendation: FunctionComponent = () => {
         title="Fullscreen recommended"
         zIndex={99001}
       >
-        <div style={{ padding: '10px' }}>
+        <div
+          style={{
+            padding: '10px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+          }}
+        >
           <div
             style={{
               padding: '10px',
-              backgroundColor: 'var(--button-highlight)',
+              background:
+                'linear-gradient(180deg, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0.25) 100%)',
               boxShadow:
-                'var(--border-sunken-outer), var(--border-sunken-inner)',
+                'var(--border-window-outer), var(--border-window-inner)',
             }}
           >
-            Game is best experienced in full screen.
+            <div style={{ fontWeight: 700 }}>Heads up</div>
+            <div style={{ marginTop: '6px' }}>
+              Game is best experienced in full screen.
+            </div>
+            <div style={{ marginTop: '8px', fontSize: '12px' }}>
+              Use the fullscreen button in the bottom-right tray.
+            </div>
           </div>
-          <div style={{ marginTop: '10px', display: 'flex', gap: '8px' }}>
-            <Button label="OK" onClick={() => setIsVisible(false)} />
+          <div
+            style={{
+              marginTop: '10px',
+              display: 'flex',
+              gap: '8px',
+              justifyContent: 'flex-end',
+            }}
+          >
+            <Button
+              label={
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                  }}
+                >
+                  <Icon iconId="windowsLogo" size={16} />
+                  <span>OK</span>
+                </span>
+              }
+              onClick={() => setIsVisible(false)}
+            />
           </div>
         </div>
       </Window>
