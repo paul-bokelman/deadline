@@ -83,10 +83,9 @@ const FullscreenRecommendation: FunctionComponent = () => {
           <div
             style={{
               padding: '10px',
-              background:
-                'linear-gradient(180deg, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0.25) 100%)',
+              backgroundColor: 'var(--button-highlight)',
               boxShadow:
-                'var(--border-window-outer), var(--border-window-inner)',
+                'var(--border-sunken-outer), var(--border-sunken-inner)',
             }}
           >
             <div style={{ fontWeight: 700 }}>Heads up</div>

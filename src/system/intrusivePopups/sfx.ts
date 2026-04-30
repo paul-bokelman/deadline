@@ -1,4 +1,5 @@
 import { pickRandom } from '../../utils/random';
+import { registerManagedAudio } from '../../utils/audio/masterVolume';
 
 const SPAWN_SOURCES = ['/audio/popups/popup1.mp3', '/audio/popups/popup2.mp3'];
 const LOOP_SOURCES = [
@@ -27,7 +28,7 @@ const clipStopTimers = new WeakMap<HTMLAudioElement, number>();
 const createAudio = (source: string, volume: number): HTMLAudioElement => {
   const audio = new Audio(source);
   audio.preload = 'auto';
-  audio.volume = volume;
+  registerManagedAudio(audio, volume);
   return audio;
 };
 
@@ -45,7 +46,7 @@ const buildPool = (
 
 const getClosePool = (): HTMLAudioElement[] => {
   if (!closePool) {
-    closePool = buildPool(CLICK_SOURCE, 0.45, CLOSE_POOL_SIZE);
+    closePool = buildPool(CLICK_SOURCE, 0.338, CLOSE_POOL_SIZE);
   }
   return closePool;
 };
@@ -83,7 +84,7 @@ const playClippedClick = (pool: HTMLAudioElement[], index: number): number => {
 export const playIntrusivePopupSpawnSfx = (): void => {
   const source = pickRandom(SPAWN_SOURCES);
   if (!source) return;
-  const audio = createAudio(source, 0.42);
+  const audio = createAudio(source, 0.315);
   audio.play().catch(() => undefined);
 };
 
@@ -91,7 +92,7 @@ export const createIntrusivePopupLoopSfx = (): HTMLAudioElement | null => {
   if (Math.random() >= 0.5) return null;
   const source = pickRandom(LOOP_SOURCES);
   if (!source) return null;
-  const audio = createAudio(source, 0.36);
+  const audio = createAudio(source, 0.27);
   audio.loop = true;
   return audio;
 };

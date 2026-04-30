@@ -21,6 +21,7 @@ import {
   playIncomingCallSfxLoop,
   stopCallOverSfx,
 } from '../../../utils/audio/osSfx';
+import { registerManagedAudio } from '../../../utils/audio/masterVolume';
 
 import style from './NetVoiceCallApp.module.css';
 
@@ -121,7 +122,7 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
     if (ringAudioRef.current) ringAudioRef.current.currentTime = 0;
 
     const callAudio = new Audio(call.audioPath);
-    callAudio.volume = CALL_AUDIO_VOLUME;
+    registerManagedAudio(callAudio, CALL_AUDIO_VOLUME);
     callAudioRef.current = callAudio;
     callAudio.addEventListener(
       'ended',

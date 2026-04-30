@@ -146,6 +146,7 @@
 .actions {
   margin-top: auto;
   display: flex;
+  gap: 6px;
   justify-content: flex-end;
 }
 

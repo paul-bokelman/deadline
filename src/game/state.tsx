@@ -1,5 +1,5 @@
 import { h, FunctionComponent, ComponentChildren, createContext } from 'preact';
-import { useContext, useEffect, useState } from 'preact/hooks';
+import { useContext, useEffect, useRef, useState } from 'preact/hooks';
 
 import { triggerBootLoaderScreen } from '../components/shared/BootLoaderScreen/BootLoaderScreen';
 import { gameEventBus } from './events';
@@ -143,6 +143,7 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
   const [isNetVoiceCallAccepted, setIsNetVoiceCallAcceptedState] = useState(
     false
   );
+  const queuedNetVoiceCallIdsRef = useRef<NetVoiceCallId[]>([]);
 
   const emitGameRebooted = () => {
     gameEventBus.emit('game:rebooted', { at: Date.now() });
@@ -155,6 +156,7 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
     setFiredEvents({});
     setActiveNetVoiceCallIdState(null);
     setIsNetVoiceCallAcceptedState(false);
+    queuedNetVoiceCallIdsRef.current = [];
     resetRunTimer();
   };
 
@@ -172,7 +174,8 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
       }
     );
     const unsubscribeEnded = gameEventBus.on('netvoice:call_ended', () => {
-      setActiveNetVoiceCallIdState(null);
+      const nextQueuedCallId = queuedNetVoiceCallIdsRef.current.shift() ?? null;
+      setActiveNetVoiceCallIdState(nextQueuedCallId);
       setIsNetVoiceCallAcceptedState(false);
     });
 
@@ -274,6 +277,7 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
   }, []);
 
   const rebootGame: GameStateContextValue['rebootGame'] = () => {
+    queuedNetVoiceCallIdsRef.current = [];
     setActiveNetVoiceCallIdState(null);
     setIsNetVoiceCallAcceptedState(false);
     emitGameRebooted();
@@ -324,8 +328,14 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
   const triggerNetVoiceCall: GameStateContextValue['triggerNetVoiceCall'] = (
     callId
   ) => {
-    setActiveNetVoiceCallIdState(callId);
-    setIsNetVoiceCallAcceptedState(false);
+    setActiveNetVoiceCallIdState((currentCallId) => {
+      if (currentCallId === null) {
+        setIsNetVoiceCallAcceptedState(false);
+        return callId;
+      }
+      queuedNetVoiceCallIdsRef.current.push(callId);
+      return currentCallId;
+    });
   };
 
   const completeInitialBios: GameStateContextValue['completeInitialBios'] = () => {

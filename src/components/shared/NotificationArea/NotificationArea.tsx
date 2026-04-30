@@ -9,6 +9,13 @@ import { useGameState } from '../../../game/state';
 import OpenWindowsContext from '../../../context/OpenWindowsContext';
 import { useIntrusivePopupCount } from '../../../system/intrusivePopups/useIntrusivePopupCount';
 import { calculateUsedRamMb, MAX_RAM_MB } from '../../../system/performance/ramUsage';
+import {
+  getMasterVolumePercent,
+  registerManagedAudio,
+  setMasterVolumePercent,
+  updateManagedAudioBaseVolume,
+} from '../../../utils/audio/masterVolume';
+import { enterBsodAudioMode, exitBsodAudioMode } from '../../../utils/audio/bsodAudioMode';
 
 import style from './NotificationArea.module.css';
 import { getGameDate } from '../../../system/clock/gameClock';
@@ -26,7 +33,7 @@ const formatTrayTime = (date: Date) =>
   });
 
 const NotificationArea: FunctionComponent = () => {
-  const { rebootGame } = useGameState();
+  const { rebootGame, flags } = useGameState();
   const { focusOnWindow, openApp, unMinimizeWindow, windows } =
     useContext(OpenWindowsContext);
   const popupCount = useIntrusivePopupCount();
@@ -37,7 +44,13 @@ const NotificationArea: FunctionComponent = () => {
   const ramCrashTimeoutRef = useRef<number | null>(null);
   const hasBootloaderEndedRef = useRef(false);
   const hasStartupSfxEndedRef = useRef(false);
+  const isBluescreenActiveRef = useRef(flags.isBluescreenSequenceActive);
+  const soundButtonRef = useRef<HTMLButtonElement | null>(null);
+  const volumeFlyoutRef = useRef<HTMLDivElement | null>(null);
+  const lastNonZeroVolumeRef = useRef(Math.max(5, getMasterVolumePercent()));
   const [isPlaying, setIsPlaying] = useState(true);
+  const [volumePercent, setVolumePercent] = useState(getMasterVolumePercent());
+  const [isVolumeFlyoutOpen, setIsVolumeFlyoutOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isRamCrashActive, setIsRamCrashActive] = useState(false);
   const [clockText, setClockText] = useState(formatTrayTime(getGameDate()));
@@ -50,6 +63,10 @@ const NotificationArea: FunctionComponent = () => {
   const isRamUsageCritical = ramUsagePercent >= 85;
 
   useEffect(() => {
+    isBluescreenActiveRef.current = flags.isBluescreenSequenceActive;
+  }, [flags.isBluescreenSequenceActive]);
+
+  useEffect(() => {
     const timer = window.setInterval(() => {
       setClockText(formatTrayTime(getGameDate()));
     }, 1000);
@@ -59,7 +76,9 @@ const NotificationArea: FunctionComponent = () => {
 
   useEffect(() => {
     const canStartGeneralMusic = () =>
-      hasBootloaderEndedRef.current && hasStartupSfxEndedRef.current;
+      hasBootloaderEndedRef.current &&
+      hasStartupSfxEndedRef.current &&
+      !isBluescreenActiveRef.current;
 
     const requestGeneralMusicResume = (
       source: 'web_open' | 'bootloader_end' | 'user_interaction'
@@ -171,7 +190,7 @@ const NotificationArea: FunctionComponent = () => {
 
   useEffect(() => {
     if (isRamCrashActive) return;
-    if (usedRamMb < MAX_RAM_MB) return;
+    if (ramUsagePercent < 100) return;
     setIsRamCrashActive(true);
     shouldAutoPlayGeneralMusicRef.current = false;
     audioRef.current?.pause();
@@ -183,14 +202,22 @@ const NotificationArea: FunctionComponent = () => {
       setIsRamCrashActive(false);
       rebootGame();
     }, 3000);
-  }, [isRamCrashActive, rebootGame, usedRamMb]);
+  }, [isRamCrashActive, ramUsagePercent, rebootGame]);
+
+  useEffect(() => {
+    if (!isRamCrashActive) return;
+    enterBsodAudioMode();
+    return () => {
+      exitBsodAudioMode();
+    };
+  }, [isRamCrashActive]);
 
   useEffect(() => {
     const audio = new Audio(AUDIO_SOURCE_WEBM);
     audioRef.current = audio;
     audio.loop = true;
     audio.preload = 'auto';
-    audio.volume = 0.15;
+    const unregisterManagedAudio = registerManagedAudio(audio, 0.15);
 
     const handleCanPlay = () => {
       setIsPlaying(!audio.paused);
@@ -216,6 +243,7 @@ const NotificationArea: FunctionComponent = () => {
     hasStartupSfxEndedRef.current = false;
 
     return () => {
+      unregisterManagedAudio();
       audio.pause();
       audio.removeEventListener('canplay', handleCanPlay);
       audio.removeEventListener('play', handlePlay);
@@ -224,6 +252,12 @@ const NotificationArea: FunctionComponent = () => {
       audioRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    updateManagedAudioBaseVolume(audio, 0.15);
+  }, [volumePercent]);
 
   useEffect(() => {
     const syncFullscreenState = () => {
@@ -238,21 +272,55 @@ const NotificationArea: FunctionComponent = () => {
     };
   }, []);
 
-  const handleSoundToggle = () => {
+  const handleMuteToggle = () => {
     const audio = audioRef.current;
     if (!audio) return;
-
-    if (audio.paused) {
-      if (!hasBootloaderEndedRef.current || !hasStartupSfxEndedRef.current) {
-        return;
-      }
-      shouldAutoPlayGeneralMusicRef.current = true;
-      audio.play().catch(() => setIsPlaying(false));
+    if (volumePercent > 0) {
+      lastNonZeroVolumeRef.current = volumePercent;
+      setVolumePercent(0);
+      setMasterVolumePercent(0);
+      shouldAutoPlayGeneralMusicRef.current = false;
+      audio.pause();
       return;
     }
+    const restoredVolume = Math.max(5, lastNonZeroVolumeRef.current);
+    setVolumePercent(restoredVolume);
+    setMasterVolumePercent(restoredVolume);
+    if (
+      audio.paused &&
+      hasBootloaderEndedRef.current &&
+      hasStartupSfxEndedRef.current &&
+      !isBluescreenActiveRef.current
+    ) {
+      shouldAutoPlayGeneralMusicRef.current = true;
+      audio.play().catch(() => setIsPlaying(false));
+    }
+  };
 
-    shouldAutoPlayGeneralMusicRef.current = false;
-    audio.pause();
+  const handleVolumeChange = (event: Event) => {
+    const target = event.target as HTMLInputElement | null;
+    const nextVolume = Math.max(0, Math.min(100, Number(target?.value ?? 0)));
+    if (nextVolume > 0) {
+      lastNonZeroVolumeRef.current = nextVolume;
+    }
+    setVolumePercent(nextVolume);
+    setMasterVolumePercent(nextVolume);
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (nextVolume === 0) {
+      shouldAutoPlayGeneralMusicRef.current = false;
+      audio.pause();
+      return;
+    }
+    if (
+      audio.paused &&
+      hasBootloaderEndedRef.current &&
+      hasStartupSfxEndedRef.current &&
+      !isBluescreenActiveRef.current
+    ) {
+      shouldAutoPlayGeneralMusicRef.current = true;
+      audio.play().catch(() => setIsPlaying(false));
+    }
   };
 
   const handleFullscreenToggle = async () => {
@@ -282,6 +350,31 @@ const NotificationArea: FunctionComponent = () => {
     }
     focusOnWindow(existingWindow.id);
   };
+
+  useEffect(() => {
+    if (!isVolumeFlyoutOpen) return undefined;
+    const handleOutsideClick = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      const clickedFlyout = volumeFlyoutRef.current?.contains(target);
+      const clickedButton = soundButtonRef.current?.contains(target);
+      if (clickedFlyout || clickedButton) return;
+      setIsVolumeFlyoutOpen(false);
+    };
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setIsVolumeFlyoutOpen(false);
+    };
+    document.addEventListener('pointerdown', handleOutsideClick, true);
+    document.addEventListener('keydown', handleEscape, true);
+    return () => {
+      document.removeEventListener('pointerdown', handleOutsideClick, true);
+      document.removeEventListener('keydown', handleEscape, true);
+    };
+  }, [isVolumeFlyoutOpen]);
+
+  void isPlaying;
+  const hasAudibleOutput = volumePercent > 0;
 
   return (
     <div className={style.notificationArea}>
@@ -337,13 +430,37 @@ const NotificationArea: FunctionComponent = () => {
         RAM {usedRamMb.toFixed(1)}/{MAX_RAM_MB.toFixed(1)} MB
       </button>
       <button
-        className={style.statusIcon}
-        onClick={handleSoundToggle}
-        title={isPlaying ? 'Mute sound' : 'Play sound'}
+        className={`${style.statusIcon} ${style.volumeIconButton}`}
+        onClick={() => setIsVolumeFlyoutOpen((current) => !current)}
+        ref={soundButtonRef}
+        title="Volume"
         type="button"
       >
-        <Icon iconId={isPlaying ? 'sound' : 'soundOff'} />
+        <Icon iconId={hasAudibleOutput ? 'sound' : 'soundOff'} />
       </button>
+      {isVolumeFlyoutOpen && (
+        <div className={style.volumeFlyout} ref={volumeFlyoutRef}>
+          <div className={style.volumeFlyoutTitle}>Volume Control</div>
+          <div className={style.volumeSliderRow}>
+            <Icon iconId={volumePercent > 0 ? 'sound' : 'soundOff'} />
+            <input
+              className={style.volumeSlider}
+              max={100}
+              min={0}
+              onInput={handleVolumeChange}
+              step={1}
+              type="range"
+              value={String(volumePercent)}
+            />
+            <span className={style.volumePercentLabel}>{volumePercent}%</span>
+          </div>
+          <div className={style.volumeFlyoutActions}>
+            <button className={style.volumeButton} onClick={handleMuteToggle} type="button">
+              {volumePercent > 0 ? 'Mute' : 'Unmute'}
+            </button>
+          </div>
+        </div>
+      )}
       <button
         className={style.statusIcon}
         onClick={rebootGame}

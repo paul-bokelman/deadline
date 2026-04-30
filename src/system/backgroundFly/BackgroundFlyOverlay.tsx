@@ -39,7 +39,7 @@ const BackgroundFlyOverlay: FunctionComponent = () => {
     <BackgroundFly
       assetUrl={flyAssetUrl}
       audioUrl={FLY_AUDIO_URL}
-      audioVolume={0.126}
+      audioVolume={0.084}
       sizePx={43}
       assetFacingOffsetDeg={45}
       walkSpeedPx={48}

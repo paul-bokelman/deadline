@@ -13,8 +13,7 @@ const BASE_HEIGHT = 200;
 const panelStyle: JSX.CSSProperties = {
   margin: 0,
   padding: '10px',
-  backgroundColor: 'var(--button-highlight)',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+  backgroundColor: 'var(--surface)',
   height: '100%',
   width: '100%',
   boxSizing: 'border-box',
@@ -26,7 +25,7 @@ const panelStyle: JSX.CSSProperties = {
 };
 
 const cardStyle: JSX.CSSProperties = {
-  backgroundColor: 'var(--surface)',
+  backgroundColor: 'var(--button-highlight)',
   boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
   padding: '8px',
 };
@@ -53,13 +52,11 @@ const timeLargeStyle: JSX.CSSProperties = {
   fontWeight: 700,
   letterSpacing: '1px',
   lineHeight: 1,
-  textShadow: '1px 1px 0 var(--button-highlight)',
 };
 
 const urgencyStyle: JSX.CSSProperties = {
   fontSize: '12px',
   color: 'var(--button-shadow)',
-  textShadow: '1px 1px 0 var(--button-highlight)',
 };
 
 const formatCountdown = (remainingMs: number): string => {
@@ -165,7 +162,8 @@ const TimerApp: FunctionComponent<AppProps> = () => {
               style={{
                 height: '100%',
                 width: `${progressPercent}%`,
-                backgroundColor: remainingMs <= 60_000 ? '#800000' : '#000080',
+                backgroundColor:
+                  remainingMs <= 60_000 ? '#7b0000' : 'var(--dialog-blue)',
                 boxShadow: 'inset 1px 1px 0 var(--button-highlight)',
               }}
             />

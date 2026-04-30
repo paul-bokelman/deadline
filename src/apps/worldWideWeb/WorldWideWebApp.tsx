@@ -194,6 +194,33 @@ const storyListStyle: JSX.CSSProperties = {
   lineHeight: 1.55,
 };
 
+const bannerStyle: JSX.CSSProperties = {
+  padding: '8px 10px',
+  marginBottom: '10px',
+  background: 'linear-gradient(90deg, #1f4d8f 0%, #3f6cb8 65%, #6d8ad3 100%)',
+  color: '#ffffff',
+  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+  fontSize: '12px',
+  letterSpacing: '0.2px',
+};
+
+const cardGridStyle: JSX.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+  gap: '10px',
+};
+
+const statChipStyle: JSX.CSSProperties = {
+  display: 'inline-block',
+  padding: '3px 7px',
+  marginRight: '6px',
+  marginBottom: '6px',
+  border: '1px solid #c9c9c9',
+  backgroundColor: '#ffffff',
+  fontSize: '11px',
+  borderRadius: '12px',
+};
+
 const embarrassingHistoryEntries = [
   '2:11 PM - "how do i get my ex back fast"',
   '2:10 PM - "how to seem unbothered but actually bothered"',
@@ -372,6 +399,10 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
           }}
         >
           <h2 style={{ marginTop: 0 }}>The Daily Beeper</h2>
+          <div style={bannerStyle}>
+            BREAKING: City productivity up 300% after someone removed "reply all"
+            from every keyboard.
+          </div>
           <div
             style={{ color: '#555', fontSize: '12px', marginBottom: '10px' }}
           >
@@ -390,6 +421,10 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
               <b>Science:</b> Researchers confirm office printer can detect fear
               from 30 feet away and jams proactively.
             </div>
+            <div style={sectionCardStyle}>
+              <b>Culture:</b> Museum unveils exhibit titled "Cords We Refused To
+              Throw Away." Admission includes one free VGA cable.
+            </div>
           </div>
           <ul style={storyListStyle}>
             <li>
@@ -402,7 +437,20 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
               Opinion: Auto-correct has gone rogue and must be negotiated with.
             </li>
             <li>Classifieds: Slightly haunted fax machine, best offer.</li>
+            <li>
+              Investigations: Committee confirms office microwave has three
+              settings: lava, ice, and "almost."
+            </li>
+            <li>
+              Tech: Start-up launches AI that only says "have you tried turning
+              it off and on again" but in seven languages.
+            </li>
           </ul>
+          <div style={{ marginTop: '12px' }}>
+            <span style={statChipStyle}>Most-read topic: coffee policy</span>
+            <span style={statChipStyle}>Public mood: cautiously dramatic</span>
+            <span style={statChipStyle}>Typo index: elevated</span>
+          </div>
         </div>
       );
     }
@@ -419,6 +467,10 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
           }}
         >
           <h2 style={{ marginTop: 0 }}>Cloud Oracle Weather Center</h2>
+          <div style={bannerStyle}>
+            Severe Advisory: high probability of "I need to lie down for 5
+            minutes" between 2:00 PM and forever.
+          </div>
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
             <div style={{ ...sectionCardStyle, minWidth: '220px', flex: 1 }}>
               <div style={{ fontSize: '13px', color: '#004a66' }}>NOW</div>
@@ -432,6 +484,14 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
             </div>
           </div>
           <div style={{ ...sectionCardStyle, marginTop: '10px' }}>
+            <b>Regional radar notes</b>
+            <div style={{ marginTop: '6px' }}>
+              North District: clear skies, suspiciously upbeat emails.
+            </div>
+            <div>Midtown: heavy cloud cover and moderate umbrella envy.</div>
+            <div>Industrial Zone: 12% chance of frogs, 88% chance of rumors.</div>
+          </div>
+          <div style={{ ...sectionCardStyle, marginTop: '10px' }}>
             <b>3-Day Forecast</b>
             <ul style={storyListStyle}>
               <li>Tue: Sunny with occasional inbox storms (74F / 60F)</li>
@@ -443,6 +503,11 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
             style={{ marginTop: '10px', fontSize: '12px', color: '#2a5a6a' }}
           >
             Pollen: medium | UV: moderate | Umbrella confidence index: 63%
+          </div>
+          <div style={{ marginTop: '8px' }}>
+            <span style={statChipStyle}>Commuter mood: damp</span>
+            <span style={statChipStyle}>Thunder drama score: 7/10</span>
+            <span style={statChipStyle}>Sunset quality: cinematic</span>
           </div>
         </div>
       );
@@ -460,6 +525,10 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
           }}
         >
           <h2 style={{ marginTop: 0 }}>Stonks 4 U Market Terminal</h2>
+          <div style={bannerStyle}>
+            LIVE ALERT: "buy low, panic medium, hold snacks" remains official
+            strategy.
+          </div>
           <div style={{ fontFamily: 'monospace', fontSize: '12px' }}>
             DOWJOKES: 42,069.12 (+0.62%) | NASYELL: 13,337.00 (-0.11%)
           </div>
@@ -475,6 +544,21 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
             </div>
             <div style={sectionCardStyle}>
               <b>GYM</b> +5.5% - January resolutions still technically alive.
+            </div>
+          </div>
+          <div style={{ ...sectionCardStyle, marginTop: '10px' }}>
+            <b>Sector heat map (totally scientific)</b>
+            <div style={{ marginTop: '8px', fontFamily: 'monospace' }}>
+              Technology: [########--] +4.2%
+            </div>
+            <div style={{ fontFamily: 'monospace' }}>
+              Snacks:     [#########-] +6.8%
+            </div>
+            <div style={{ fontFamily: 'monospace' }}>
+              Motivation: [###-------] -2.9%
+            </div>
+            <div style={{ fontFamily: 'monospace' }}>
+              Vibes:      [#######---] +2.4%
             </div>
           </div>
           <div style={{ marginTop: '10px', fontSize: '12px' }}>
@@ -496,6 +580,9 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
           }}
         >
           <h2 style={{ marginTop: 0 }}>Sports Yelling Network</h2>
+          <div style={bannerStyle}>
+            Pregame panel shouting level: 98 dB. Rational analysis pending.
+          </div>
           <div style={{ ...sectionCardStyle, marginBottom: '10px' }}>
             <b>Final:</b> Metro Meteors 3, Downtown Falcons 2. Referees booed
             approximately 900 times.
@@ -514,12 +601,23 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
               not lost since they switched to lucky socks.
             </div>
           </div>
+          <div style={{ ...sectionCardStyle, marginTop: '10px' }}>
+            <b>Stat Corner</b>
+            <div>Shots on goal: 18-17</div>
+            <div>Possession: 51% / 49%</div>
+            <div>Questionable mustaches in crowd: 36</div>
+            <div>Nachos consumed during overtime: classified</div>
+          </div>
           <ul style={storyListStyle}>
             <li>Fantasy tip: Start anyone who "looked focused in warmups."</li>
             <li>
               Hot take: Defense wins championships, offense wins attention.
             </li>
             <li>Merch alert: Foam fingers now available in "Serious Beige."</li>
+            <li>
+              Betting line moved after mascot predicted outcome using a magic 8
+              ball.
+            </li>
           </ul>
         </div>
       );
@@ -537,10 +635,20 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
           }}
         >
           <h2 style={{ marginTop: 0 }}>Browsing History</h2>
+          <div style={bannerStyle}>
+            Privacy status: ornamental. Your browser remembers what your soul
+            wishes it forgot.
+          </div>
           <div
             style={{ fontSize: '12px', color: '#6a3d45', marginBottom: '8px' }}
           >
             Last cleared: never | Sync status: unfortunately enabled
+          </div>
+          <div style={{ ...sectionCardStyle, marginBottom: '8px' }}>
+            <b>Insights</b>
+            <div>Most searched word: "how"</div>
+            <div>Most visited category: self-improvement speedruns</div>
+            <div>Peak search hour: 2:07 PM (post-email regret window)</div>
           </div>
           <div
             style={{
@@ -566,8 +674,20 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
         searchQuery.toLowerCase().includes('.rar') ||
         searchQuery.toLowerCase().includes('rar');
       return (
-        <div style={{ lineHeight: 1.6 }}>
+        <div
+          style={{
+            lineHeight: 1.6,
+            background:
+              'linear-gradient(180deg, #f9f8ff 0%, #ffffff 45%, #ffffff 100%)',
+            padding: '10px',
+            border: '1px solid #ddd8f4',
+          }}
+        >
           <h2 style={{ marginTop: 0 }}>Search Results</h2>
+          <div style={bannerStyle}>
+            Powered by AskJeezMaybe (tm) - approximately accurate, emotionally
+            supportive.
+          </div>
           <div style={{ marginBottom: '10px', fontFamily: 'monospace' }}>
             Results for: <b>{searchQuery}</b>
           </div>
@@ -589,6 +709,16 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
                 </div>
               </div>
             )}
+            <div style={sectionCardStyle}>
+              <a href="#" onClick={(e) => e.preventDefault()}>
+                "Local expert reveals 5-step morning routine (step 1 is waking
+                up)"
+              </a>
+              <div style={{ fontSize: '12px' }}>
+                Includes controversial bonus step: remembering where your keys
+                are.
+              </div>
+            </div>
             <div style={sectionCardStyle}>
               <a href="#" onClick={(e) => e.preventDefault()}>
                 "How to get your life together in 24 hours"
@@ -613,6 +743,14 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
                 4,218 replies and zero consensus.
               </div>
             </div>
+            <div style={sectionCardStyle}>
+              <a href="#" onClick={(e) => e.preventDefault()}>
+                "Is typing 'per my last email' legally a threat?"
+              </a>
+              <div style={{ fontSize: '12px' }}>
+                Legal analysis says no. HR analysis says maybe.
+              </div>
+            </div>
           </div>
         </div>
       );
@@ -630,6 +768,9 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
           }}
         >
           <h2 style={{ marginTop: 0 }}>WinRAR Online Download</h2>
+          <div style={bannerStyle}>
+            Trusted by 9 out of 10 people who have no idea where zip files go.
+          </div>
           <div style={{ ...sectionCardStyle, marginBottom: '10px' }}>
             <b>Version:</b> 6.66 trial edition <br />
             <b>File:</b> WinRAR_installer.exe <br />
@@ -637,6 +778,22 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
           </div>
           <div style={{ ...sectionCardStyle, marginBottom: '10px' }}>
             Need to open compressed files? Download WinRAR here.
+          </div>
+          <div style={{ ...sectionCardStyle, marginBottom: '10px' }}>
+            <b>What you get</b>
+            <ul style={{ margin: '8px 0 0 18px', padding: 0 }}>
+              <li>Opens `.zip` and `.rar` archives</li>
+              <li>Progress bars that feel meaningful</li>
+              <li>A trial period that achieves legendary immortality</li>
+            </ul>
+          </div>
+          <div style={cardGridStyle}>
+            <div style={sectionCardStyle}>
+              <b>User review:</b> "Installed it for one file, now we are family."
+            </div>
+            <div style={sectionCardStyle}>
+              <b>System requirements:</b> 486 CPU, 16MB RAM, and belief.
+            </div>
           </div>
           <button
             type="button"
@@ -661,7 +818,8 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
         <div
           style={{
             lineHeight: 1.55,
-            backgroundColor: 'var(--surface)',
+            background:
+              'linear-gradient(180deg, #eceff8 0%, var(--surface) 55%, #f8f9fc 100%)',
             padding: '8px',
             boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
           }}
@@ -690,6 +848,11 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
           >
             Enter a new password. As soon as one requirement is satisfied,
             another requirement is unlocked.
+          </div>
+          <div style={{ marginTop: '8px', ...sectionCardStyle }}>
+            <b>Security advisory:</b> Due to policy changes after "Password123!"
+            was used by the entire accounting floor, standards are now
+            aggressively specific.
           </div>
           <div
             style={{
@@ -762,6 +925,10 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
                 </li>
               ))}
             </ul>
+            <div style={{ marginTop: '8px', fontSize: '12px', color: '#555' }}>
+              Hint: This system was designed by three security engineers, one
+              poet, and an options trader.
+            </div>
           </div>
           {resetStatus && (
             <div
@@ -785,6 +952,10 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
         <div style={{ fontSize: '28px', fontWeight: 700, marginBottom: '8px' }}>
           World Wide Web
         </div>
+        <div style={bannerStyle}>
+          Welcome to the Information Superhighway. Please keep arms and emotional
+          baggage inside the browser at all times.
+        </div>
         <div
           style={{
             fontFamily: 'monospace',
@@ -793,7 +964,8 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
             marginBottom: '16px',
           }}
         >
-          Welcome to your browser. Search is not connected yet.
+          Welcome to your browser. Search is connected to vibes, rumors, and
+          occasionally facts.
         </div>
         <div style={{ marginBottom: '12px' }}>
           <a
@@ -845,6 +1017,19 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
           >
             History
           </a>
+        </div>
+        <div style={cardGridStyle}>
+          <div style={sectionCardStyle}>
+            <b>Web Tip #1:</b> If a page says "free", the hidden cost is usually
+            your attention span.
+          </div>
+          <div style={sectionCardStyle}>
+            <b>Web Tip #2:</b> If a forum thread has 4000 replies, there is no
+            winner.
+          </div>
+          <div style={sectionCardStyle}>
+            <b>Web Tip #3:</b> Opening 27 tabs counts as project management.
+          </div>
         </div>
         <div style={{ ...sectionCardStyle, lineHeight: 1.6 }}>
           <b>Today on the Web:</b> Markets are weird, weather is moody, sports

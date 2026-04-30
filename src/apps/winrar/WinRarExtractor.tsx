@@ -136,7 +136,11 @@ const WinRarExtractor: FunctionComponent<AppProps> = () => {
       return;
     }
     if (!flags.hasWinRarInstalled) {
-      setUiStatusMessage('WinRAR is not installed yet.');
+      setUiStatusMessage(
+        flags.hasReceivedWinRarLinkEmail
+          ? 'WinRAR is not installed yet.\nA download link has been emailed to you.'
+          : 'WinRAR is not installed yet.'
+      );
       setHasConfirmedProgram(false);
       return;
     }
@@ -230,6 +234,7 @@ const WinRarExtractor: FunctionComponent<AppProps> = () => {
             boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
             padding: '6px 8px',
             fontFamily: 'monospace',
+            whiteSpace: 'pre-wrap',
           }}
         >
           {uiStatusMessage}

@@ -1,5 +1,6 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { registerManagedAudio } from '../../utils/audio/masterVolume';
 
 /**
  * Scalable ambient critter overlay. Defaults to a fly that crawls between
@@ -271,10 +272,11 @@ const BackgroundFly: FunctionComponent<BackgroundCritterProps> = ({
     if (!audioUrl) return undefined;
     const audio = new Audio(audioUrl);
     audio.loop = true;
-    audio.volume = audioVolume;
+    const unregisterManagedAudio = registerManagedAudio(audio, audioVolume);
     audio.preload = 'auto';
     audioRef.current = audio;
     return () => {
+      unregisterManagedAudio();
       audio.pause();
       audioRef.current = null;
     };

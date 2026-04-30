@@ -1,3 +1,5 @@
+import { registerManagedAudio } from './masterVolume';
+
 const CLICK_SFX_SOURCE = '/audio/clicking_effect.m4a';
 const LOADING_SFX_SOURCE = '/audio/loading_effect.m4a';
 const CLIPPY_TIP_SFX_SOURCE = '/audio/clippy/clippy-tip.mp3';
@@ -16,7 +18,7 @@ let clippyTipAudio: HTMLAudioElement | null = null;
 const createAudio = (source: string, volume: number): HTMLAudioElement => {
   const audio = new Audio(source);
   audio.preload = 'auto';
-  audio.volume = volume;
+  registerManagedAudio(audio, volume);
   return audio;
 };
 

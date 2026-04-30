@@ -87,7 +87,7 @@ const LeaderboardApp: FunctionComponent<AppProps> = () => {
     <div className={style.app}>
       <div className={style.hero}>
         <div>
-          <div className={style.heroTitle}>GAME OVER</div>
+          <div className={style.heroTitle}>LEADERBOARD</div>
           <div className={style.heroSub}>
             {status === 'loading' && board.length === 0
               ? 'Loading leaderboard...'

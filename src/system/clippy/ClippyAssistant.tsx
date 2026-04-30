@@ -18,6 +18,11 @@ const CLIPPY_MESSAGES = [
   'Press control s to save the game!',
   'Sometimes emails end up in the wrong place',
   'updating windows speeds up your system',
+  'Fuck you',
+  "I've seen your history you dirty pig",
+  'Some calls are actually useful',
+  "I did some terrible things back in 86'... you don't just end up as a desktop assistant...",
+  '为了将你击垮，我愿做尽 切。',
 ];
 
 const ClippyAssistant: FunctionComponent = () => {

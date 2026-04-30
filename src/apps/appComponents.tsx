@@ -8,8 +8,10 @@ import SystemPerformanceApp from './systemPerformance/SystemPerformanceApp';
 import TipOfDayApp from './tipOfDay/TipOfDayApp';
 import EmailClient from './email/EmailClient';
 import BlackjackApp from './blackjack/BlackjackApp';
+import ClickMeApp from './clickMe/ClickMeApp';
 import LeaderboardApp from './leaderboard/LeaderboardApp';
 import WalletApp from './wallet/WalletApp';
+import MinesweeperApp from './minesweeper/MinesweeperApp';
 import PasswordsFile from './notepad/PasswordsFile';
 import PortalApp from './portal/PortalApp';
 import RecycleBinApp from './recycleBin/RecycleBinApp';
@@ -49,7 +51,7 @@ export const appComponents: Record<AppId, FunctionComponent<AppProps>> = {
   tipOfDay: TipOfDayApp,
   calc: VoidApp,
   cdPlayer: VoidApp,
-  clickMeReset: VoidApp,
+  clickMeReset: ClickMeApp,
   defrag: VoidApp,
   exchange: VoidApp,
   explorer: VoidApp,
@@ -88,4 +90,5 @@ export const appComponents: Record<AppId, FunctionComponent<AppProps>> = {
   leaderboard: LeaderboardApp,
   bank: WalletApp,
   worldWideWeb: WorldWideWebApp,
+  minesweeper: MinesweeperApp,
 };

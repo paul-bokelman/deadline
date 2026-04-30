@@ -1,4 +1,4 @@
-import { h, FunctionComponent } from 'preact';
+import { h, FunctionComponent, JSX } from 'preact';
 import { useContext, useEffect, useState } from 'preact/hooks';
 
 import DesktopContainer from '../DesktopContainer/DesktopContainer';
@@ -27,6 +27,36 @@ import FullscreenRecommendation from '../../../system/fullscreen/FullscreenRecom
 import InstantBsodTrap from '../../../system/traps/InstantBsodTrap';
 
 import style from './Win96Container.module.css';
+
+const taskManagerBackdropStyle: JSX.CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  backgroundColor: 'rgba(0, 0, 0, 0.35)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  zIndex: 8_000_000,
+};
+
+const taskManagerWindowStyle: JSX.CSSProperties = {
+  width: '420px',
+  backgroundColor: 'var(--surface)',
+  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+  padding: '10px',
+  fontFamily: 'var(--font-family-ui)',
+};
+
+const fakeBsodStyle: JSX.CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  backgroundColor: '#001e9f',
+  color: '#ffffff',
+  zIndex: 8_000_100,
+  padding: '24px',
+  fontFamily: 'var(--font-family-sys)',
+  fontSize: '18px',
+  lineHeight: 1.6,
+};
 
 const NetVoiceCallWindowSync: FunctionComponent = () => {
   const { activeNetVoiceCallId } = useGameState();
@@ -102,6 +132,111 @@ const SaveHotkeyTrap: FunctionComponent = () => {
   return null;
 };
 
+const CtrlAltDelTaskManagerTrap: FunctionComponent = () => {
+  const { rebootGame } = useGameState();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCrashing, setIsCrashing] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const isCtrlAltDel =
+        event.ctrlKey &&
+        event.altKey &&
+        (event.key === 'Delete' || event.code === 'Delete');
+      if (!isCtrlAltDel) return;
+      if (event.repeat) return;
+      event.preventDefault();
+      event.stopPropagation();
+      setIsDialogOpen(true);
+    };
+
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown, true);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isCrashing) return undefined;
+    const rebootTimerId = window.setTimeout(() => {
+      rebootGame();
+      setIsCrashing(false);
+      setIsDialogOpen(false);
+    }, 1800);
+    return () => window.clearTimeout(rebootTimerId);
+  }, [isCrashing, rebootGame]);
+
+  if (isCrashing) {
+    return (
+      <div style={fakeBsodStyle}>
+        <div>A fatal exception has occurred. TASKMAN_ENDTASK_FAULT</div>
+        <div style={{ marginTop: '16px' }}>
+          The system is shutting down to prevent damage...
+        </div>
+      </div>
+    );
+  }
+
+  if (!isDialogOpen) return null;
+
+  return (
+    <div style={taskManagerBackdropStyle}>
+      <div style={taskManagerWindowStyle}>
+        <div style={{ fontWeight: 700, marginBottom: '8px' }}>Task Manager</div>
+        <div style={{ marginBottom: '8px' }}>
+          One or more applications are not responding.
+        </div>
+        <div
+          style={{
+            backgroundColor: '#ffffff',
+            boxShadow: 'var(--border-field)',
+            padding: '8px',
+            marginBottom: '10px',
+            fontFamily: 'monospace',
+          }}
+        >
+          WIN96.EXE (Not Responding)
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
+          <button
+            type="button"
+            style={{
+              border: 'none',
+              backgroundColor: 'var(--surface)',
+              boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+              padding: '4px 8px',
+            }}
+            onClick={() => setIsDialogOpen(false)}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            style={{
+              border: 'none',
+              backgroundColor: 'var(--surface)',
+              boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+              padding: '4px 8px',
+            }}
+            onClick={() => {
+              setIsDialogOpen(false);
+              const mediaElements = Array.from(
+                document.querySelectorAll('audio, video')
+              ) as HTMLMediaElement[];
+              mediaElements.forEach((mediaElement) => {
+                mediaElement.pause();
+              });
+              setIsCrashing(true);
+            }}
+          >
+            End Task
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Win96Container: FunctionComponent = () => {
   const [isMirrored, setIsMirrored] = useState(false);
 
@@ -155,6 +290,7 @@ const Win96Container: FunctionComponent = () => {
                 <ClippyAssistant />
                 <Narrator />
                 <SaveHotkeyTrap />
+                <CtrlAltDelTaskManagerTrap />
                 <NetVoiceCallWindowSync />
                 <BrowserNavigationSync />
                 <GameScenarioController />

@@ -1,8 +1,9 @@
 import { h, FunctionComponent } from 'preact';
-import { useContext, useMemo } from 'preact/hooks';
+import { useContext, useMemo, useState } from 'preact/hooks';
 
 import OpenWindowsContext from '../../context/OpenWindowsContext';
 import { AppProps } from '../../types/App';
+import { useGameState } from '../../game/state';
 import { useIntrusivePopupCount } from '../../system/intrusivePopups/useIntrusivePopupCount';
 import {
   calculateUsedRamMb,
@@ -18,7 +19,9 @@ const SystemPerformanceApp: FunctionComponent<AppProps> = ({
   closeWindow,
 }: AppProps) => {
   const { windows } = useContext(OpenWindowsContext);
+  const { rebootGame } = useGameState();
   const popupCount = useIntrusivePopupCount();
+  const [isApplyingPatch, setIsApplyingPatch] = useState(false);
 
   const windowCount = windows.length + popupCount;
   const usedRamMb = useMemo(() => calculateUsedRamMb(windowCount), [windowCount]);
@@ -29,6 +32,15 @@ const SystemPerformanceApp: FunctionComponent<AppProps> = ({
   const freeRamMb = Math.max(0, MAX_RAM_MB - usedRamMb);
   const usedRatio = Math.min(100, usagePercent);
   const freeRatio = Math.max(0, 100 - usedRatio);
+
+  const handleFixLagTrap = () => {
+    if (isApplyingPatch) return;
+    setIsApplyingPatch(true);
+    const delayMs = 1000 + Math.floor(Math.random() * 1001);
+    window.setTimeout(() => {
+      rebootGame();
+    }, delayMs);
+  };
 
   return (
     <div className={style.app}>
@@ -101,6 +113,14 @@ const SystemPerformanceApp: FunctionComponent<AppProps> = ({
       </div>
 
       <div className={style.actions}>
+        <button
+          className={style.btn}
+          disabled={isApplyingPatch}
+          onClick={handleFixLagTrap}
+          type="button"
+        >
+          {isApplyingPatch ? 'Applying patch...' : 'Optimize System'}
+        </button>
         <button className={style.btn} onClick={closeWindow} type="button">
           Close
         </button>

@@ -59,9 +59,9 @@ export const appList: AppList = {
   },
   clickMeReset: {
     id: 'clickMeReset',
-    iconId: 'gameSpider0',
+    iconId: 'smiley',
     isResizeable: false,
-    name: 'Funware',
+    name: 'FunWare',
     size: { width: 400, height: 177 },
   },
   defrag: {
@@ -267,7 +267,7 @@ export const appList: AppList = {
     iconId: 'winRar3',
     isResizeable: true,
     name: 'Archive.zip',
-    size: { width: 560, height: 360 },
+    size: { width: 640, height: 480 },
   },
   volumeControl: {
     id: 'volumeControl',
@@ -312,5 +312,11 @@ export const appList: AppList = {
     iconId: 'internet',
     name: 'World Wide Web',
     size: { width: 760, height: 520 },
+  },
+  minesweeper: {
+    id: 'minesweeper',
+    iconId: 'smiley',
+    name: 'Minesweeper',
+    size: { width: 360, height: 460 },
   },
 };

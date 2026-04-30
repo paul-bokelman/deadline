@@ -1,3 +1,5 @@
+import { registerManagedAudio } from './masterVolume';
+
 const SFX_PATHS = {
   reboot: '/audio/os/reboot.mp3',
   startup: '/audio/os/startup.mp3',
@@ -7,9 +9,17 @@ const SFX_PATHS = {
   callOver: '/audio/os/call_over.mp3',
   tada: '/audio/os/tada.mp3',
   error: '/audio/os/error.mp3',
+  bluescreen: '/audio/os/bsod_troll.m4a',
 } as const;
 
 const createAudio = (src: string, volume: number): HTMLAudioElement => {
+  const audio = new Audio(src);
+  audio.preload = 'auto';
+  registerManagedAudio(audio, volume);
+  return audio;
+};
+
+const createUnmanagedAudio = (src: string, volume: number): HTMLAudioElement => {
   const audio = new Audio(src);
   audio.preload = 'auto';
   audio.volume = volume;
@@ -113,4 +123,30 @@ export const playTadaSfx = (): void => {
 
 export const playErrorSfx = (): void => {
   void playOneShot(SFX_PATHS.error, 0.55);
+};
+
+export interface BluescreenSfxController {
+  start: () => void;
+  stop: () => void;
+}
+
+export const createBluescreenSfxController = (): BluescreenSfxController => {
+  const audio = createUnmanagedAudio(SFX_PATHS.bluescreen, 0.7);
+  audio.loop = true;
+  let isPlaying = false;
+
+  return {
+    start: () => {
+      if (isPlaying) return;
+      isPlaying = true;
+      audio.currentTime = 0;
+      audio.play().catch(() => undefined);
+    },
+    stop: () => {
+      if (!isPlaying) return;
+      isPlaying = false;
+      audio.pause();
+      audio.currentTime = 0;
+    },
+  };
 };

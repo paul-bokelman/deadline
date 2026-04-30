@@ -50,6 +50,7 @@ export const appIds = [
   'leaderboard',
   'bank',
   'worldWideWeb',
+  'minesweeper',
 ] as const;
 
 export type AppId = typeof appIds[number];

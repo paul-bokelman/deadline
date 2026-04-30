@@ -113,8 +113,8 @@ export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
     createAppShellItem(
       'click-me-reset',
       'clickMeReset',
-      'Funware',
-      'gameSpider0'
+      'Click Me',
+      'smiley'
     ),
     createAppShellItem(
       'draft-document-link',
@@ -133,6 +133,7 @@ export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
     createAppShellItem('blackjack', 'blackjack', 'BlackJack 96'),
     createAppShellItem('leaderboard', 'leaderboard', 'Leaderboard'),
     createAppShellItem('world-wide-web', 'worldWideWeb', 'World Wide Web'),
+    createAppShellItem('minesweeper', 'minesweeper', 'Minesweeper'),
   ];
 
   // Password hunting is disabled; do not surface the passwords file.

@@ -5,6 +5,7 @@ import OpenWindowsContext from '../../context/OpenWindowsContext';
 import { gameEventBus } from '../../game/events';
 import { useGameState } from '../../game/state';
 import { Z_INDEX_TIERS } from '../../system/zIndex';
+import { enterBsodAudioMode, exitBsodAudioMode } from '../../utils/audio/bsodAudioMode';
 
 type TransitionPhase = 'idle' | 'remote' | 'bluescreen' | 'rebooting' | 'done';
 
@@ -65,8 +66,8 @@ const BluescreenSequence: FunctionComponent = () => {
   const {
     hasEventFired,
     markEventFired,
+    rebootGame,
     setFlag,
-    setStage,
     triggerNetVoiceCall,
   } = useGameState();
 
@@ -160,6 +161,8 @@ const BluescreenSequence: FunctionComponent = () => {
   useEffect(() => {
     if (phase !== 'bluescreen') return;
 
+    enterBsodAudioMode();
+
     const intervalId = window.setInterval(() => {
       setCountdown((currentCount) => {
         if (currentCount <= 1) {
@@ -171,7 +174,10 @@ const BluescreenSequence: FunctionComponent = () => {
       });
     }, 1000);
 
-    return () => window.clearInterval(intervalId);
+    return () => {
+      window.clearInterval(intervalId);
+      exitBsodAudioMode();
+    };
   }, [phase]);
 
   useEffect(() => {
@@ -179,16 +185,11 @@ const BluescreenSequence: FunctionComponent = () => {
 
     const timerId = window.setTimeout(() => {
       setIsRemoteBannerVisible(false);
-      setStage('post_bluescreen');
-      setFlag('malwareLevel', 2);
-      setFlag('narrator', true);
-      setFlag('hasDesktopScrambled', true);
-      setFlag('isBluescreenSequenceActive', false);
-      setPhase('done');
+      rebootGame();
     }, 2200);
 
     return () => window.clearTimeout(timerId);
-  }, [phase, setFlag, setStage]);
+  }, [phase, rebootGame]);
 
   return (
     <div>
@@ -209,6 +210,22 @@ const BluescreenSequence: FunctionComponent = () => {
       {phase === 'bluescreen' && (
         <div style={bluescreenStyle}>
           <div>A fatal error has occurred. ERROR: IT_GUY_MESSED_UP</div>
+          <div style={{ marginTop: '16px' }}>
+            The current application will be terminated.
+          </div>
+          <div>
+            Press CTRL+ALT+DEL again to restart your computer.
+          </div>
+          <div style={{ marginTop: '16px' }}>
+            If this is the first time you've seen this Stop error screen,
+            restart your computer.
+          </div>
+          <div>
+            Disable recently installed software if the problem continues.
+          </div>
+          <div style={{ marginTop: '16px' }}>Technical information:</div>
+          <div>*** STOP: 0x0000008E (0xC0000005, 0x804E37B4, 0xF2B9F7A8, 0x00000000)</div>
+          <div>*** IT_GUY_MESSED_UP - Address F2B9F7A8 base at F2A00000, DateStamp 3d6dd67c</div>
           <div style={{ marginTop: '16px' }}>
             The system will restart in {countdown} seconds...
           </div>
