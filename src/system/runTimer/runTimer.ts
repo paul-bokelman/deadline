@@ -2,11 +2,12 @@
 //
 // The wall-clock timer is kept around purely for in-game UI display. The
 // authoritative elapsed time used by the leaderboard is computed by the
-// Worker (submitted_at - started_at) and returned by /run/submit. The
+// Worker (submitted_at - segment_started_at) and returned by /run/submit. The
 // runId/token issued by /run/start are required to call /run/checkpoint and
 // /run/submit; without them, leaderboard submission will fail gracefully.
 
 import {
+  apiRebootRun,
   apiSendCheckpoint,
   apiStartRun,
   CheckpointName,
@@ -47,10 +48,22 @@ const startServerRun = async (): Promise<RunToken | null> => {
 export const resetRunTimer = (): void => {
   runStartedAtMs = Date.now();
   submittedElapsedMs = null;
-  activeRunToken = null;
   recordedCheckpoints = new Set();
   hasInitialised = true;
-  // Fire-and-forget: kicks off a fresh server run for this play-through.
+
+  if (activeRunToken) {
+    pendingStart = Promise.resolve(activeRunToken);
+    void (async () => {
+      const result = await apiRebootRun(activeRunToken.runId, activeRunToken.token);
+      if (!result.ok) {
+        // eslint-disable-next-line no-console
+        console.warn('[deadline] /run/reboot failed:', result.error.message);
+      }
+    })();
+    return;
+  }
+
+  // First run in a session.
   pendingStart = startServerRun().catch(() => null);
 };
 

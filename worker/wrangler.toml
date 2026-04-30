@@ -6,7 +6,7 @@ account_id = "a4431bc8caa4d69cbd7f37855942acec"
 # CORS allow-list. Comma-separated. Add Vercel preview origins here as needed.
 [vars]
 ALLOWED_ORIGINS = "https://deadline.pab.dev,http://localhost:5173,http://localhost:4173"
-REQUIRED_CHECKPOINTS = "password_solved,email_sent,portal_captcha_cleared"
+REQUIRED_CHECKPOINTS = "password_solved,portal_captcha_cleared"
 MAX_RUN_MS = "86400000"          # 24 hours
 MIN_RUN_MS = "0"                 # no minimum
 RATE_LIMIT_STARTS_PER_MIN = "30" # per IP

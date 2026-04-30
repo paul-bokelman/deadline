@@ -13,6 +13,7 @@ import { getActiveRunToken } from '../runTimer/runTimer';
 export type LeaderboardEntry = {
   name: string;
   ms: number;
+  reboots: number;
   you?: boolean;
 };
 
@@ -67,11 +68,16 @@ export const sanitizeLeaderboardName = (raw: string): string => {
   return trimmed.length > 0 ? trimmed : 'AAA';
 };
 
-export const setLeaderboardPlayerEntry = (name: string, ms: number): void => {
+export const setLeaderboardPlayerEntry = (
+  name: string,
+  ms: number,
+  reboots = 0
+): void => {
   ensureResetHook();
   playerEntry = {
     name: sanitizeLeaderboardName(name),
     ms: Math.max(0, Math.floor(ms)),
+    reboots: Math.max(0, Math.floor(reboots)),
     you: true,
   };
   notify();
@@ -102,6 +108,7 @@ export const loadLeaderboard = async (): Promise<void> => {
         entries: result.data.entries.map((row) => ({
           name: row.name,
           ms: row.timeMs,
+          reboots: row.reboots,
         })),
         errorMessage: null,
       };
@@ -116,7 +123,8 @@ export const loadLeaderboard = async (): Promise<void> => {
 export const submitLeaderboardEntry = async (
   name: string
 ): Promise<
-  { ok: true; ms: number; rank: number } | { ok: false; error: ApiError }
+  | { ok: true; ms: number; rank: number; reboots: number }
+  | { ok: false; error: ApiError }
 > => {
   ensureResetHook();
   const sanitized = sanitizeLeaderboardName(name);
@@ -135,13 +143,18 @@ export const submitLeaderboardEntry = async (
   if (!result.ok) {
     return { ok: false, error: result.error };
   }
-  setLeaderboardPlayerEntry(result.data.entry.name, result.data.entry.timeMs);
+  setLeaderboardPlayerEntry(
+    result.data.entry.name,
+    result.data.entry.timeMs,
+    result.data.entry.reboots
+  );
   // Refresh from server so the board includes the new row authoritatively.
   void loadLeaderboard();
   return {
     ok: true,
     ms: result.data.entry.timeMs,
     rank: result.data.entry.rank,
+    reboots: result.data.entry.reboots,
   };
 };
 

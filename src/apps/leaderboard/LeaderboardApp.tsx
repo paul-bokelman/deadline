@@ -96,7 +96,9 @@ const LeaderboardApp: FunctionComponent<AppProps> = () => {
               : youEntry
               ? `You placed #${youIndex + 1} of ${
                   board.length
-                }. Time: ${formatTime(youEntry.ms)}`
+                }. Time: ${formatTime(youEntry.ms)} · Reboots: ${
+                    youEntry.reboots
+                  }`
               : `No submitted run yet. ${board.length} entries loaded.`}
           </div>
         </div>
@@ -116,12 +118,14 @@ const LeaderboardApp: FunctionComponent<AppProps> = () => {
               <colgroup>
                 <col style={{ width: '34px' }} />
                 <col />
+                <col style={{ width: '74px' }} />
                 <col style={{ width: '90px' }} />
               </colgroup>
               <thead>
                 <tr>
                   <th>#</th>
                   <th>Name</th>
+                  <th style={{ textAlign: 'right' }}>Reboots</th>
                   <th style={{ textAlign: 'right' }}>Time</th>
                 </tr>
               </thead>
@@ -136,6 +140,7 @@ const LeaderboardApp: FunctionComponent<AppProps> = () => {
                       {entry.name}
                       {idx === youIndex ? ' ◀ YOU' : ''}
                     </td>
+                    <td className={style.timeCell}>{entry.reboots}</td>
                     <td className={style.timeCell}>{formatTime(entry.ms)}</td>
                   </tr>
                 ))}
@@ -160,7 +165,7 @@ const LeaderboardApp: FunctionComponent<AppProps> = () => {
         <span className={style.statusCellLeft}>
           {board.length} entries · sorted by time (asc.)
         </span>
-        <span className={style.statusCellRight}>Local Scores</span>
+        <span className={style.statusCellRight}>Cloud Scores</span>
       </div>
     </div>
   );

@@ -2,9 +2,10 @@
 //
 // Endpoints (all JSON):
 //   POST /run/start                        -> { runId, startedAt, token }
+//   POST /run/reboot                       -> { ok: true, rebootCount }
 //   POST /run/checkpoint                   -> { ok: true }
-//   POST /run/submit                       -> { ok: true, entry: { name, timeMs, rank } }
-//   GET  /leaderboard                      -> { entries: [{ rank, name, timeMs }] }
+//   POST /run/submit                       -> { ok: true, entry: { name, timeMs, reboots, rank } }
+//   GET  /leaderboard                      -> { entries: [{ rank, name, timeMs, reboots }] }
 //   GET  /health                           -> { ok: true }
 //
 // Anti-cheat surface:
@@ -12,7 +13,8 @@
 //   - /run/start issues a server-timestamped run row and an HMAC token bound to (runId, startedAt).
 //   - Every subsequent call MUST present runId + token; HMAC is verified.
 //   - /run/submit verifies all REQUIRED_CHECKPOINTS were recorded before submission.
-//   - Elapsed time is computed server-side (submitted_at - started_at). The client cannot supply a time.
+//   - Elapsed time is computed server-side (submitted_at - segment_started_at).
+//   - `run_id` is session-scoped; rebooting keeps run_id and resets segment timer.
 //   - Per-IP rate limit on /run/start.
 //   - Names enforced server-side: ^[A-Z0-9]{1,6}$, unique.
 //   - Each run can only be submitted once (status flips to 'submitted').
@@ -64,6 +66,8 @@ const safeJson = async (request: Request): Promise<Record<string, unknown>> => {
 interface RunRow {
   run_id: string;
   started_at: number;
+  segment_started_at: number;
+  reboot_count: number;
   submitted_at: number | null;
   status: string;
   checkpoints: string;
@@ -71,7 +75,7 @@ interface RunRow {
 
 const loadRun = async (env: Env, runId: string): Promise<RunRow | null> => {
   return env.DB.prepare(
-    'SELECT run_id, started_at, submitted_at, status, checkpoints FROM runs WHERE run_id = ?'
+    'SELECT run_id, started_at, segment_started_at, reboot_count, submitted_at, status, checkpoints FROM runs WHERE run_id = ?'
   )
     .bind(runId)
     .first<RunRow>();
@@ -138,14 +142,43 @@ const handleStart = async (
 
   const runId = crypto.randomUUID();
   const startedAt = Date.now();
-  await env.DB.prepare(
-    `INSERT INTO runs (run_id, started_at, status, checkpoints, client_ip, ua)
-       VALUES (?, ?, 'open', '{}', ?, ?)`
-  )
-    .bind(runId, startedAt, ip, ua)
+  await env.DB
+    .prepare(
+      `INSERT INTO runs (run_id, started_at, segment_started_at, reboot_count, status, checkpoints, client_ip, ua)
+       VALUES (?, ?, ?, 0, 'open', '{}', ?, ?)`
+    )
+    .bind(runId, startedAt, startedAt, ip, ua)
     .run();
   const token = await signRunToken(env.RUN_TOKEN_SECRET, runId, startedAt);
   return json({ ok: true, runId, startedAt, token }, 200, cors);
+};
+
+const handleReboot = async (
+  request: Request,
+  env: Env,
+  cors: HeadersInit
+): Promise<Response> => {
+  const body = await safeJson(request);
+  const result = await verifyAuth(env, body.runId, body.token);
+  if ('fail' in result) {
+    return error(
+      result.fail.code,
+      result.fail.message,
+      result.fail.status,
+      cors
+    );
+  }
+  if (result.status !== 'open') {
+    return error('RUN_CLOSED', 'Run is not open', 409, cors);
+  }
+  const nextReboots = result.reboot_count + 1;
+  await env.DB
+    .prepare(
+      "UPDATE runs SET reboot_count = ?, segment_started_at = ?, checkpoints = '{}' WHERE run_id = ?"
+    )
+    .bind(nextReboots, Date.now(), result.run_id)
+    .run();
+  return json({ ok: true, rebootCount: nextReboots }, 200, cors);
 };
 
 const handleCheckpoint = async (
@@ -254,7 +287,7 @@ const handleSubmit = async (
   }
 
   const submittedAt = Date.now();
-  const elapsedMs = submittedAt - run.started_at;
+  const elapsedMs = submittedAt - run.segment_started_at;
   const minMs = Number.parseInt(env.MIN_RUN_MS, 10) || 0;
   const maxMs = Number.parseInt(env.MAX_RUN_MS, 10) || 900_000;
   if (elapsedMs < minMs || elapsedMs > maxMs) {
@@ -273,11 +306,12 @@ const handleSubmit = async (
   // We do this BEFORE flipping run status so a name collision lets the
   // player retry under a different name with the same run.
   try {
-    await env.DB.prepare(
-      `INSERT INTO leaderboard (name, time_ms, created_at, run_id)
-         VALUES (?, ?, ?, ?)`
-    )
-      .bind(name, elapsedMs, submittedAt, run.run_id)
+    await env.DB
+      .prepare(
+        `INSERT INTO leaderboard (name, time_ms, reboots, created_at, run_id)
+         VALUES (?, ?, ?, ?, ?)`
+      )
+      .bind(name, elapsedMs, run.reboot_count, submittedAt, run.run_id)
       .run();
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -303,7 +337,7 @@ const handleSubmit = async (
 
   const rank = await computeRank(env, elapsedMs);
   return json(
-    { ok: true, entry: { name, timeMs: elapsedMs, rank } },
+    { ok: true, entry: { name, timeMs: elapsedMs, reboots: run.reboot_count, rank } },
     200,
     cors
   );
@@ -313,17 +347,19 @@ const handleLeaderboard = async (
   env: Env,
   cors: HeadersInit
 ): Promise<Response> => {
-  const result = await env.DB.prepare(
-    `SELECT name, time_ms FROM leaderboard
+  const result = await env.DB
+    .prepare(
+      `SELECT name, time_ms, reboots FROM leaderboard
        ORDER BY time_ms ASC, created_at ASC
        LIMIT ?`
-  )
+    )
     .bind(MAX_LEADERBOARD_ROWS)
-    .all<{ name: string; time_ms: number }>();
+    .all<{ name: string; time_ms: number; reboots: number }>();
   const entries = (result.results ?? []).map((row, idx) => ({
     rank: idx + 1,
     name: row.name,
     timeMs: row.time_ms,
+    reboots: row.reboots,
   }));
   return json({ ok: true, entries }, 200, cors);
 };
@@ -386,6 +422,9 @@ export default {
       }
       if (request.method === 'POST' && path === '/run/checkpoint') {
         return handleCheckpoint(request, env, cors);
+      }
+      if (request.method === 'POST' && path === '/run/reboot') {
+        return handleReboot(request, env, cors);
       }
       if (request.method === 'POST' && path === '/run/submit') {
         return handleSubmit(request, env, cors);

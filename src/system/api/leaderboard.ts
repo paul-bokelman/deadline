@@ -4,7 +4,6 @@ import { apiGet, apiPost, ApiResult } from './client';
 
 export type CheckpointName =
   | 'password_solved'
-  | 'email_sent'
   | 'portal_captcha_cleared';
 
 export interface StartRunResponse {
@@ -24,13 +23,19 @@ export interface SubmitRunResponse {
   entry: {
     name: string;
     timeMs: number;
+    reboots: number;
     rank: number;
   };
 }
 
 export interface LeaderboardResponse {
   ok: true;
-  entries: { rank: number; name: string; timeMs: number }[];
+  entries: { rank: number; name: string; timeMs: number; reboots: number }[];
+}
+
+export interface RebootRunResponse {
+  ok: true;
+  rebootCount: number;
 }
 
 export const apiStartRun = (): Promise<ApiResult<StartRunResponse>> =>
@@ -49,6 +54,12 @@ export const apiSubmitRun = (
   name: string
 ): Promise<ApiResult<SubmitRunResponse>> =>
   apiPost<SubmitRunResponse>('/run/submit', { runId, token, name });
+
+export const apiRebootRun = (
+  runId: string,
+  token: string
+): Promise<ApiResult<RebootRunResponse>> =>
+  apiPost<RebootRunResponse>('/run/reboot', { runId, token });
 
 export const apiFetchLeaderboard = (): Promise<
   ApiResult<LeaderboardResponse>

@@ -5,9 +5,10 @@ Cloudflare Worker + D1 backend for the Deadline leaderboard.
 ## Architecture
 
 - `POST /run/start` — issues a `runId`, server-side `startedAt`, and an HMAC `token`.
-- `POST /run/checkpoint` — records a server-timestamped milestone for a run. Required milestones (set in `wrangler.toml`): `password_solved`, `email_sent`, `portal_captcha_cleared`.
-- `POST /run/submit` — verifies token + all required checkpoints, computes `elapsedMs` from server timestamps, inserts a leaderboard row, returns the row + rank.
-- `GET /leaderboard` — top 100 entries, sorted by time ascending, with rank.
+- `POST /run/reboot` — keeps the same `runId`, increments `reboot_count`, resets the current segment timer.
+- `POST /run/checkpoint` — records a server-timestamped milestone for a run. Required milestones (set in `wrangler.toml`): `password_solved`, `portal_captcha_cleared`.
+- `POST /run/submit` — verifies token + all required checkpoints, computes `elapsedMs` from server timestamps, inserts a leaderboard row (`time_ms` + `reboots`), returns the row + rank.
+- `GET /leaderboard` — top 100 entries, sorted by time ascending, with rank + reboot count.
 
 Anti-cheat properties:
 
@@ -69,7 +70,7 @@ Configured via the `ALLOWED_ORIGINS` var in `wrangler.toml` (comma-separated). T
 | Var | Default | Purpose |
 | --- | --- | --- |
 | `ALLOWED_ORIGINS` | `https://deadline.pab.dev,http://localhost:5173,http://localhost:4173` | CORS allow-list |
-| `REQUIRED_CHECKPOINTS` | `password_solved,email_sent,portal_captcha_cleared` | Milestones a run must hit before submission |
+| `REQUIRED_CHECKPOINTS` | `password_solved,portal_captcha_cleared` | Milestones a run must hit before submission |
 | `MAX_RUN_MS` | `900000` (15 min) | Reject runs longer than this |
 | `MIN_RUN_MS` | `0` | Reject runs shorter than this |
 | `RATE_LIMIT_STARTS_PER_MIN` | `30` | Per-IP cap on new run starts per minute |

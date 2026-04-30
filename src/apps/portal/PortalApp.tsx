@@ -584,7 +584,6 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
     if (hasEventFired(PORTAL_RESET_EVENT_ID)) return;
     markEventFired(PORTAL_RESET_EVENT_ID);
     gameEventBus.emit('email:delivered', { emailId: PORTAL_RESET_EMAIL_ID });
-    recordCheckpoint('email_sent');
   };
 
   return (
