@@ -95,7 +95,7 @@ const Desktop: FunctionComponent<Props> = ({
   background = '',
   openApp,
 }: Props) => {
-  const { flags, setFlags } = useGameState();
+  const { flags, setFlags, rebootGame } = useGameState();
   const desktopWorkingDir = getDirFromPath('C:/Windows/Desktop', myComputerFs);
   const { files, focusOnFile, removeFocus } = useShellFilesState(
     desktopWorkingDir,
@@ -923,7 +923,13 @@ const Desktop: FunctionComponent<Props> = ({
 
       if (file.id === 'popup-launcher') return;
 
-      if (file.type === 'app') openApp({ appId: file.appId });
+      if (file.type === 'app') {
+        if (file.id === 'click-me-reset') {
+          rebootGame();
+          return;
+        }
+        openApp({ appId: file.appId });
+      }
       if (file.type === 'dir') {
         if (file.fileSystemDir.dirType === 'recycleBin') {
           openApp({ appId: 'recycleBinViewer' });
@@ -948,7 +954,7 @@ const Desktop: FunctionComponent<Props> = ({
         });
       }
     },
-    [openApp]
+    [openApp, rebootGame]
   );
 
   const handleIconDragStart = useCallback((event: DragEvent): void => {

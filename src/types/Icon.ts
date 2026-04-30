@@ -49,6 +49,7 @@ export const iconIds = [
   'mediaPlayer',
   'menuArrow',
   'midiFile',
+  'minesweeper',
   'modems',
   'mouse',
   'msn',

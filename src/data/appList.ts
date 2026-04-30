@@ -315,7 +315,7 @@ export const appList: AppList = {
   },
   minesweeper: {
     id: 'minesweeper',
-    iconId: 'smiley',
+    iconId: 'minesweeper',
     name: 'Minesweeper',
     size: { width: 360, height: 460 },
   },
