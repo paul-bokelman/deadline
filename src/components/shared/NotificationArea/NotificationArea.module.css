@@ -164,6 +164,31 @@
   line-height: 1;
 }
 
+.vibeJam {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 6px 0 0;
+  padding: 0 6px;
+  height: 18px;
+  background: #000;
+  color: #fff;
+  font-family: var(--font-family-sys);
+  font-size: 10px;
+  line-height: 1;
+  text-decoration: none;
+  border: 1px solid #000;
+  cursor: pointer;
+}
+
+.vibeJam:hover {
+  background: #1a1a1a;
+}
+
+.vibeJam:active {
+  background: #2a2a2a;
+}
+
 .ramUsageWarning {
   color: #ffffff;
   background: #b00000;

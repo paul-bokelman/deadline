@@ -11,6 +11,13 @@
       type="image/png"
       href="./src/assets/img/icons/windowsLogo/windows_logo_32.png"
     />
+    <style>
+      /* Hide the auto-injected Vibe Jam 2026 floating widget; we render our own
+         button in the taskbar. The script still runs for heartbeat tracking. */
+      body > a[href="https://vibej.am/"] {
+        display: none !important;
+      }
+    </style>
   </head>
   <body>
     <noscript>

@@ -430,6 +430,15 @@ const NotificationArea: FunctionComponent = () => {
           </div>
         </div>
       )}
+      <a
+        className={style.vibeJam}
+        href="https://vibej.am/"
+        target="_blank"
+        rel="noreferrer noopener"
+        title="Vibe Jam 2026"
+      >
+        <span aria-hidden="true">🕹️</span> Vibe Jam 2026
+      </a>
       <button
         className={`${style.ramUsage} ${
           isRamUsageCritical ? style.ramUsageWarning : ''
