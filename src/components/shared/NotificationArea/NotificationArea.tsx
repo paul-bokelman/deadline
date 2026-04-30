@@ -33,7 +33,7 @@ const formatTrayTime = (date: Date) =>
   });
 
 const NotificationArea: FunctionComponent = () => {
-  const { rebootGame, flags } = useGameState();
+  const { activeNetVoiceCallId, rebootGame, flags } = useGameState();
   const { focusOnWindow, openApp, unMinimizeWindow, windows } =
     useContext(OpenWindowsContext);
   const popupCount = useIntrusivePopupCount();
@@ -52,9 +52,14 @@ const NotificationArea: FunctionComponent = () => {
   const [volumePercent, setVolumePercent] = useState(getMasterVolumePercent());
   const [isVolumeFlyoutOpen, setIsVolumeFlyoutOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isFullscreenRecommendationVisible, setIsFullscreenRecommendationVisible] =
+    useState(false);
   const [isRamCrashActive, setIsRamCrashActive] = useState(false);
   const [clockText, setClockText] = useState(formatTrayTime(getGameDate()));
-  const totalWindowCount = windows.length + popupCount;
+  const extraRamLoadCount =
+    (activeNetVoiceCallId ? 1 : 0) +
+    (isFullscreenRecommendationVisible ? 1 : 0);
+  const totalWindowCount = windows.length + popupCount + extraRamLoadCount;
   const usedRamMb = useMemo(
     () => calculateUsedRamMb(totalWindowCount),
     [totalWindowCount]
@@ -272,6 +277,12 @@ const NotificationArea: FunctionComponent = () => {
     };
   }, []);
 
+  useEffect(() => {
+    return gameEventBus.on('fullscreen:recommendation_visibility', ({ isVisible }) => {
+      setIsFullscreenRecommendationVisible(isVisible);
+    });
+  }, []);
+
   const handleMuteToggle = () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -379,7 +390,7 @@ const NotificationArea: FunctionComponent = () => {
   return (
     <div className={style.notificationArea}>
       {isRamCrashActive && (
-        <div className={style.ramCrashOverlay}>
+        <div className={`${style.ramCrashOverlay} bsod-overlay`}>
           <div>
             A fatal exception 0E has occurred at 0028:C0011E36 in VXD
             VMM(01) + 00010E36.

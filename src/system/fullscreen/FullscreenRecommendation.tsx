@@ -20,6 +20,15 @@ const FullscreenRecommendation: FunctionComponent = () => {
     });
   }, []);
 
+  useEffect(() => {
+    gameEventBus.emit('fullscreen:recommendation_visibility', { isVisible });
+    return () => {
+      gameEventBus.emit('fullscreen:recommendation_visibility', {
+        isVisible: false,
+      });
+    };
+  }, [isVisible]);
+
   const coords = useMemo(
     () => ({
       x: Math.max(0, Math.round((window.innerWidth - WIDTH) / 2)),

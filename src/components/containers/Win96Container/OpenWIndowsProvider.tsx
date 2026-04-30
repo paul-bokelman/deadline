@@ -127,6 +127,16 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
       return;
     }
 
+    if (appId === 'clickMeReset') {
+      for (let i = 0; i < 3; i += 1) {
+        gameEventBus.emit('popup:test_spawn_random', {
+          x: 80 + Math.round(Math.random() * 280),
+          y: 60 + Math.round(Math.random() * 180),
+        });
+      }
+      return;
+    }
+
     if (appId === 'myComputer' && workingDir?.name === 'DoNotOpen') {
       rebootGame();
       return;

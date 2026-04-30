@@ -111,6 +111,12 @@ export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
   const fileNameOverrides = flags.dynamicFileNameOverrides ?? {};
   const dynamicItems: ShellItem[] = [
     createAppShellItem(
+      'funware-reset',
+      'clickMeReset',
+      'FunWare',
+      'gameSpider0'
+    ),
+    createAppShellItem(
       'click-me-reset',
       'clickMeReset',
       'Click Me',

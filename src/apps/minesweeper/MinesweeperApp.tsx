@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 import { AppProps } from '../../types/App';
 
 type GameStatus = 'idle' | 'playing' | 'won' | 'lost';
+type FaceMood = 'normal' | 'dead' | 'cool';
 
 interface Cell {
   isMine: boolean;
@@ -15,48 +16,69 @@ interface Cell {
 const WIDTH = 9;
 const HEIGHT = 9;
 const MINES = 10;
+const CELL_SIZE_PX = 26;
 
-const panelStyle: JSX.CSSProperties = {
-  margin: '8px',
-  height: 'calc(100% - 16px)',
+const appStyle: JSX.CSSProperties = {
+  height: '100%',
   padding: '10px',
-  backgroundColor: 'var(--button-highlight)',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+  backgroundColor: '#c0c0c0',
+  boxSizing: 'border-box',
   display: 'flex',
   flexDirection: 'column',
-  gap: '10px',
+};
+
+const frameStyle: JSX.CSSProperties = {
+  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+  padding: '8px',
+  backgroundColor: '#c0c0c0',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
 };
 
 const statusRowStyle: JSX.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  backgroundColor: '#ffffff',
-  boxShadow: 'var(--border-field)',
-  padding: '8px 10px',
-  fontFamily: 'monospace',
+  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+  backgroundColor: '#c0c0c0',
+  padding: '6px',
 };
 
-const resetButtonStyle: JSX.CSSProperties = {
+const digitStyle: JSX.CSSProperties = {
+  width: '54px',
+  height: '34px',
+  backgroundColor: '#000000',
+  color: '#ff2d2d',
+  fontFamily: '"Courier New", monospace',
+  fontSize: '30px',
+  lineHeight: '34px',
+  textAlign: 'center',
+  letterSpacing: '1px',
+  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+  userSelect: 'none',
+};
+
+const smileyButtonStyle: JSX.CSSProperties = {
+  width: '34px',
+  height: '34px',
   border: 'none',
-  background:
-    'radial-gradient(circle at 35% 35%, #fff2ad 0 25%, #ffd84f 26% 100%)',
+  backgroundColor: '#c0c0c0',
   boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
-  minWidth: '38px',
-  height: '28px',
+  display: 'grid',
+  placeItems: 'center',
   cursor: 'pointer',
-  fontSize: '13px',
-  fontFamily: 'monospace',
-  fontWeight: 700,
-  borderRadius: '4px',
+  padding: 0,
 };
 
 const boardStyle: JSX.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: `repeat(${WIDTH}, 1fr)`,
-  gap: '2px',
-  backgroundColor: 'var(--button-shadow)',
-  padding: '2px',
+  gridTemplateColumns: `repeat(${WIDTH}, ${CELL_SIZE_PX}px)`,
+  gridTemplateRows: `repeat(${HEIGHT}, ${CELL_SIZE_PX}px)`,
+  justifyContent: 'center',
+  alignContent: 'start',
+  backgroundColor: '#bdbdbd',
+  padding: '4px',
   boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
 };
 
@@ -191,6 +213,7 @@ const MinesweeperApp: FunctionComponent<AppProps> = () => {
       ),
     [board]
   );
+  const minesLeft = MINES - flaggedCount;
 
   const reset = () => {
     setBoard(createEmptyBoard());
@@ -241,88 +264,145 @@ const MinesweeperApp: FunctionComponent<AppProps> = () => {
     setBoard(nextBoard);
   };
 
-  const getStatusFace = () => {
-    if (status === 'won') return 'B-)';
-    if (status === 'lost') return 'X-(';
-    return ':-)';
+  const getStatusFace = (): FaceMood => {
+    if (status === 'won') return 'cool';
+    if (status === 'lost') return 'dead';
+    return 'normal';
+  };
+
+  const renderFace = (mood: FaceMood): JSX.Element => {
+    const eyeStyle = { fill: '#000000' };
+    return (
+      <svg
+        aria-hidden
+        height="22"
+        shapeRendering="crispEdges"
+        style={{ imageRendering: 'pixelated' }}
+        viewBox="0 0 22 22"
+        width="22"
+      >
+        <rect fill="#000000" height="22" width="22" x="0" y="0" />
+        <rect fill="#ffff00" height="20" width="20" x="1" y="1" />
+        <rect fill="#f5cb00" height="18" width="18" x="2" y="2" />
+        <rect fill="#ffff33" height="14" width="14" x="4" y="4" />
+
+        {mood === 'dead' ? (
+          <>
+            <rect {...eyeStyle} height="1" width="3" x="5" y="7" />
+            <rect {...eyeStyle} height="1" width="3" x="14" y="7" />
+            <rect {...eyeStyle} height="1" width="1" x="6" y="6" />
+            <rect {...eyeStyle} height="1" width="1" x="6" y="8" />
+            <rect {...eyeStyle} height="1" width="1" x="15" y="6" />
+            <rect {...eyeStyle} height="1" width="1" x="15" y="8" />
+            <rect fill="#000000" height="1" width="8" x="7" y="14" />
+          </>
+        ) : (
+          <>
+            <rect {...eyeStyle} height="3" width="3" x="6" y="7" />
+            <rect {...eyeStyle} height="3" width="3" x="13" y="7" />
+            <rect fill="#000000" height="1" width="10" x="6" y="14" />
+            <rect fill="#000000" height="1" width="1" x="6" y="13" />
+            <rect fill="#000000" height="1" width="1" x="15" y="13" />
+            {mood === 'cool' && (
+              <>
+                <rect fill="#000000" height="3" width="5" x="4" y="6" />
+                <rect fill="#000000" height="3" width="5" x="13" y="6" />
+                <rect fill="#000000" height="1" width="4" x="9" y="7" />
+              </>
+            )}
+          </>
+        )}
+      </svg>
+    );
+  };
+
+  const formatDisplayNumber = (value: number): string => {
+    const clamped = Math.max(-99, Math.min(999, value));
+    const abs = Math.abs(clamped);
+    const padded = String(abs).padStart(3, '0');
+    return clamped < 0 ? `-${String(abs).padStart(2, '0')}` : padded;
+  };
+
+  const getCellNumberColor = (value: number): string => {
+    if (value === 1) return '#0000ff';
+    if (value === 2) return '#007b00';
+    if (value === 3) return '#ff0000';
+    if (value === 4) return '#000080';
+    if (value === 5) return '#800000';
+    if (value === 6) return '#008080';
+    if (value === 7) return '#000000';
+    return '#808080';
   };
 
   const getCellStyle = (cell: Cell): JSX.CSSProperties => {
     const isRevealed = cell.isRevealed || (status === 'lost' && cell.isMine);
     return {
-      width: '100%',
-      aspectRatio: '1 / 1',
+      width: `${CELL_SIZE_PX}px`,
+      height: `${CELL_SIZE_PX}px`,
       border: 'none',
       fontWeight: 700,
-      fontFamily: 'var(--font-family-sys)',
+      fontFamily: '"Tahoma", "MS Sans Serif", var(--font-family-ui)',
+      fontSize: '18px',
+      lineHeight: 1,
       cursor: isRevealed ? 'default' : 'pointer',
-      backgroundColor: isRevealed ? '#d6d6d6' : 'var(--surface)',
+      backgroundColor: isRevealed ? '#c0c0c0' : '#c0c0c0',
       boxShadow: isRevealed
-        ? 'inset 1px 1px 0 #a0a0a0'
+        ? 'inset 1px 1px 0 #8d8d8d'
         : 'var(--border-raised-outer), var(--border-raised-inner)',
-      color:
-        cell.adjacentMines === 1
-          ? '#0000ff'
-          : cell.adjacentMines === 2
-          ? '#007b00'
-          : cell.adjacentMines === 3
-          ? '#cc0000'
-          : cell.adjacentMines >= 4
-          ? '#1b1b8a'
-          : '#000000',
+      color: getCellNumberColor(cell.adjacentMines),
+      padding: 0,
+      display: 'grid',
+      placeItems: 'center',
     };
   };
 
   return (
-    <div style={panelStyle}>
-      <div style={statusRowStyle}>
-        <div>Mines: {Math.max(0, MINES - flaggedCount)}</div>
-        <button onClick={reset} style={resetButtonStyle} type="button">
-          {getStatusFace()}
-        </button>
-        <div>Time: {elapsedSeconds}s</div>
-      </div>
+    <div style={appStyle}>
+      <div style={frameStyle}>
+        <div style={statusRowStyle}>
+          <div style={digitStyle}>{formatDisplayNumber(minesLeft)}</div>
+          <button
+            onClick={reset}
+            style={smileyButtonStyle}
+            title="New Game"
+            type="button"
+          >
+            {renderFace(getStatusFace())}
+          </button>
+          <div style={digitStyle}>{formatDisplayNumber(elapsedSeconds)}</div>
+        </div>
 
-      <div style={boardStyle}>
-        {board.map((row, rowIndex) =>
-          row.map((cell, colIndex) => {
-            const showMine = cell.isRevealed && cell.isMine;
-            const showNumber = cell.isRevealed && !cell.isMine && cell.adjacentMines > 0;
-            const content = cell.isFlagged
-              ? '🚩'
-              : showMine
-              ? '💣'
-              : showNumber
-              ? String(cell.adjacentMines)
-              : '';
+        <div style={boardStyle}>
+          {board.map((row, rowIndex) =>
+            row.map((cell, colIndex) => {
+              const showMine = cell.isRevealed && cell.isMine;
+              const showNumber =
+                cell.isRevealed && !cell.isMine && cell.adjacentMines > 0;
+              const content = cell.isFlagged
+                ? '⚑'
+                : showMine
+                ? '✹'
+                : showNumber
+                ? String(cell.adjacentMines)
+                : '';
 
-            return (
-              <button
-                key={`${rowIndex}-${colIndex}`}
-                onClick={() => revealCell(rowIndex, colIndex)}
-                onContextMenu={(event) => {
-                  event.preventDefault();
-                  toggleFlag(rowIndex, colIndex);
-                }}
-                style={getCellStyle(cell)}
-                type="button"
-              >
-                {content}
-              </button>
-            );
-          })
-        )}
-      </div>
-
-      <div
-        style={{
-          backgroundColor: '#ffffff',
-          boxShadow: 'var(--border-field)',
-          padding: '8px',
-          fontSize: '12px',
-        }}
-      >
-        Left click to reveal. Right click to place a flag.
+              return (
+                <button
+                  key={`${rowIndex}-${colIndex}`}
+                  onClick={() => revealCell(rowIndex, colIndex)}
+                  onContextMenu={(event) => {
+                    event.preventDefault();
+                    toggleFlag(rowIndex, colIndex);
+                  }}
+                  style={getCellStyle(cell)}
+                  type="button"
+                >
+                  {content}
+                </button>
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );

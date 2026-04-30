@@ -16,7 +16,8 @@ export const Z_INDEX_TIERS = {
   // Ambient critters sit above all gameplay layers but below the bluescreen
   // sequence and the bootloader takeover.
   ambientCritter: 5_000_000,
-  bluescreen: 6_000_000,
+  // Bluescreen must sit above *everything* in the game UI.
+  bluescreen: 100_000_000,
 } as const;
 
 let normalCounter = Z_INDEX_TIERS.normalBase + 1;

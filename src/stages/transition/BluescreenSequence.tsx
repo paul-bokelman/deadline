@@ -208,7 +208,7 @@ const BluescreenSequence: FunctionComponent = () => {
       )}
 
       {phase === 'bluescreen' && (
-        <div style={bluescreenStyle}>
+        <div className="bsod-overlay" style={bluescreenStyle}>
           <div>A fatal error has occurred. ERROR: IT_GUY_MESSED_UP</div>
           <div style={{ marginTop: '16px' }}>
             The current application will be terminated.
@@ -233,7 +233,7 @@ const BluescreenSequence: FunctionComponent = () => {
       )}
 
       {phase === 'rebooting' && (
-        <div style={rebootStyle}>
+        <div className="bsod-overlay" style={rebootStyle}>
           <div>
             <div>Windows 96 is restarting...</div>
             <div style={{ marginTop: '12px' }}>Loading system modules...</div>

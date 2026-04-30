@@ -1,10 +1,11 @@
 import { h, FunctionComponent } from 'preact';
-import { useContext, useMemo, useState } from 'preact/hooks';
+import { useContext, useEffect, useMemo, useState } from 'preact/hooks';
 
 import OpenWindowsContext from '../../context/OpenWindowsContext';
 import { AppProps } from '../../types/App';
 import { useGameState } from '../../game/state';
 import { useIntrusivePopupCount } from '../../system/intrusivePopups/useIntrusivePopupCount';
+import { gameEventBus } from '../../game/events';
 import {
   calculateUsedRamMb,
   MAX_RAM_MB,
@@ -19,11 +20,22 @@ const SystemPerformanceApp: FunctionComponent<AppProps> = ({
   closeWindow,
 }: AppProps) => {
   const { windows } = useContext(OpenWindowsContext);
-  const { rebootGame } = useGameState();
+  const { activeNetVoiceCallId, rebootGame } = useGameState();
   const popupCount = useIntrusivePopupCount();
   const [isApplyingPatch, setIsApplyingPatch] = useState(false);
+  const [isFullscreenRecommendationVisible, setIsFullscreenRecommendationVisible] =
+    useState(false);
 
-  const windowCount = windows.length + popupCount;
+  useEffect(() => {
+    return gameEventBus.on('fullscreen:recommendation_visibility', ({ isVisible }) => {
+      setIsFullscreenRecommendationVisible(isVisible);
+    });
+  }, []);
+
+  const extraRamLoadCount =
+    (activeNetVoiceCallId ? 1 : 0) +
+    (isFullscreenRecommendationVisible ? 1 : 0);
+  const windowCount = windows.length + popupCount + extraRamLoadCount;
   const usedRamMb = useMemo(() => calculateUsedRamMb(windowCount), [windowCount]);
   const usagePercent = useMemo(
     () => (usedRamMb / MAX_RAM_MB) * 100,
@@ -66,7 +78,8 @@ const SystemPerformanceApp: FunctionComponent<AppProps> = ({
           <div className={style.metricLabel}>Open Windows</div>
           <div className={style.metricValue}>{windowCount}</div>
           <div className={style.metricNote}>
-            {windows.length} app windows + {popupCount} popups.
+            {windows.length} app windows + {popupCount} popups + {extraRamLoadCount}{' '}
+            overlay/service load.
           </div>
         </div>
       </div>

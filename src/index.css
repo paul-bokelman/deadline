@@ -227,3 +227,16 @@ code, code * {
     filter: saturate(1);
   }
 }
+
+body.bsod-active #root {
+  visibility: visible !important;
+}
+
+body.bsod-active #root * {
+  visibility: hidden !important;
+}
+
+body.bsod-active #root .bsod-overlay,
+body.bsod-active #root .bsod-overlay * {
+  visibility: visible !important;
+}
