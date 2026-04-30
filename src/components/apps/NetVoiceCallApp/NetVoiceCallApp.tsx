@@ -54,6 +54,9 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
   const callAudioRef = useRef<HTMLAudioElement | null>(null);
   const callOverAudioRef = useRef<HTMLAudioElement | null>(null);
   const hasEndedCallRef = useRef(false);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const compressorRef = useRef<DynamicsCompressorNode | null>(null);
+  const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
 
   const call = activeNetVoiceCallId
     ? netVoiceCalls[activeNetVoiceCallId]
@@ -66,6 +69,58 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
     stopCallOverSfx(callOverAudioRef.current);
     callOverAudioRef.current = null;
   }, []);
+
+  const teardownCallNormalization = useCallback(() => {
+    sourceNodeRef.current?.disconnect();
+    sourceNodeRef.current = null;
+  }, []);
+
+  const attachCallNormalization = useCallback(
+    (audio: HTMLAudioElement) => {
+      try {
+        const contextCtor =
+          window.AudioContext ||
+          (window as Window & { webkitAudioContext?: typeof AudioContext })
+            .webkitAudioContext;
+        if (!contextCtor) return;
+
+        if (!audioContextRef.current) {
+          const context = new contextCtor();
+          const compressor = context.createDynamicsCompressor();
+          compressor.threshold.value = -24;
+          compressor.knee.value = 20;
+          compressor.ratio.value = 10;
+          compressor.attack.value = 0.003;
+          compressor.release.value = 0.25;
+
+          const makeupGain = context.createGain();
+          makeupGain.gain.value = 1.15;
+
+          compressor.connect(makeupGain);
+          makeupGain.connect(context.destination);
+
+          audioContextRef.current = context;
+          compressorRef.current = compressor;
+        }
+
+        const context = audioContextRef.current;
+        const compressor = compressorRef.current;
+        if (!context || !compressor) return;
+
+        teardownCallNormalization();
+        const source = context.createMediaElementSource(audio);
+        source.connect(compressor);
+        sourceNodeRef.current = source;
+
+        if (context.state === 'suspended') {
+          void context.resume().catch(() => undefined);
+        }
+      } catch {
+        // If WebAudio is unavailable, keep default HTMLAudio playback.
+      }
+    },
+    [teardownCallNormalization]
+  );
 
   useEffect(() => {
     setIsAccepted(false);
@@ -111,8 +166,9 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
     return () => {
       stopCallOverTone();
       callAudioRef.current?.pause();
+      teardownCallNormalization();
     };
-  }, [stopCallOverTone]);
+  }, [stopCallOverTone, teardownCallNormalization]);
 
   const handleAccept = useCallback(() => {
     if (isAccepted || !activeNetVoiceCallId || !call) return;
@@ -123,6 +179,7 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
 
     const callAudio = new Audio(call.audioPath);
     registerManagedAudio(callAudio, CALL_AUDIO_VOLUME);
+    attachCallNormalization(callAudio);
     callAudioRef.current = callAudio;
     callAudio.addEventListener(
       'ended',
@@ -153,6 +210,7 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
       if (ringAudioRef.current) ringAudioRef.current.currentTime = 0;
       callAudioRef.current?.pause();
       if (callAudioRef.current) callAudioRef.current.currentTime = 0;
+      teardownCallNormalization();
       setIsAudioFinished(true);
       gameEventBus.emit('netvoice:call_ended', {
         callId: call.id,
@@ -160,7 +218,7 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
         reason,
       });
     },
-    [call, stopCallOverTone]
+    [call, stopCallOverTone, teardownCallNormalization]
   );
 
   useEffect(() => {

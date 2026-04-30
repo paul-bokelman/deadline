@@ -7,6 +7,7 @@ import { getZipNameForLevel } from '../../game/download/archive';
 import { useGameState } from '../../game/state';
 
 const REMOTE_FIX_SHOWN_EVENT_ID = 'winrar:remote_fix:shown';
+const REMOTE_FIX_COMPLETED_EVENT_ID = 'remote_cable_fix:completed';
 
 const panelStyle: JSX.CSSProperties = {
   margin: '8px',
@@ -110,6 +111,26 @@ const WinRarExtractor: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
   };
 
   const handleExtract = () => {
+    if (!flags.hasWinRarInstalled) {
+      setUiStatusMessage(
+        flags.hasReceivedWinRarLinkEmail
+          ? 'WinRAR is not installed yet.\nA download link has been emailed to you.'
+          : 'WinRAR is not installed yet.'
+      );
+      return;
+    }
+
+    if (!hasEventFired(REMOTE_FIX_COMPLETED_EVENT_ID)) {
+      if (!hasEventFired(REMOTE_FIX_SHOWN_EVENT_ID)) {
+        markEventFired(REMOTE_FIX_SHOWN_EVENT_ID);
+      }
+      openApp({ appId: 'remoteDesktopCableFix' });
+      setUiStatusMessage(
+        'Extraction paused: Remote desktop cable disconnected.\nComplete the repair utility window to continue.'
+      );
+      return;
+    }
+
     gameEventBus.emit('popup:test_spawn_random', { x: 180, y: 120 });
     gameEventBus.emit('popup:test_spawn_random', { x: 240, y: 180 });
 
@@ -138,24 +159,19 @@ const WinRarExtractor: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
       return;
     }
     if (!flags.hasWinRarInstalled) {
-      if (
-        !flags.hasReceivedWinRarLinkEmail &&
-        !hasEventFired(REMOTE_FIX_SHOWN_EVENT_ID)
-      ) {
-        markEventFired(REMOTE_FIX_SHOWN_EVENT_ID);
-        openApp({ appId: 'remoteDesktopCableFix' });
-        setUiStatusMessage(
-          'Network cable disconnected.\nLaunching Remote Desktop Cable Fix...'
-        );
-        setHasConfirmedProgram(false);
-        return;
+      if (!flags.hasReceivedWinRarLinkEmail) {
+        setFlag('hasReceivedWinRarLinkEmail', true);
+        gameEventBus.emit('email:delivered', { emailId: 'corp-winrar-download-link' });
+        gameEventBus.emit('email:delivered', {
+          emailId: 'corp-winrar-download-link-fake',
+        });
       }
       setUiStatusMessage(
         flags.hasReceivedWinRarLinkEmail
-          ? 'WinRAR is not installed yet.\nA download link has been emailed to you.'
-          : 'WinRAR is not installed yet.'
+          ? 'WinRAR selected.\nClick Extract to Desktop to continue setup.'
+          : 'WinRAR selected.\nDownload link sent to your email.'
       );
-      setHasConfirmedProgram(false);
+      setHasConfirmedProgram(true);
       return;
     }
     setUiStatusMessage('WinRAR selected. Ready to extract.');

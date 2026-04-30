@@ -182,9 +182,6 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
       if (nextProgress >= 100) {
         setPhase('complete');
         setFlag('hasWinRarInstalled', true);
-        setFlag('hasZipFile', true);
-        setFlag('zipExtractionLevel', 1);
-        setFlag('zipGarbageBatch', 0);
         gameEventBus.emit('popup:test_spawn_random', { x: 220, y: 140 });
         return;
       }

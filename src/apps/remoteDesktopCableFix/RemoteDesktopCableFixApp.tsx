@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 import { gameEventBus } from '../../game/events';
 import { useGameState } from '../../game/state';
 import { AppProps } from '../../types/App';
+import MenuBar from '../../components/shared/MenuBar/MenuBar';
+import StatusBar from '../../components/shared/StatusBar/StatusBar';
+import WindowContent from '../../components/shared/WindowContent/WindowContent';
 
 import style from './RemoteDesktopCableFixApp.module.css';
 
@@ -15,14 +18,18 @@ type TileDef = {
   rotation: 0 | 1 | 2 | 3;
   fixed?: boolean;
 };
+type Coord = { x: number; y: number };
 
 const COMPLETED_EVENT_ID = 'remote_cable_fix:completed';
 
-const BOARD_W = 9;
-const BOARD_H = 9;
+const BOARD_W = 10;
+const BOARD_H = 10;
+const MIN_WRONG_ROTATIONS = 40;
+const SCRAMBLE_ATTEMPTS = 140;
+const TILE_SIZE = 36;
 
-const START = { x: 0, y: 4 };
-const END = { x: BOARD_W - 1, y: 4 };
+const START = { x: 0, y: 5 };
+const END = { x: BOARD_W - 1, y: 5 };
 
 const rotateDir = (dir: Dir, steps: number): Dir => {
   const order: Dir[] = ['N', 'E', 'S', 'W'];
@@ -82,81 +89,132 @@ const step = (x: number, y: number, dir: Dir): { x: number; y: number } => {
 const inBounds = (x: number, y: number) =>
   x >= 0 && y >= 0 && x < BOARD_W && y < BOARD_H;
 
+const sameConnections = (a: Set<Dir>, b: Set<Dir>): boolean => {
+  if (a.size !== b.size) return false;
+  for (const dir of a) {
+    if (!b.has(dir)) return false;
+  }
+  return true;
+};
+
+const rotationForConnections = (
+  type: Exclude<TileType, 'empty'>,
+  dirs: Set<Dir>
+): 0 | 1 | 2 | 3 => {
+  for (let rotation = 0 as 0 | 1 | 2 | 3; rotation < 4; rotation += 1) {
+    const con = connectionsFor({ type, rotation });
+    if (sameConnections(con, dirs)) return rotation;
+  }
+  return 0;
+};
+
+const tileFromConnections = (dirs: Set<Dir>, fixed = false): TileDef => {
+  if (dirs.size === 1) {
+    return {
+      type: 'end',
+      rotation: rotationForConnections('end', dirs),
+      fixed,
+    };
+  }
+  if (dirs.size === 2) {
+    const hasOppositePair =
+      (dirs.has('N') && dirs.has('S')) || (dirs.has('E') && dirs.has('W'));
+    const type: TileType = hasOppositePair ? 'straight' : 'elbow';
+    return {
+      type,
+      rotation: rotationForConnections(type, dirs),
+      fixed,
+    };
+  }
+  if (dirs.size === 3) {
+    return {
+      type: 'tee',
+      rotation: rotationForConnections('tee', dirs),
+      fixed,
+    };
+  }
+  return {
+    type: 'cross',
+    rotation: 0,
+    fixed,
+  };
+};
+
+const dirBetween = (a: Coord, b: Coord): Dir => {
+  if (b.x === a.x + 1 && b.y === a.y) return 'E';
+  if (b.x === a.x - 1 && b.y === a.y) return 'W';
+  if (b.x === a.x && b.y === a.y + 1) return 'S';
+  return 'N';
+};
+
 const buildSolvedBoard = (): TileDef[] => {
   const empty = (): TileDef => ({ type: 'empty', rotation: 0 });
   const board: TileDef[] = Array.from({ length: BOARD_W * BOARD_H }, empty);
 
   const at = (x: number, y: number) => y * BOARD_W + x;
-  const set = (x: number, y: number, tile: TileDef) => {
-    board[at(x, y)] = tile;
+  const connections = new Map<number, Set<Dir>>();
+  const addConnection = (from: Coord, to: Coord) => {
+    const fromKey = at(from.x, from.y);
+    const toKey = at(to.x, to.y);
+    const fromSet = connections.get(fromKey) ?? new Set<Dir>();
+    const toSet = connections.get(toKey) ?? new Set<Dir>();
+    fromSet.add(dirBetween(from, to));
+    toSet.add(dirBetween(to, from));
+    connections.set(fromKey, fromSet);
+    connections.set(toKey, toSet);
   };
 
-  // Start and end endpoints.
-  set(START.x, START.y, { type: 'end', rotation: 0, fixed: true });
-  set(END.x, END.y, { type: 'end', rotation: 2, fixed: true });
+  const addPath = (points: Coord[]) => {
+    for (let i = 0; i < points.length - 1; i += 1) {
+      addConnection(points[i]!, points[i + 1]!);
+    }
+  };
 
-  // A gnarly, leakless network with lots of forced rotations.
-  // Main spine across center with detours.
-  set(1, 4, { type: 'tee', rotation: 1 });
-  set(2, 4, { type: 'straight', rotation: 1 });
-  set(3, 4, { type: 'elbow', rotation: 2 });
-  set(3, 5, { type: 'tee', rotation: 2 });
-  set(3, 6, { type: 'straight', rotation: 0 });
-  set(3, 7, { type: 'elbow', rotation: 3 });
-  set(2, 7, { type: 'straight', rotation: 1 });
-  set(1, 7, { type: 'elbow', rotation: 0 });
-  set(1, 6, { type: 'tee', rotation: 3 });
-  set(0, 6, { type: 'elbow', rotation: 1 });
-  set(0, 5, { type: 'straight', rotation: 0 });
-  set(0, 3, { type: 'elbow', rotation: 0 });
-  set(1, 3, { type: 'straight', rotation: 1 });
-  set(2, 3, { type: 'elbow', rotation: 2 });
-  set(2, 2, { type: 'tee', rotation: 0 });
-  set(3, 2, { type: 'straight', rotation: 1 });
-  set(4, 2, { type: 'elbow', rotation: 2 });
-  set(4, 3, { type: 'straight', rotation: 0 });
-  set(4, 4, { type: 'tee', rotation: 1 });
-  set(5, 4, { type: 'elbow', rotation: 1 });
-  set(5, 3, { type: 'tee', rotation: 0 });
-  set(6, 3, { type: 'elbow', rotation: 2 });
-  set(6, 2, { type: 'straight', rotation: 0 });
-  set(6, 1, { type: 'elbow', rotation: 3 });
-  set(5, 1, { type: 'tee', rotation: 2 });
-  set(5, 2, { type: 'straight', rotation: 0 });
-  set(7, 1, { type: 'elbow', rotation: 1 });
-  set(7, 2, { type: 'tee', rotation: 1 });
-  set(8, 2, { type: 'elbow', rotation: 2 });
-  set(8, 3, { type: 'straight', rotation: 0 });
-  set(8, 4, { type: 'elbow', rotation: 3 });
-  set(7, 4, { type: 'straight', rotation: 1 });
-  set(6, 4, { type: 'tee', rotation: 3 });
+  // One single winding route from host to gateway (no alternate branches).
+  addPath([
+    { x: 0, y: 5 },
+    { x: 1, y: 5 },
+    { x: 1, y: 4 },
+    { x: 1, y: 3 },
+    { x: 2, y: 3 },
+    { x: 3, y: 3 },
+    { x: 3, y: 2 },
+    { x: 3, y: 1 },
+    { x: 4, y: 1 },
+    { x: 5, y: 1 },
+    { x: 6, y: 1 },
+    { x: 7, y: 1 },
+    { x: 8, y: 1 },
+    { x: 8, y: 2 },
+    { x: 8, y: 3 },
+    { x: 7, y: 3 },
+    { x: 6, y: 3 },
+    { x: 6, y: 4 },
+    { x: 6, y: 5 },
+    { x: 6, y: 6 },
+    { x: 5, y: 6 },
+    { x: 4, y: 6 },
+    { x: 3, y: 6 },
+    { x: 2, y: 6 },
+    { x: 2, y: 7 },
+    { x: 3, y: 7 },
+    { x: 4, y: 7 },
+    { x: 5, y: 7 },
+    { x: 6, y: 7 },
+    { x: 7, y: 7 },
+    { x: 8, y: 7 },
+    { x: 8, y: 6 },
+    { x: 8, y: 5 },
+    { x: 9, y: 5 },
+  ]);
 
-  // Upper-left cluster.
-  set(1, 2, { type: 'elbow', rotation: 1 });
-  set(1, 1, { type: 'tee', rotation: 2 });
-  set(0, 1, { type: 'elbow', rotation: 1 });
-  set(0, 2, { type: 'straight', rotation: 0 });
-  set(2, 1, { type: 'straight', rotation: 1 });
-  set(3, 1, { type: 'elbow', rotation: 2 });
-  set(3, 0, { type: 'straight', rotation: 1 });
-  set(4, 0, { type: 'elbow', rotation: 1 });
-  set(4, 1, { type: 'tee', rotation: 3 });
-
-  // Bottom-right cluster.
-  set(6, 5, { type: 'elbow', rotation: 0 });
-  set(6, 6, { type: 'tee', rotation: 3 });
-  set(7, 6, { type: 'straight', rotation: 1 });
-  set(8, 6, { type: 'elbow', rotation: 2 });
-  set(8, 7, { type: 'straight', rotation: 0 });
-  set(8, 8, { type: 'elbow', rotation: 3 });
-  set(7, 8, { type: 'tee', rotation: 2 });
-  set(7, 7, { type: 'straight', rotation: 0 });
-  set(6, 7, { type: 'elbow', rotation: 0 });
-  set(6, 8, { type: 'straight', rotation: 1 });
-  set(5, 8, { type: 'elbow', rotation: 1 });
-  set(5, 7, { type: 'tee', rotation: 0 });
-  set(5, 6, { type: 'straight', rotation: 0 });
-  set(5, 5, { type: 'elbow', rotation: 3 });
+  connections.forEach((dirs, index) => {
+    const x = index % BOARD_W;
+    const y = Math.floor(index / BOARD_W);
+    const isFixed =
+      (x === START.x && y === START.y) || (x === END.x && y === END.y);
+    board[index] = tileFromConnections(dirs, isFixed);
+  });
 
   return board;
 };
@@ -164,7 +222,7 @@ const buildSolvedBoard = (): TileDef[] => {
 const scrambleRotations = (tiles: TileDef[]): TileDef[] => {
   return tiles.map((t) => {
     if (t.type === 'empty' || t.fixed) return t;
-    const nextRotation = (Math.floor(Math.random() * 4) as 0 | 1 | 2 | 3) ?? 0;
+    const nextRotation = Math.floor(Math.random() * 4) as 0 | 1 | 2 | 3;
     return { ...t, rotation: nextRotation };
   });
 };
@@ -231,6 +289,30 @@ const computeNetworkState = (
   return { isConnected, hasLeaks, energized };
 };
 
+const buildChallengingScramble = (): TileDef[] => {
+  const solved = buildSolvedBoard();
+  const mutableTiles = solved.filter((tile) => tile.type !== 'empty' && !tile.fixed).length;
+  const requiredWrongRotations = Math.min(MIN_WRONG_ROTATIONS, mutableTiles);
+  let fallback = scrambleRotations(solved);
+
+  for (let attempt = 0; attempt < SCRAMBLE_ATTEMPTS; attempt += 1) {
+    const candidate = scrambleRotations(solved);
+    const wrongRotations = candidate.reduce((count, tile, index) => {
+      const solvedTile = solved[index]!;
+      if (tile.type === 'empty' || tile.fixed) return count;
+      return tile.rotation === solvedTile.rotation ? count : count + 1;
+    }, 0);
+
+    const { isConnected, hasLeaks } = computeNetworkState(candidate);
+    if (wrongRotations >= requiredWrongRotations && (!isConnected || hasLeaks)) {
+      return candidate;
+    }
+    fallback = candidate;
+  }
+
+  return fallback;
+};
+
 const WireGlyph: FunctionComponent<{
   tile: TileDef;
   energized: boolean;
@@ -252,9 +334,7 @@ const WireGlyph: FunctionComponent<{
 const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({ closeWindow }) => {
   const { flags, hasEventFired, markEventFired, setFlag } = useGameState();
 
-  const [tiles, setTiles] = useState<TileDef[]>(() =>
-    scrambleRotations(buildSolvedBoard())
-  );
+  const [tiles, setTiles] = useState<TileDef[]>(() => buildChallengingScramble());
   const [attempts, setAttempts] = useState(0);
 
   const { isConnected, hasLeaks, energized } = useMemo(
@@ -274,8 +354,8 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({ closeWindow }) 
       gameEventBus.emit('email:delivered', {
         emailId: 'corp-winrar-download-link-fake',
       });
-      gameEventBus.emit('email:delivered', { emailId: 'corp-password-reset-link' });
     }
+    gameEventBus.emit('email:delivered', { emailId: 'corp-password-reset-link' });
 
     const timer = window.setTimeout(() => {
       closeWindow();
@@ -284,17 +364,17 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({ closeWindow }) 
   }, [closeWindow, flags.hasReceivedWinRarLinkEmail, hasEventFired, isSolved, markEventFired, setFlag]);
 
   const boardStyle: JSX.CSSProperties = {
-    gridTemplateColumns: `repeat(${BOARD_W}, 42px)`,
-    gridTemplateRows: `repeat(${BOARD_H}, 42px)`,
+    gridTemplateColumns: `repeat(${BOARD_W}, ${TILE_SIZE}px)`,
+    gridTemplateRows: `repeat(${BOARD_H}, ${TILE_SIZE}px)`,
   };
 
-  return (
+  const body = (
     <div className={style.root}>
       <div className={style.header}>
         <div className={style.titleRow}>
-          <div className={style.title}>Remote Desktop Cable Fix</div>
+          <div className={style.title}>Remote Desktop Repair Utility</div>
           <div className={style.subtitle}>
-            Link is down. Rotate the cable tiles to restore network access.
+            Extraction paused: remote session lost network link.
           </div>
         </div>
         <div
@@ -306,13 +386,31 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({ closeWindow }) 
       </div>
 
       <div className={style.panel}>
+        <div className={style.alertBox}>
+          <div className={style.alertTitle}>Why this popped up</div>
+          <div className={style.alertBody}>
+            WinRAR extraction requested a remote handoff from IT, but the remote desktop
+            cable disconnected. Reconnect the cable path to continue extraction and receive
+            the reset message.
+          </div>
+        </div>
         <div className={style.boardFrame}>
+          <div className={style.legendRow}>
+            <span className={style.legendItem}>
+              <span className={style.legendDotLeft} /> Remote Host
+            </span>
+            <span className={style.legendItem}>
+              <span className={style.legendDotRight} /> Corp Gateway
+            </span>
+          </div>
           <div className={style.board} style={boardStyle}>
             {tiles.map((tile, i) => {
               const x = i % BOARD_W;
               const y = Math.floor(i / BOARD_W);
               const isEmpty = tile.type === 'empty';
               const isFixed = !!tile.fixed;
+              const isStart = isFixed && x === START.x && y === START.y;
+              const isEnd = isFixed && x === END.x && y === END.y;
               const isEnergized = energized.has(i);
               return (
                 <button
@@ -320,6 +418,8 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({ closeWindow }) 
                   type="button"
                   className={`${style.tile} ${isEmpty ? style.tileEmpty : ''} ${
                     isFixed ? style.tileFixed : ''
+                  } ${isStart ? style.tileStart : ''} ${isEnd ? style.tileEnd : ''} ${
+                    isEnergized ? style.tileEnergized : ''
                   }`}
                   disabled={isEmpty || isFixed || isSolved}
                   onClick={() => {
@@ -330,7 +430,7 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({ closeWindow }) 
                       const cur = next[i]!;
                       next[i] = {
                         ...cur,
-                        rotation: (((cur.rotation + 1) % 4) as 0 | 1 | 2 | 3) ?? 0,
+                        rotation: ((cur.rotation + 1) % 4) as 0 | 1 | 2 | 3,
                       };
                       return next;
                     });
@@ -362,10 +462,10 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({ closeWindow }) 
         <div className={style.actions}>
           <div className={style.hintBox}>
             <div>
-              <b>Goal:</b> Connect <b>Remote host</b> (left) to <b>Corp gateway</b>{' '}
-              (right) with <b>no loose ends</b>.
+              <b>Goal:</b> Rotate tiles to reconnect the full cable network with no loose
+              ends.
             </div>
-            <div style={{ marginTop: '4px' }}>
+            <div className={style.hintSubline}>
               Attempts: <b>{attempts}</b> {hasLeaks && !isSolved ? '| Leak detected' : ''}
             </div>
           </div>
@@ -377,11 +477,11 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({ closeWindow }) 
               disabled={isSolved}
               onClick={() => {
                 setAttempts(0);
-                setTiles(scrambleRotations(buildSolvedBoard()));
+                setTiles(buildChallengingScramble());
               }}
               title="Scramble rotations"
             >
-              Re-roll cables
+              Reset Board
             </button>
             <button type="button" className={style.btn} onClick={closeWindow}>
               Close
@@ -390,6 +490,23 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({ closeWindow }) 
         </div>
       </div>
     </div>
+  );
+
+  return (
+    <WindowContent
+      menu={<MenuBar options={['File', 'Connection', 'Tools', 'Help']} />}
+      body={body}
+      footer={
+        <StatusBar
+          textLeft={
+            isSolved
+              ? 'Connection restored. Returning to extraction...'
+              : 'Resolve cable path to continue WinRAR extraction.'
+          }
+          textRight={isSolved ? 'Status: CONNECTED' : 'Status: DISCONNECTED'}
+        />
+      }
+    />
   );
 };
 
