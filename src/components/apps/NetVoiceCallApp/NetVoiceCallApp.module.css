@@ -153,14 +153,13 @@
 }
 
 .iconDecline {
-  color: #c00000;
-  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
 }
 
 .iconHangup {
-  color: #c00000;
-  transform: rotate(135deg);
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
 }
 
 .empty {

@@ -696,7 +696,7 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
                 }
                 setPortalPassword(resetPasswordInput);
                 setResetStatus(
-                  'Password updated. Return to Submission Portal and sign in.'
+                  'Password updated. Return to CorpPortal and sign in.'
                 );
               }}
             >

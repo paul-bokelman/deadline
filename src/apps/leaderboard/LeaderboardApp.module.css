@@ -16,17 +16,8 @@
   box-shadow: inset 1px 1px 0 0 var(--button-face), inset -1px -1px 0 0 var(--window-frame);
   display: flex;
   align-items: center;
-  gap: 14px;
-}
-
-.heroBadge {
-  width: 48px;
-  height: 48px;
-  flex-shrink: 0;
-  image-rendering: pixelated;
-  display: block;
-  object-fit: contain;
-  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4);
+  justify-content: center;
+  text-align: center;
 }
 
 .heroTitle {

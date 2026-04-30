@@ -113,13 +113,13 @@ export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
     createAppShellItem(
       'click-me-reset',
       'clickMeReset',
-      'TotallyNotAVirus.exe',
-      'msDos'
+      'Funware',
+      'gameSpider0'
     ),
     createAppShellItem(
       'draft-document-link',
       'draftDocumentLink',
-      'Draft.Document.lnk'
+      'MyProgram.fun'
     ),
     createAppShellItem('file-converter', 'fileConverter', 'File Converter'),
     createAppShellItem(
@@ -127,9 +127,8 @@ export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
       'systemPerformance',
       'System Performance'
     ),
-    createAppShellItem('anti-virus', 'antiVirus', 'Anti-Virus'),
-    createAppShellItem('popup-launcher', 'timer', 'Popup'),
-    createAppShellItem('submission-portal', 'portal', 'Submission Portal'),
+    createAppShellItem('anti-virus', 'antiVirus', 'Antivirus'),
+    createAppShellItem('submission-portal', 'portal', 'CorpPortal'),
     createAppShellItem('bank', 'bank', 'America #1 Bank'),
     createAppShellItem('blackjack', 'blackjack', 'BlackJack 96'),
     createAppShellItem('leaderboard', 'leaderboard', 'Leaderboard'),

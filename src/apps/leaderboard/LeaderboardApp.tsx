@@ -6,7 +6,6 @@ import {
   getLeaderboardViewModel,
   LeaderboardEntry,
 } from '../../system/leaderboard/runtime';
-import starBadgeUrl from '../../assets/img/leaderboard/star_badge_32.png';
 import style from './LeaderboardApp.module.css';
 
 const formatTime = (ms: number): string => {
@@ -74,7 +73,6 @@ const LeaderboardApp: FunctionComponent<AppProps> = () => {
   return (
     <div className={style.app}>
       <div className={style.hero}>
-        <img className={style.heroBadge} src={starBadgeUrl} alt="" />
         <div>
           <div className={style.heroTitle}>GAME OVER</div>
           <div className={style.heroSub}>

@@ -49,7 +49,7 @@ const AntiVirusApp: FunctionComponent<AppProps> = ({
 
   return (
     <div style={panelStyle}>
-      <div style={{ fontWeight: 700 }}>Anti-Virus</div>
+      <div style={{ fontWeight: 700 }}>Antivirus</div>
 
       <div style={boxStyle}>
         <div>

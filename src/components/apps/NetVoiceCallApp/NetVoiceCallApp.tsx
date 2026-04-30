@@ -14,6 +14,7 @@ import { netVoiceCallers, netVoiceCalls } from '../../../game/netvoice/calls';
 import MenuBar from '../../shared/MenuBar/MenuBar';
 import StatusBar from '../../shared/StatusBar/StatusBar';
 import WindowContent from '../../shared/WindowContent/WindowContent';
+import Icon from '../../shared/Icon/Icon';
 import {
   playCallOverSfx,
   playHangupSfx,
@@ -241,7 +242,7 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
               type="button"
             >
               <span className={style.iconAccept} aria-hidden="true">
-                {'\u2713'}
+                <Icon iconId="trust00" size={16} />
               </span>
               <span className={style.actionButtonLabel}>Accept</span>
             </button>
@@ -251,7 +252,7 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
               type="button"
             >
               <span className={style.iconDecline} aria-hidden="true">
-                {'\u2715'}
+                <Icon iconId="msgError0" size={16} />
               </span>
               <span className={style.actionButtonLabel}>Decline</span>
             </button>
@@ -270,7 +271,7 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
               type="button"
             >
               <span className={style.iconHangup} aria-hidden="true">
-                {'\u260E'}
+                <Icon iconId="restrict1" size={16} />
               </span>
               <span className={style.actionButtonLabel}>Hang Up</span>
             </button>

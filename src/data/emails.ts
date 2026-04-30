@@ -460,7 +460,7 @@ const CORP_PORTAL_PASSWORD_RESET_SPAM: EmailRecord = {
   body: 'Reset your password: http://identity.corp.internal/reset-password',
   bodyHtml: richBody(
     [
-      'A password reset was requested for the Submission Portal account.',
+      'A password reset was requested for the CorpPortal account.',
       'If this was you, continue with the secure reset flow below.',
     ],
     [

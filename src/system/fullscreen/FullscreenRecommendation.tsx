@@ -39,6 +39,17 @@ const FullscreenRecommendation: FunctionComponent = () => {
 
   if (!isVisible) return null;
 
+  const handleOk = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      }
+      setIsVisible(false);
+    } catch (e) {
+      console.error('Failed to enter fullscreen mode', e);
+    }
+  };
+
   return (
     <div
       style={{
@@ -107,7 +118,9 @@ const FullscreenRecommendation: FunctionComponent = () => {
                   <span>OK</span>
                 </span>
               }
-              onClick={() => setIsVisible(false)}
+              onClick={() => {
+                handleOk();
+              }}
             />
           </div>
         </div>

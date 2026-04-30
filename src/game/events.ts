@@ -26,12 +26,6 @@ export type CoreGameEvents = {
     emailId: string;
   };
   'file:downloaded': { fileId: string };
-  'malware:popup': {
-    accountId: string;
-    source: 'email_open' | 'attachment_open';
-    sourceEmailId: string;
-    subject: string;
-  };
   'browser:navigate_to_url': {
     url: string;
     source: 'email';

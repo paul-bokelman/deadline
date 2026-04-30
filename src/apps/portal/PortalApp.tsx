@@ -550,7 +550,7 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
     <div style={panelStyle}>
       {!isAuthenticated && (
         <div>
-          <div style={{ fontWeight: 700 }}>Submission Portal Sign-In</div>
+          <div style={{ fontWeight: 700 }}>CorpPortal Sign-In</div>
           <div style={{ marginTop: '8px', ...smallMutedStyle }}>
             Enter portal email and password to continue.
           </div>
@@ -613,7 +613,7 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
       )}
       {isAuthenticated && (
         <div>
-      <div style={{ fontWeight: 700 }}>Corp Submission Portal</div>
+      <div style={{ fontWeight: 700 }}>CorpPortal</div>
       <div style={{ marginTop: '8px' }}>
         Destination:{' '}
         <span style={{ fontFamily: 'monospace' }}>boss@10.0.0.1</span>

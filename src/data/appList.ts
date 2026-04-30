@@ -3,16 +3,16 @@ import { AppList } from '../types/App';
 export const appList: AppList = {
   antiVirus: {
     id: 'antiVirus',
-    iconId: 'scandisk',
+    iconId: 'cleanDrive1',
     isResizeable: false,
-    name: 'Anti-Virus',
+    name: 'Antivirus',
     size: { width: 420, height: 260 },
   },
   draftDocumentLink: {
     id: 'draftDocumentLink',
-    iconId: 'program',
+    iconId: 'webFileSet0',
     isResizeable: false,
-    name: 'Draft.Document.lnk',
+    name: 'MyProgram.fun',
     size: { width: 320, height: 120 },
   },
   eula: {
@@ -59,9 +59,9 @@ export const appList: AppList = {
   },
   clickMeReset: {
     id: 'clickMeReset',
-    iconId: 'smiley',
+    iconId: 'gameSpider0',
     isResizeable: false,
-    name: 'click me',
+    name: 'Funware',
     size: { width: 400, height: 177 },
   },
   defrag: {
@@ -220,20 +220,20 @@ export const appList: AppList = {
   },
   timer: {
     id: 'timer',
-    iconId: 'program',
+    iconId: 'clock1',
     isResizeable: true,
     name: 'Project Deadline',
     size: { width: 200, height: 150 },
   },
   corpMail: {
     id: 'corpMail',
-    iconId: 'mailEnvelope',
+    iconId: 'mailboxWorld0',
     name: 'CorpMail',
     size: { width: 760, height: 520 },
   },
   personalMail: {
     id: 'personalMail',
-    iconId: 'mailEnvelope',
+    iconId: 'envelopeClosed0',
     name: 'PersonalMail',
     size: { width: 760, height: 520 },
   },
@@ -245,7 +245,7 @@ export const appList: AppList = {
   },
   netVoiceCall: {
     id: 'netVoiceCall',
-    iconId: 'msn',
+    iconId: 'netVoiceHandset',
     name: 'NetVoice',
     isResizeable: false,
     size: { width: 480, height: 280 },
@@ -258,13 +258,13 @@ export const appList: AppList = {
   },
   winRarInstaller: {
     id: 'winRarInstaller',
-    iconId: 'program',
+    iconId: 'winRar3',
     name: 'WinRAR_installer.exe',
     size: { width: 440, height: 210 },
   },
   zipArchive: {
     id: 'zipArchive',
-    iconId: 'program',
+    iconId: 'winRar3',
     isResizeable: true,
     name: 'Archive.zip',
     size: { width: 560, height: 360 },
@@ -285,25 +285,25 @@ export const appList: AppList = {
   },
   portal: {
     id: 'portal',
-    iconId: 'msn',
-    name: 'Submission Portal',
+    iconId: 'lotusWordPro97',
+    name: 'CorpPortal',
     size: { width: 560, height: 360 },
   },
   blackjack: {
     id: 'blackjack',
-    iconId: 'blackjack',
+    iconId: 'gameFreecell2',
     name: 'BlackJack 96',
     size: { width: 720, height: 510 },
   },
   leaderboard: {
     id: 'leaderboard',
-    iconId: 'leaderboard',
+    iconId: 'earthRating',
     name: 'Leaderboard',
     size: { width: 560, height: 510 },
   },
   bank: {
     id: 'bank',
-    iconId: 'exchange',
+    iconId: 'microsoftMoney99',
     name: 'America #1 Bank',
     size: { width: 420, height: 260 },
   },
