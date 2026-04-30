@@ -59,7 +59,7 @@ export const appList: AppList = {
   },
   clickMeReset: {
     id: 'clickMeReset',
-    iconId: 'smiley',
+    iconId: 'gameSpider0',
     isResizeable: false,
     name: 'FunWare',
     size: { width: 400, height: 177 },
@@ -227,7 +227,7 @@ export const appList: AppList = {
   },
   corpMail: {
     id: 'corpMail',
-    iconId: 'mailboxWorld0',
+    iconId: 'envelopeClosed0',
     name: 'CorpMail',
     size: { width: 760, height: 520 },
   },

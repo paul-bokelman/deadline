@@ -58,7 +58,7 @@ const InstantBsodTrap: FunctionComponent = () => {
   if (!isVisible) return null;
 
   return (
-    <div style={bsodStyle}>
+    <div className="bsod-overlay" style={bsodStyle}>
       <div>A fatal exception 0xE0000008 has occurred at 0028:C0011E36.</div>
       <div style={{ marginTop: '16px' }}>
         The current application will be terminated.

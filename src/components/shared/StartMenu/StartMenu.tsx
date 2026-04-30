@@ -2,19 +2,11 @@ import { h, FunctionComponent } from 'preact';
 
 import { AppId } from '../../../types/App';
 import { FileSystemDir, FileSystemFile } from '../../../types/FileSystem';
-import { startMenuFs } from '../../../data/fileSystem';
-import { getProgramsMenuOptions } from '../../../utils/win96/StartMenuUtils';
+import { appList } from '../../../data/appList';
+import { OptionType } from '../MenuOption/MenuOption';
 import Menu from '../Menu/Menu';
 
 import style from './StartMenu.module.css';
-
-const programsOption = getProgramsMenuOptions(startMenuFs.dir.programs);
-const documentsOption = getProgramsMenuOptions(startMenuFs.dir.documents);
-const settingsOption = getProgramsMenuOptions(startMenuFs.dir.settings);
-const findOption = getProgramsMenuOptions(startMenuFs.dir.find);
-const helpOption = getProgramsMenuOptions(startMenuFs.dir.help);
-const runOption = getProgramsMenuOptions(startMenuFs.dir.run);
-const shutdownOption = getProgramsMenuOptions(startMenuFs.dir.shutdown);
 
 interface Props {
   onSelect: (
@@ -23,6 +15,69 @@ interface Props {
     workinFile?: FileSystemFile
   ) => void;
 }
+
+const appOption = (appId: AppId, label?: string): OptionType => ({
+  label: label ?? appList[appId].name,
+  iconId: appList[appId].iconId,
+  value: { appId },
+});
+
+const programsOption: OptionType = {
+  label: 'Programs',
+  iconId: 'programs',
+  value: '',
+  subMenu: {
+    isLarge: true,
+    options: [
+      [
+        appOption('worldWideWeb'),
+        appOption('corpMail', 'CorpMail'),
+        appOption('personalMail', 'PersonalMail'),
+        appOption('myComputer'),
+        appOption('notepad'),
+      ],
+      [
+        appOption('systemPerformance'),
+        appOption('antiVirus'),
+        appOption('fileConverter'),
+        appOption('portal', 'CorpPortal'),
+        appOption('timer', 'Project Deadline'),
+      ],
+      [
+        {
+          label: 'Games',
+          iconId: 'gameSpider0',
+          value: '',
+          subMenu: {
+            options: [
+              [
+                appOption('minesweeper'),
+                appOption('blackjack', 'BlackJack 96'),
+                appOption('leaderboard'),
+                appOption('clickMeReset', 'FunWare'),
+                appOption('clickMeReset', 'Click Me'),
+              ],
+            ],
+          },
+        },
+        {
+          label: 'Utilities',
+          iconId: 'settings',
+          value: '',
+          subMenu: {
+            options: [[appOption('draftDocumentLink'), appOption('winRarInstaller')]],
+          },
+        },
+      ],
+    ],
+  },
+};
+
+const internetOption = appOption('worldWideWeb', 'Internet');
+const mailOption = appOption('corpMail', 'Mail');
+const performanceOption = appOption('systemPerformance');
+const antivirusOption = appOption('antiVirus');
+const shutdownOption = appOption('shutdown', 'Reboot...');
 
 const StartMenu: FunctionComponent<Props> = ({ onSelect }: Props) => {
   const handleOnSelect = (
@@ -46,11 +101,10 @@ const StartMenu: FunctionComponent<Props> = ({ onSelect }: Props) => {
         options={[
           [
             programsOption,
-            documentsOption,
-            settingsOption,
-            findOption,
-            helpOption,
-            runOption,
+            internetOption,
+            mailOption,
+            performanceOption,
+            antivirusOption,
           ],
           [shutdownOption],
         ]}

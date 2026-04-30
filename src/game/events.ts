@@ -62,6 +62,7 @@ export type CoreGameEvents = {
   'shell:directory_updated': { dir: FileSystemDir };
   'screen:mirror_toggled': Record<string, never>;
   'trap:instant_bsod': { source: 'desktop_shortcut' };
+  'fullscreen:recommendation_visibility': { isVisible: boolean };
 };
 
 type EventHandler<TPayload> = (payload: TPayload) => void;

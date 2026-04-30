@@ -22,6 +22,7 @@ export const enterBsodAudioMode = (): void => {
   if (activeBsodCount > 1) return;
 
   pauseAllDocumentMedia();
+  document.body.classList.add('bsod-active');
   releaseMasterMute = lockMasterMute();
   bluescreenSfxController = createBluescreenSfxController();
   bluescreenSfxController.start();
@@ -35,4 +36,5 @@ export const exitBsodAudioMode = (): void => {
   bluescreenSfxController = null;
   releaseMasterMute?.();
   releaseMasterMute = null;
+  document.body.classList.remove('bsod-active');
 };
