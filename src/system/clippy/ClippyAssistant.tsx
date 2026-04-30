@@ -1,6 +1,7 @@
 import { h, FunctionComponent } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useGameState } from '../../game/state';
+import { playClippyTipSfx } from '../../utils/audio/sfx';
 
 import style from './ClippyAssistant.module.css';
 
@@ -39,6 +40,7 @@ const ClippyAssistant: FunctionComponent = () => {
         index = (index + 1) % CLIPPY_MESSAGES.length;
       }
       previousIndex = index;
+      playClippyTipSfx();
       setSpeechMessage(CLIPPY_MESSAGES[index] ?? null);
       window.clearTimeout(hideTimeoutId);
       hideTimeoutId = window.setTimeout(() => {

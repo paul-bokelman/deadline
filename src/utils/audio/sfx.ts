@@ -1,5 +1,6 @@
 const CLICK_SFX_SOURCE = '/audio/clicking_effect.m4a';
 const LOADING_SFX_SOURCE = '/audio/loading_effect.m4a';
+const CLIPPY_TIP_SFX_SOURCE = '/audio/clippy/clippy-tip.mp3';
 const CLICK_SFX_START_SECONDS = 0.54;
 const CLICK_SFX_END_SECONDS = 0.74;
 const CLICK_CLIP_DURATION_MS =
@@ -10,6 +11,7 @@ let clickAudioPool: HTMLAudioElement[] | null = null;
 let nextClickAudioIndex = 0;
 let lastClickAt = 0;
 const clickStopTimers = new WeakMap<HTMLAudioElement, number>();
+let clippyTipAudio: HTMLAudioElement | null = null;
 
 const createAudio = (source: string, volume: number): HTMLAudioElement => {
   const audio = new Audio(source);
@@ -62,6 +64,21 @@ export const playClickSfx = (): void => {
     clickStopTimers.delete(audio);
   }, CLICK_CLIP_DURATION_MS);
   clickStopTimers.set(audio, stopTimer);
+};
+
+export const playClippyTipSfx = (): void => {
+  if (!clippyTipAudio) {
+    clippyTipAudio = createAudio(CLIPPY_TIP_SFX_SOURCE, 0.55);
+    clippyTipAudio.load();
+  }
+
+  try {
+    clippyTipAudio.currentTime = 0;
+  } catch {
+    clippyTipAudio.currentTime = 0;
+  }
+
+  clippyTipAudio.play().catch(() => undefined);
 };
 
 export interface LoadingSfxController {

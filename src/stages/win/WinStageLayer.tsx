@@ -1,5 +1,5 @@
 import { h, FunctionComponent, JSX } from 'preact';
-import { useContext, useMemo, useRef, useState } from 'preact/hooks';
+import { useContext, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
 import Button from '../../components/shared/Button/Button';
 import Window from '../../components/shared/Window/Window';
@@ -77,6 +77,11 @@ const WinStageLayer: FunctionComponent = () => {
 
   const isVisible = stage === 'win';
 
+  useEffect(() => {
+    if (!isVisible) return;
+    playTadaSfx();
+  }, [isVisible]);
+
   const elapsedMs = Math.max(0, getSubmittedElapsedMs() ?? 0);
   const elapsedLabel = useMemo(() => formatTime(elapsedMs), [elapsedMs]);
   const insertionRank = useMemo(() => getLeaderboardInsertionRank(elapsedMs), [
@@ -91,7 +96,6 @@ const WinStageLayer: FunctionComponent = () => {
   const finish = (rawName: string) => {
     const sanitized = sanitizeLeaderboardName(rawName);
     setLeaderboardPlayerEntry(sanitized, elapsedMs);
-    playTadaSfx();
     setNameInput('');
     setStage('desktop_intro');
     const existingLeaderboard = windows.find((window) => window.app.id === 'leaderboard');

@@ -12,6 +12,7 @@ import {
   validatePortalCredentials,
 } from '../../system/portalAuth/portalAuth';
 import { markRunSubmitted } from '../../system/runTimer/runTimer';
+import { playErrorSfx } from '../../utils/audio/osSfx';
 import { AppProps } from '../../types/App';
 import { ShellItem } from '../../types/Shell';
 
@@ -348,6 +349,7 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
   };
 
   const failCaptcha = (message: string) => {
+    playErrorSfx();
     const nextLives = captchaLivesRemaining - 1;
     if (nextLives <= 0) {
       setCaptchaLivesRemaining(0);

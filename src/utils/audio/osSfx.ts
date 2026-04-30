@@ -6,6 +6,7 @@ const SFX_PATHS = {
   youGotMail: '/audio/os/you_got_mail.mp3',
   callOver: '/audio/os/call_over.mp3',
   tada: '/audio/os/tada.mp3',
+  error: '/audio/os/error.mp3',
 } as const;
 
 const createAudio = (src: string, volume: number): HTMLAudioElement => {
@@ -108,4 +109,8 @@ export const stopCallOverSfx = (audio?: HTMLAudioElement | null): void => {
 
 export const playTadaSfx = (): void => {
   void playOneShot(SFX_PATHS.tada, 0.7);
+};
+
+export const playErrorSfx = (): void => {
+  void playOneShot(SFX_PATHS.error, 0.55);
 };
