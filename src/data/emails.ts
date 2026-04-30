@@ -94,7 +94,8 @@ const personalSubjects = [
 
 const personalBodyTemplates = [
   {
-    p1: 'I know this sounds dramatic, but today turned into three mini-disasters before noon.',
+    p1:
+      'I know this sounds dramatic, but today turned into three mini-disasters before noon.',
     p2: 'Not urgent unless you are available to laugh about it later.',
     bullets: [
       'One errand became five errands.',
@@ -103,8 +104,10 @@ const personalBodyTemplates = [
     ],
   },
   {
-    p1: 'Quick life update: I am pretending to be organized and it is barely working.',
-    p2: 'If you are free this week, I need a second opinion on a questionable plan.',
+    p1:
+      'Quick life update: I am pretending to be organized and it is barely working.',
+    p2:
+      'If you are free this week, I need a second opinion on a questionable plan.',
     bullets: [
       'Schedule moved again.',
       'I probably forgot one detail.',
@@ -112,8 +115,10 @@ const personalBodyTemplates = [
     ],
   },
   {
-    p1: 'Small favor request, medium chaos level, large appreciation in advance.',
-    p2: 'You always answer with common sense, so I am cashing in that reputation.',
+    p1:
+      'Small favor request, medium chaos level, large appreciation in advance.',
+    p2:
+      'You always answer with common sense, so I am cashing in that reputation.',
     bullets: [
       'No money needed.',
       'Might involve carrying one heavy box.',
@@ -124,8 +129,10 @@ const personalBodyTemplates = [
 
 const corpInboxBodyTemplates = [
   {
-    p1: 'Quarterly alignment update: timeline is stable, morale is unstable, and the printer has chosen violence again.',
-    p2: 'Action is only required if your name appears in the ownership table or if you are emotionally invested in chaos.',
+    p1:
+      'Quarterly alignment update: timeline is stable, morale is unstable, and the printer has chosen violence again.',
+    p2:
+      'Action is only required if your name appears in the ownership table or if you are emotionally invested in chaos.',
     bullets: [
       'Status: green-ish with suspicious yellow undertones.',
       'Owner: Program Ops + one intern fueled by cold brew.',
@@ -133,8 +140,10 @@ const corpInboxBodyTemplates = [
     ],
   },
   {
-    p1: 'Following up on the 47-message thread nobody asked for: scope is clearer and blast radius is now merely theatrical.',
-    p2: 'Please avoid reply-all unless your blocker has an ETA, a screenshot, and at least one witness.',
+    p1:
+      'Following up on the 47-message thread nobody asked for: scope is clearer and blast radius is now merely theatrical.',
+    p2:
+      'Please avoid reply-all unless your blocker has an ETA, a screenshot, and at least one witness.',
     bullets: [
       'Risk moved from "panic" to "nervous chuckle."',
       'Security review is pending because legal wants one more comma.',
@@ -142,8 +151,10 @@ const corpInboxBodyTemplates = [
     ],
   },
   {
-    p1: 'This memo replaces yesterday\'s memo, which replaced Monday\'s memo, which legally never happened.',
-    p2: 'Updated rollout sequencing is below and has been approved by governance, vibes, and a random number generator.',
+    p1:
+      "This memo replaces yesterday's memo, which replaced Monday's memo, which legally never happened.",
+    p2:
+      'Updated rollout sequencing is below and has been approved by governance, vibes, and a random number generator.',
     bullets: [
       'Wave 1: brave volunteers and accidental early adopters.',
       'Wave 2: full department rollout with ceremonial keyboard cleaning.',
@@ -154,8 +165,10 @@ const corpInboxBodyTemplates = [
 
 const promoBodyTemplates = [
   {
-    p1: 'This campaign includes product updates, workflow shortcuts, and one suspiciously enthusiastic webinar host named Trent.',
-    p2: 'Ninety percent is marketing glitter, ten percent is useful, and one percent is legally confusing.',
+    p1:
+      'This campaign includes product updates, workflow shortcuts, and one suspiciously enthusiastic webinar host named Trent.',
+    p2:
+      'Ninety percent is marketing glitter, ten percent is useful, and one percent is legally confusing.',
     bullets: [
       'Live session with Q&A and accidental oversharing.',
       'Template bundle included (23 duplicates, 2 gems).',
@@ -163,8 +176,10 @@ const promoBodyTemplates = [
     ],
   },
   {
-    p1: 'Congratulations, you were selected for a limited productivity trial by a spreadsheet that definitely has feelings.',
-    p2: 'If you ignore this email, one growth analyst will stare at a dashboard in silence for 20 minutes.',
+    p1:
+      'Congratulations, you were selected for a limited productivity trial by a spreadsheet that definitely has feelings.',
+    p2:
+      'If you ignore this email, one growth analyst will stare at a dashboard in silence for 20 minutes.',
     bullets: [
       'Free tier for 30 days and one emotional support tooltip.',
       'Manager approval may be required unless they are on vacation.',
@@ -172,7 +187,8 @@ const promoBodyTemplates = [
     ],
   },
   {
-    p1: 'Release recap includes feature highlights, migration notes, and customer quotes that sound suspiciously AI-generated.',
+    p1:
+      'Release recap includes feature highlights, migration notes, and customer quotes that sound suspiciously AI-generated.',
     p2: 'Skim this if your team owns dashboards, onboarding, or anxiety.',
     bullets: [
       'Improved role permissions with 14 new checkboxes.',
@@ -214,33 +230,36 @@ const buildPersonalEmails = (): EmailRecord[] => {
       id % 7 === 0
         ? 'spam'
         : id % 5 === 0
-          ? 'promotions'
-          : id % 11 === 0
-            ? 'sent'
-            : id % 13 === 0
-              ? 'trash'
-              : 'inbox';
+        ? 'promotions'
+        : id % 11 === 0
+        ? 'sent'
+        : id % 13 === 0
+        ? 'trash'
+        : 'inbox';
     const sender =
       folder === 'promotions'
         ? `offers@${promoBrands[id % promoBrands.length]}`
         : folder === 'spam'
-          ? `notice@${malwareDomains[id % malwareDomains.length]}`
-          : personalSenders[id % personalSenders.length];
+        ? `notice@${malwareDomains[id % malwareDomains.length]}`
+        : personalSenders[id % personalSenders.length];
     const isMalware = folder === 'spam' || id % 9 === 0;
-    const subject =
-      isMalware
-        ? `ALERT: verify account package #${4000 + id}`
-        : folder === 'promotions'
-          ? `Limited offer ${30 + (id % 60)}% off`
-          : personalSubjects[id % personalSubjects.length];
-    const malwareUrl = `http://cdn.${malwareDomains[id % malwareDomains.length]}/patch_${id}.exe`;
+    const subject = isMalware
+      ? `ALERT: verify account package #${4000 + id}`
+      : folder === 'promotions'
+      ? `Limited offer ${30 + (id % 60)}% off`
+      : personalSubjects[id % personalSubjects.length];
+    const malwareUrl = `http://cdn.${
+      malwareDomains[id % malwareDomains.length]
+    }/patch_${id}.exe`;
     const paragraphs = isMalware
       ? [
           'Your personal mailbox has been flagged for suspicious behavior, excessive memes, and one illegal amount of glitter.',
           'Use the secure downloader below to remove 19 threats and one deeply cursed browser extension.',
         ]
       : [
-          `${personalBodyTemplates[id % personalBodyTemplates.length]?.p1} - ${sender.split('@')[0]}.`,
+          `${personalBodyTemplates[id % personalBodyTemplates.length]?.p1} - ${
+            sender.split('@')[0]
+          }.`,
           personalBodyTemplates[id % personalBodyTemplates.length]?.p2 ??
             'Reply when you can. This one is not urgent, just dramatic.',
         ];
@@ -264,7 +283,8 @@ const buildPersonalEmails = (): EmailRecord[] => {
           ])
         : richBody(
             paragraphs,
-            personalBodyTemplates[id % personalBodyTemplates.length]?.bullets ?? [
+            personalBodyTemplates[id % personalBodyTemplates.length]
+              ?.bullets ?? [
               'Bring snacks if you are coming.',
               'Do not mention what happened last Friday.',
             ]
@@ -283,76 +303,87 @@ const buildPersonalEmails = (): EmailRecord[] => {
   });
 };
 
-const LEGACY_CORP_MAIL: EmailRecord[] = Array.from({ length: 20 }, (_, index) => {
-  const id = index + 1;
-  const folder: EmailFolder =
-    id % 9 === 0 ? 'spam' : id % 6 === 0 ? 'promotions' : id % 8 === 0 ? 'trash' : 'inbox';
-  return {
-    id: `legacy-${three(id)}`,
-    accountId: 'corpMailLegacy',
-    folder,
-    sender:
-      folder === 'spam'
-        ? `sales-bot${id}@legacy-funnels.biz`
-        : folder === 'promotions'
+const LEGACY_CORP_MAIL: EmailRecord[] = Array.from(
+  { length: 20 },
+  (_, index) => {
+    const id = index + 1;
+    const folder: EmailFolder =
+      id % 9 === 0
+        ? 'spam'
+        : id % 6 === 0
+        ? 'promotions'
+        : id % 8 === 0
+        ? 'trash'
+        : 'inbox';
+    return {
+      id: `legacy-${three(id)}`,
+      accountId: 'corpMailLegacy',
+      folder,
+      sender:
+        folder === 'spam'
+          ? `sales-bot${id}@legacy-funnels.biz`
+          : folder === 'promotions'
           ? `events${id}@legacy-vendor.io`
           : `archive-${id}@corp.internal`,
-    subject:
-      folder === 'spam'
-        ? `Legacy mailbox optimization offer #${id}`
-        : `Archive notice ${id}: mailbox migration memo`,
-    timestamp: toClock(20 + id * 4),
-    preview: 'Legacy mailbox clutter with detailed but outdated context.',
-    body: 'Legacy notice.',
-    bodyHtml: richBody(
-      [
-        'This legacy mailbox was retired three times and still refuses to leave.',
-        'Messages here are stale, duplicated, and occasionally sent by a haunted autoresponder.',
-      ],
-      [
-        'Do not submit current quarter data via this mailbox unless you enjoy consequences.',
-        'Forward only if requested by Security or a time traveler.',
-      ]
-    ),
-  };
-});
+      subject:
+        folder === 'spam'
+          ? `Legacy mailbox optimization offer #${id}`
+          : `Archive notice ${id}: mailbox migration memo`,
+      timestamp: toClock(20 + id * 4),
+      preview: 'Legacy mailbox clutter with detailed but outdated context.',
+      body: 'Legacy notice.',
+      bodyHtml: richBody(
+        [
+          'This legacy mailbox was retired three times and still refuses to leave.',
+          'Messages here are stale, duplicated, and occasionally sent by a haunted autoresponder.',
+        ],
+        [
+          'Do not submit current quarter data via this mailbox unless you enjoy consequences.',
+          'Forward only if requested by Security or a time traveler.',
+        ]
+      ),
+    };
+  }
+);
 
 const CORP_INBOX_NOISE: EmailRecord[] = [
-  ...Array.from({ length: 47 }, (_, index): EmailRecord => {
-    const id = index + 1;
-    const template = corpInboxBodyTemplates[id % corpInboxBodyTemplates.length];
-    return {
-      id: `corp-${three(id)}`,
-      accountId: 'corpMail' as const,
-      folder: 'inbox' as const,
-      sender: [
-        'hr@corp.internal',
-        'facilities@corp.internal',
-        'it-ops@corp.internal',
-        'buildbot@corp.internal',
-        'finance@corp.internal',
-        'admin@corp.internal',
-        'security@corp.internal',
-      ][id % 7],
-      subject: [
-        'Benefits election reminder',
-        'Office kitchen policy update',
-        'Password rotation prompt',
-        'Build monitor digest',
-        'Expense policy change',
-        'Floor access badge migration',
-        'Mandatory anti-phishing refresher',
-      ][id % 7],
-      timestamp: toClock(50 + id * 2),
-      preview: 'Routine internal corporate traffic with enough detail to read.',
-      body: 'Routine internal message pretending to be normal.',
-      bodyHtml: richBody(
-        [template.p1, template.p2],
-        template.bullets
-      ),
-      deliveryRule: EMAIL_ACCESS_RULE,
-    };
-  }),
+  ...Array.from(
+    { length: 47 },
+    (_, index): EmailRecord => {
+      const id = index + 1;
+      const template =
+        corpInboxBodyTemplates[id % corpInboxBodyTemplates.length];
+      return {
+        id: `corp-${three(id)}`,
+        accountId: 'corpMail' as const,
+        folder: 'inbox' as const,
+        sender: [
+          'hr@corp.internal',
+          'facilities@corp.internal',
+          'it-ops@corp.internal',
+          'buildbot@corp.internal',
+          'finance@corp.internal',
+          'admin@corp.internal',
+          'security@corp.internal',
+        ][id % 7],
+        subject: [
+          'Benefits election reminder',
+          'Office kitchen policy update',
+          'Password rotation prompt',
+          'Build monitor digest',
+          'Expense policy change',
+          'Floor access badge migration',
+          'Mandatory anti-phishing refresher',
+        ][id % 7],
+        timestamp: toClock(50 + id * 2),
+        preview:
+          'Routine internal corporate traffic with enough detail to read.',
+        body: 'Routine internal message pretending to be normal.',
+        bodyHtml: richBody([template.p1, template.p2], template.bullets),
+        deliveryRule: EMAIL_ACCESS_RULE,
+      };
+    }
+  ),
   {
     id: 'corp-winrar-download-link',
     accountId: 'corpMail',
@@ -383,7 +414,8 @@ const CORP_INBOX_NOISE: EmailRecord[] = [
     subject: 'WinRAR mirror (urgent fallback link)',
     timestamp: '12:12',
     preview: 'Fallback WinRAR link if the main site is slow.',
-    body: 'Use fallback WinRAR mirror: https://winrar-secure-download-support.com/',
+    body:
+      'Use fallback WinRAR mirror: https://winrar-secure-download-support.com/',
     bodyHtml: richBody(
       [
         'If the official site is slow, use this backup mirror immediately:',
@@ -416,15 +448,21 @@ const CORP_SPAM_FAKE_Q3: EmailRecord[] = Array.from(
   { length: 35 },
   (_, index) => {
     const spamId = index + 1;
-    const trapUrl = `http://q3-archive-fast${spamId}.corp-mail.support/Q3_Report_${2020 + (spamId % 6)}.zip`;
+    const trapUrl = `http://q3-archive-fast${spamId}.corp-mail.support/Q3_Report_${
+      2020 + (spamId % 6)
+    }.zip`;
     return {
       id: `corp-spam-q3-${spamId.toString().padStart(2, '0')}`,
       accountId: 'corpMail',
       folder: 'spam',
       sender: q3SpamSenders[index % q3SpamSenders.length],
-      subject: spamId % 2 === 0 ? 'RE: Q3 Report (Updated)' : 'Q3 Report - action needed',
+      subject:
+        spamId % 2 === 0
+          ? 'RE: Q3 Report (Updated)'
+          : 'Q3 Report - action needed',
       timestamp: `10:${(spamId % 60).toString().padStart(2, '0')}`,
-      preview: 'Suspicious clone of a real report thread with fake urgency and panic seasoning.',
+      preview:
+        'Suspicious clone of a real report thread with fake urgency and panic seasoning.',
       body: `Urgent Q3 package mirror: ${trapUrl}`,
       bodyHtml: richBody(
         [
@@ -456,7 +494,8 @@ const CORP_PORTAL_PASSWORD_RESET_SPAM: EmailRecord = {
   sender: 'noreply@identity.corp.internal',
   subject: 'Password reset requested',
   timestamp: '13:58',
-  preview: 'Reset request received. Follow the secure link to set a new password.',
+  preview:
+    'Reset request received. Follow the secure link to set a new password.',
   body: 'Reset your password: http://identity.corp.internal/reset-password',
   bodyHtml: richBody(
     [
@@ -472,35 +511,36 @@ const CORP_PORTAL_PASSWORD_RESET_SPAM: EmailRecord = {
 };
 
 const CORP_PROMOTIONS: EmailRecord[] = [
-  ...Array.from({ length: 24 }, (_, index): EmailRecord => {
-    const id = index + 1;
-    const template = promoBodyTemplates[id % promoBodyTemplates.length];
-    const sender = [
-      'premium@linkedin.com',
-      'tips@slack.com',
-      'newsletter@notion.so',
-      'launches@figma.com',
-      'events@atlassian.com',
-      'partner@zoom.us',
-      'academy@coursera.org',
-      'digest@devtool.io',
-    ][id % 8];
-    return {
-      id: `corp-promotions-auto-${three(id)}`,
-      accountId: 'corpMail',
-      folder: 'promotions',
-      sender,
-      subject: `Team productivity bundle ${id}`,
-      timestamp: toClock(180 + id * 2),
-      preview: 'Long-form promo mail with practical and absurd bullet points.',
-      body: `Promotional bulletin from ${sender}.`,
-      bodyHtml: richBody(
-        [template.p1, template.p2],
-        template.bullets
-      ),
-      deliveryRule: EMAIL_ACCESS_RULE,
-    };
-  }),
+  ...Array.from(
+    { length: 24 },
+    (_, index): EmailRecord => {
+      const id = index + 1;
+      const template = promoBodyTemplates[id % promoBodyTemplates.length];
+      const sender = [
+        'premium@linkedin.com',
+        'tips@slack.com',
+        'newsletter@notion.so',
+        'launches@figma.com',
+        'events@atlassian.com',
+        'partner@zoom.us',
+        'academy@coursera.org',
+        'digest@devtool.io',
+      ][id % 8];
+      return {
+        id: `corp-promotions-auto-${three(id)}`,
+        accountId: 'corpMail',
+        folder: 'promotions',
+        sender,
+        subject: `Team productivity bundle ${id}`,
+        timestamp: toClock(180 + id * 2),
+        preview:
+          'Long-form promo mail with practical and absurd bullet points.',
+        body: `Promotional bulletin from ${sender}.`,
+        bodyHtml: richBody([template.p1, template.p2], template.bullets),
+        deliveryRule: EMAIL_ACCESS_RULE,
+      };
+    }
+  ),
   {
     id: 'corp-promotions-012-real',
     accountId: 'corpMail',
@@ -517,7 +557,10 @@ const CORP_PROMOTIONS: EmailRecord[] = [
         "OH, also, I encrypted the file with your favorite encryption key because I don't trust the intranet...",
         'PLEASE GET MOVING !!!!!',
       ],
-      ['Attachment source: approved reporting relay', 'Message signature: auto-generated']
+      [
+        'Attachment source: approved reporting relay',
+        'Message signature: auto-generated',
+      ]
     ),
     attachments: [
       {

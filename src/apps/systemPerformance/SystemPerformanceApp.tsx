@@ -23,24 +23,30 @@ const SystemPerformanceApp: FunctionComponent<AppProps> = ({
   const { activeNetVoiceCallId, rebootGame } = useGameState();
   const popupCount = useIntrusivePopupCount();
   const [isApplyingPatch, setIsApplyingPatch] = useState(false);
-  const [isFullscreenRecommendationVisible, setIsFullscreenRecommendationVisible] =
-    useState(false);
+  const [
+    isFullscreenRecommendationVisible,
+    setIsFullscreenRecommendationVisible,
+  ] = useState(false);
 
   useEffect(() => {
-    return gameEventBus.on('fullscreen:recommendation_visibility', ({ isVisible }) => {
-      setIsFullscreenRecommendationVisible(isVisible);
-    });
+    return gameEventBus.on(
+      'fullscreen:recommendation_visibility',
+      ({ isVisible }) => {
+        setIsFullscreenRecommendationVisible(isVisible);
+      }
+    );
   }, []);
 
   const extraRamLoadCount =
     (activeNetVoiceCallId ? 1 : 0) +
     (isFullscreenRecommendationVisible ? 1 : 0);
   const windowCount = windows.length + popupCount + extraRamLoadCount;
-  const usedRamMb = useMemo(() => calculateUsedRamMb(windowCount), [windowCount]);
-  const usagePercent = useMemo(
-    () => (usedRamMb / MAX_RAM_MB) * 100,
-    [usedRamMb]
-  );
+  const usedRamMb = useMemo(() => calculateUsedRamMb(windowCount), [
+    windowCount,
+  ]);
+  const usagePercent = useMemo(() => (usedRamMb / MAX_RAM_MB) * 100, [
+    usedRamMb,
+  ]);
   const freeRamMb = Math.max(0, MAX_RAM_MB - usedRamMb);
   const usedRatio = Math.min(100, usagePercent);
   const freeRatio = Math.max(0, 100 - usedRatio);
@@ -78,8 +84,8 @@ const SystemPerformanceApp: FunctionComponent<AppProps> = ({
           <div className={style.metricLabel}>Open Windows</div>
           <div className={style.metricValue}>{windowCount}</div>
           <div className={style.metricNote}>
-            {windows.length} app windows + {popupCount} popups + {extraRamLoadCount}{' '}
-            overlay/service load.
+            {windows.length} app windows + {popupCount} popups +{' '}
+            {extraRamLoadCount} overlay/service load.
           </div>
         </div>
       </div>

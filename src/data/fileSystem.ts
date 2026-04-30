@@ -90,10 +90,13 @@ export const dialUpNetworkFs = createFs(
     import.meta.glob('../assets/fileSystems/Dial-Up Networking/**/*.ts', {
       eager: true,
     }),
-    import.meta.glob('../assets/fileSystems/Dial-Up Networking/**/*.{jpg,png}', {
-      eager: true,
-      import: 'default',
-    }),
+    import.meta.glob(
+      '../assets/fileSystems/Dial-Up Networking/**/*.{jpg,png}',
+      {
+        eager: true,
+        import: 'default',
+      }
+    ),
     import.meta.glob('../assets/fileSystems/Dial-Up Networking/**/*.txt', {
       eager: true,
       query: '?raw',

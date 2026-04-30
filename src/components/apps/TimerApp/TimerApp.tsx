@@ -95,7 +95,10 @@ const TimerApp: FunctionComponent<AppProps> = () => {
       if (!entry) return;
       const widthScale = entry.contentRect.width / BASE_WIDTH;
       const heightScale = entry.contentRect.height / BASE_HEIGHT;
-      const nextScale = Math.max(0.62, Math.min(1, Math.min(widthScale, heightScale)));
+      const nextScale = Math.max(
+        0.62,
+        Math.min(1, Math.min(widthScale, heightScale))
+      );
       setLayoutScale(nextScale);
     });
     observer.observe(panel);
@@ -158,9 +161,13 @@ const TimerApp: FunctionComponent<AppProps> = () => {
           </div>
           <div style={scaledTimerDisplayStyle}>
             <div style={{ fontWeight: 700 }}>Time Remaining</div>
-            <div style={scaledTimeLargeStyle}>{formatCountdown(remainingMs)}</div>
+            <div style={scaledTimeLargeStyle}>
+              {formatCountdown(remainingMs)}
+            </div>
             <div style={scaledUrgencyStyle}>
-              {remainingMs <= 60_000 ? 'Final minute.' : 'Deadline approaching.'}
+              {remainingMs <= 60_000
+                ? 'Final minute.'
+                : 'Deadline approaching.'}
             </div>
           </div>
           <div style={scaledProgressTrackStyle}>

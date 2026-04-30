@@ -150,7 +150,7 @@ export const netVoiceCalls: Record<NetVoiceCallId, NetVoiceCallDefinition> = {
     callerId: 'mom',
     audioPath: '/audio/netvoice/people/mom-1st-0.mp3',
     dialogText:
-      "Hey honey uhm… I noticed you have no money in your bank account…. You really need to manage your money better your 43. Me and dad are pretty disappointed in you. Im going to send over $100 to make sure your alright but make sure that lasts\n\n[NOTE: change audio, mom calls and gives you $100]",
+      'Hey honey uhm… I noticed you have no money in your bank account…. You really need to manage your money better your 43. Me and dad are pretty disappointed in you. Im going to send over $100 to make sure your alright but make sure that lasts\n\n[NOTE: change audio, mom calls and gives you $100]',
     autoTriggerNextStage: false,
   },
   mom_bailout_2: {
@@ -158,7 +158,7 @@ export const netVoiceCalls: Record<NetVoiceCallId, NetVoiceCallDefinition> = {
     callerId: 'mom',
     audioPath: '/audio/netvoice/people/mom-2nd-0.mp3',
     dialogText:
-      "ok this is getting ridiculous. I just gave you money a few minutes ago. I’ll send $100 more but your not getting any allowance next month.\n\n[NOTE: change audio, mom calls and gives you $100]",
+      'ok this is getting ridiculous. I just gave you money a few minutes ago. I’ll send $100 more but your not getting any allowance next month.\n\n[NOTE: change audio, mom calls and gives you $100]',
     autoTriggerNextStage: false,
   },
   mom_www_issues: {

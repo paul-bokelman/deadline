@@ -46,10 +46,13 @@ const RecycleBinApp: FunctionComponent<AppProps> = () => {
               style={{
                 border: 'none',
                 backgroundColor: 'var(--surface)',
-                boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+                boxShadow:
+                  'var(--border-raised-outer), var(--border-raised-inner)',
                 padding: '2px 8px',
                 color:
-                  recycledItems.length === 0 ? 'var(--button-shadow)' : 'inherit',
+                  recycledItems.length === 0
+                    ? 'var(--button-shadow)'
+                    : 'inherit',
               }}
             >
               Recover All

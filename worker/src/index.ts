@@ -142,11 +142,10 @@ const handleStart = async (
 
   const runId = crypto.randomUUID();
   const startedAt = Date.now();
-  await env.DB
-    .prepare(
-      `INSERT INTO runs (run_id, started_at, segment_started_at, reboot_count, status, checkpoints, client_ip, ua)
+  await env.DB.prepare(
+    `INSERT INTO runs (run_id, started_at, segment_started_at, reboot_count, status, checkpoints, client_ip, ua)
        VALUES (?, ?, ?, 0, 'open', '{}', ?, ?)`
-    )
+  )
     .bind(runId, startedAt, startedAt, ip, ua)
     .run();
   const token = await signRunToken(env.RUN_TOKEN_SECRET, runId, startedAt);
@@ -172,10 +171,9 @@ const handleReboot = async (
     return error('RUN_CLOSED', 'Run is not open', 409, cors);
   }
   const nextReboots = result.reboot_count + 1;
-  await env.DB
-    .prepare(
-      "UPDATE runs SET reboot_count = ?, segment_started_at = ?, checkpoints = '{}' WHERE run_id = ?"
-    )
+  await env.DB.prepare(
+    "UPDATE runs SET reboot_count = ?, segment_started_at = ?, checkpoints = '{}' WHERE run_id = ?"
+  )
     .bind(nextReboots, Date.now(), result.run_id)
     .run();
   return json({ ok: true, rebootCount: nextReboots }, 200, cors);
@@ -306,11 +304,10 @@ const handleSubmit = async (
   // We do this BEFORE flipping run status so a name collision lets the
   // player retry under a different name with the same run.
   try {
-    await env.DB
-      .prepare(
-        `INSERT INTO leaderboard (name, time_ms, reboots, created_at, run_id)
+    await env.DB.prepare(
+      `INSERT INTO leaderboard (name, time_ms, reboots, created_at, run_id)
          VALUES (?, ?, ?, ?, ?)`
-      )
+    )
       .bind(name, elapsedMs, run.reboot_count, submittedAt, run.run_id)
       .run();
   } catch (err) {
@@ -337,7 +334,10 @@ const handleSubmit = async (
 
   const rank = await computeRank(env, elapsedMs);
   return json(
-    { ok: true, entry: { name, timeMs: elapsedMs, reboots: run.reboot_count, rank } },
+    {
+      ok: true,
+      entry: { name, timeMs: elapsedMs, reboots: run.reboot_count, rank },
+    },
     200,
     cors
   );
@@ -347,12 +347,11 @@ const handleLeaderboard = async (
   env: Env,
   cors: HeadersInit
 ): Promise<Response> => {
-  const result = await env.DB
-    .prepare(
-      `SELECT name, time_ms, reboots FROM leaderboard
+  const result = await env.DB.prepare(
+    `SELECT name, time_ms, reboots FROM leaderboard
        ORDER BY time_ms ASC, created_at ASC
        LIMIT ?`
-    )
+  )
     .bind(MAX_LEADERBOARD_ROWS)
     .all<{ name: string; time_ms: number; reboots: number }>();
   const entries = (result.results ?? []).map((row, idx) => ({
@@ -367,18 +366,23 @@ const handleLeaderboard = async (
 // Scheduled cleanup. Removes abandoned 'open' runs and old 'expired' runs.
 // 'submitted' runs are kept indefinitely for audit (and because the
 // leaderboard rows reference them).
-const runCleanup = async (env: Env): Promise<{ open: number; expired: number }> => {
+const runCleanup = async (
+  env: Env
+): Promise<{ open: number; expired: number }> => {
   const now = Date.now();
-  const openCutoff = now - (Number.parseInt(env.CLEANUP_OPEN_AFTER_MS, 10) || 86_400_000);
+  const openCutoff =
+    now - (Number.parseInt(env.CLEANUP_OPEN_AFTER_MS, 10) || 86_400_000);
   const expiredCutoff =
     now - (Number.parseInt(env.CLEANUP_EXPIRED_AFTER_MS, 10) || 604_800_000);
 
-  const openResult = await env.DB
-    .prepare("DELETE FROM runs WHERE status = 'open' AND started_at < ?")
+  const openResult = await env.DB.prepare(
+    "DELETE FROM runs WHERE status = 'open' AND started_at < ?"
+  )
     .bind(openCutoff)
     .run();
-  const expiredResult = await env.DB
-    .prepare("DELETE FROM runs WHERE status = 'expired' AND started_at < ?")
+  const expiredResult = await env.DB.prepare(
+    "DELETE FROM runs WHERE status = 'expired' AND started_at < ?"
+  )
     .bind(expiredCutoff)
     .run();
 
@@ -389,14 +393,18 @@ const runCleanup = async (env: Env): Promise<{ open: number; expired: number }> 
 };
 
 export default {
-  async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+  async scheduled(
+    _event: ScheduledEvent,
+    env: Env,
+    ctx: ExecutionContext
+  ): Promise<void> {
     ctx.waitUntil(
       runCleanup(env).then((stats) => {
         // eslint-disable-next-line no-console
         console.log(
-          `[cleanup] removed ${stats.open} open + ${stats.expired} expired runs`,
+          `[cleanup] removed ${stats.open} open + ${stats.expired} expired runs`
         );
-      }),
+      })
     );
   },
 

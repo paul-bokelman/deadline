@@ -2,9 +2,7 @@
 
 import { apiGet, apiPost, ApiResult } from './client';
 
-export type CheckpointName =
-  | 'password_solved'
-  | 'portal_captcha_cleared';
+export type CheckpointName = 'password_solved' | 'portal_captcha_cleared';
 
 export interface StartRunResponse {
   ok: true;

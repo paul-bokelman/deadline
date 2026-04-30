@@ -31,8 +31,12 @@ const createRandomBehavior = (): IntrusivePopupConfig['behavior'] => {
   return {
     spawnMode: maybe(0.4) ? 'cursorExact' : 'random',
     snapUnderCursorOnNextClick: maybe(0.45),
-    bounceSpeedMinPxPerSecond: hasDvdBounce ? POPUP_BOUNCE_SPEED_MIN : undefined,
-    bounceSpeedMaxPxPerSecond: hasDvdBounce ? POPUP_BOUNCE_SPEED_MAX : undefined,
+    bounceSpeedMinPxPerSecond: hasDvdBounce
+      ? POPUP_BOUNCE_SPEED_MIN
+      : undefined,
+    bounceSpeedMaxPxPerSecond: hasDvdBounce
+      ? POPUP_BOUNCE_SPEED_MAX
+      : undefined,
     hydraSpawnCount: hasHydra ? 2 : undefined,
     spontaneousReplaceEveryMs: hasSpontaneous ? 500 : undefined,
     scrambledDecorations: true,

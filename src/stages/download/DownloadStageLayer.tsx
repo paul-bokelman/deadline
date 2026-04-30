@@ -28,17 +28,11 @@ const DownloadStageLayer: FunctionComponent = () => {
           setFlag('zipExtractionLevel', 1);
           setFlag('zipGarbageBatch', 0);
         }
-
       }
     );
 
     return unsubscribeCallEnded;
-  }, [
-    hasEventFired,
-    markEventFired,
-    setFlag,
-    triggerNetVoiceCall,
-  ]);
+  }, [hasEventFired, markEventFired, setFlag, triggerNetVoiceCall]);
 
   const handleStartDownload = () => {
     setFlag('hasDownloadStarted', true);

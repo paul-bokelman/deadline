@@ -116,12 +116,7 @@ export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
       'FunWare',
       'gameSpider0'
     ),
-    createAppShellItem(
-      'click-me-reset',
-      'clickMeReset',
-      'Click Me',
-      'smiley'
-    ),
+    createAppShellItem('click-me-reset', 'clickMeReset', 'Click Me', 'smiley'),
     createAppShellItem(
       'draft-document-link',
       'draftDocumentLink',

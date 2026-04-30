@@ -400,8 +400,8 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
         >
           <h2 style={{ marginTop: 0 }}>The Daily Beeper</h2>
           <div style={bannerStyle}>
-            BREAKING: City productivity up 300% after someone removed "reply all"
-            from every keyboard.
+            BREAKING: City productivity up 300% after someone removed "reply
+            all" from every keyboard.
           </div>
           <div
             style={{ color: '#555', fontSize: '12px', marginBottom: '10px' }}
@@ -489,7 +489,9 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
               North District: clear skies, suspiciously upbeat emails.
             </div>
             <div>Midtown: heavy cloud cover and moderate umbrella envy.</div>
-            <div>Industrial Zone: 12% chance of frogs, 88% chance of rumors.</div>
+            <div>
+              Industrial Zone: 12% chance of frogs, 88% chance of rumors.
+            </div>
           </div>
           <div style={{ ...sectionCardStyle, marginTop: '10px' }}>
             <b>3-Day Forecast</b>
@@ -552,13 +554,13 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
               Technology: [########--] +4.2%
             </div>
             <div style={{ fontFamily: 'monospace' }}>
-              Snacks:     [#########-] +6.8%
+              Snacks: [#########-] +6.8%
             </div>
             <div style={{ fontFamily: 'monospace' }}>
               Motivation: [###-------] -2.9%
             </div>
             <div style={{ fontFamily: 'monospace' }}>
-              Vibes:      [#######---] +2.4%
+              Vibes: [#######---] +2.4%
             </div>
           </div>
           <div style={{ marginTop: '10px', fontSize: '12px' }}>
@@ -789,7 +791,8 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
           </div>
           <div style={cardGridStyle}>
             <div style={sectionCardStyle}>
-              <b>User review:</b> "Installed it for one file, now we are family."
+              <b>User review:</b> "Installed it for one file, now we are
+              family."
             </div>
             <div style={sectionCardStyle}>
               <b>System requirements:</b> 486 CPU, 16MB RAM, and belief.
@@ -953,8 +956,8 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
           World Wide Web
         </div>
         <div style={bannerStyle}>
-          Welcome to the Information Superhighway. Please keep arms and emotional
-          baggage inside the browser at all times.
+          Welcome to the Information Superhighway. Please keep arms and
+          emotional baggage inside the browser at all times.
         </div>
         <div
           style={{

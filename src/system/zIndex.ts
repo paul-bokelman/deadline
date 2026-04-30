@@ -68,4 +68,3 @@ export const allocateLeaderboardZIndex = () => {
 export const allocateVoiceCallZIndex = () => {
   return voiceCallCounter++;
 };
-

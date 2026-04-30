@@ -48,7 +48,9 @@ const useDragging = (
   useEffect(() => {
     if (!isEnabled) return;
     handleEltRef.current = getHandleElt();
-    draggedEltRef.current = getDraggedElt ? getDraggedElt() : handleEltRef.current ?? null;
+    draggedEltRef.current = getDraggedElt
+      ? getDraggedElt()
+      : handleEltRef.current ?? null;
     boundingEltRef.current = getBoundingElt ? getBoundingElt() : null;
   });
 

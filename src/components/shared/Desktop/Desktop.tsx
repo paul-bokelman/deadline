@@ -16,7 +16,6 @@ import { useGameState } from '../../../game/state';
 import useShellFilesState from '../../../hooks/useShellFilesState';
 import { getDynamicDesktopItems } from '../../../system/desktop/dynamicDesktopItems';
 import { scrambleDesktop } from '../../../system/desktop/scrambleDesktop';
-import ScreenshotWallpaper from '../../../system/wallpaper/ScreenshotWallpaper';
 import { FileSystemApp } from '../../../types/FileSystem';
 import { ShellItem } from '../../../types/Shell';
 import { getDirFromPath } from '../../../utils/win96/FileSystemUtils';
@@ -89,7 +88,12 @@ const iconRectFromPosition = (
 });
 
 const rectsIntersect = (a: IconRect, b: IconRect): boolean =>
-  !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom);
+  !(
+    a.right < b.left ||
+    a.left > b.right ||
+    a.bottom < b.top ||
+    a.top > b.bottom
+  );
 
 const Desktop: FunctionComponent<Props> = ({
   background = '',
@@ -116,13 +120,13 @@ const Desktop: FunctionComponent<Props> = ({
         return !recycledItemIds[item.id];
       })
       .map((item) => {
-      const isSelected = selectedIds.has(item.id);
-      const isFocusedDynamic = item.id === focusedDynamicItemId;
-      if (isSelected || isFocusedDynamic) {
-        return { ...item, hasFocus: true, hasSoftFocus: true };
-      }
-      return item;
-    });
+        const isSelected = selectedIds.has(item.id);
+        const isFocusedDynamic = item.id === focusedDynamicItemId;
+        if (isSelected || isFocusedDynamic) {
+          return { ...item, hasFocus: true, hasSoftFocus: true };
+        }
+        return item;
+      });
     if (flags.hasDesktopScrambled) {
       return scrambleDesktop(mergedItems);
     }
@@ -131,7 +135,8 @@ const Desktop: FunctionComponent<Props> = ({
   const recycleBinItem = useMemo(
     () =>
       desktopItems.find(
-        (item) => item.type === 'dir' && item.fileSystemDir.dirType === 'recycleBin'
+        (item) =>
+          item.type === 'dir' && item.fileSystemDir.dirType === 'recycleBin'
       ) ?? null,
     [desktopItems]
   );
@@ -164,7 +169,9 @@ const Desktop: FunctionComponent<Props> = ({
     h: FALLBACK_DESKTOP_H,
   });
   const [isRecycleBinDropHover, setIsRecycleBinDropHover] = useState(false);
-  const [isPasswordVaultDropHover, setIsPasswordVaultDropHover] = useState(false);
+  const [isPasswordVaultDropHover, setIsPasswordVaultDropHover] = useState(
+    false
+  );
 
   useLayoutEffect(() => {
     const element = desktopRef.current;
@@ -214,7 +221,9 @@ const Desktop: FunctionComponent<Props> = ({
           top: clamp(existing.top, ICON_PADDING_Y, maxTop),
         };
         next[item.id] = clampedPosition;
-        occupiedPositions.add(positionKey(clampedPosition.left, clampedPosition.top));
+        occupiedPositions.add(
+          positionKey(clampedPosition.left, clampedPosition.top)
+        );
       });
 
       desktopItems.forEach((item) => {
@@ -273,7 +282,8 @@ const Desktop: FunctionComponent<Props> = ({
           desktopItems.forEach((item) => {
             const slot = slots.pop();
             next[item.id] =
-              slot ?? ({ left: ICON_PADDING_X, top: ICON_PADDING_Y } as IconPosition);
+              slot ??
+              ({ left: ICON_PADDING_X, top: ICON_PADDING_Y } as IconPosition);
           });
 
           return next;
@@ -303,7 +313,10 @@ const Desktop: FunctionComponent<Props> = ({
   const recycleDesktopItems = useCallback(
     (items: ShellItem[]): boolean => {
       const selectedItems = items.filter((item) => {
-        if (item.type === 'dir' && item.fileSystemDir.dirType === 'recycleBin') {
+        if (
+          item.type === 'dir' &&
+          item.fileSystemDir.dirType === 'recycleBin'
+        ) {
           return false;
         }
         return true;
@@ -326,7 +339,8 @@ const Desktop: FunctionComponent<Props> = ({
     (items: ShellItem[]): boolean => {
       if (!passwordVaultItem || passwordVaultItem.type !== 'dir') return false;
       const appsToMove = items.filter(
-        (item): item is Extract<ShellItem, { type: 'app' }> => item.type === 'app'
+        (item): item is Extract<ShellItem, { type: 'app' }> =>
+          item.type === 'app'
       );
       if (appsToMove.length === 0) return false;
 
@@ -335,13 +349,16 @@ const Desktop: FunctionComponent<Props> = ({
       let movedCount = 0;
 
       appsToMove.forEach((appItem, index) => {
-        const matchingDesktopEntry = desktopEntries.find(([entryKey, entryValue]) => {
-          if (consumedDesktopKeys.has(entryKey)) return false;
-          if (entryValue.type !== 'app') return false;
-          if (entryValue.appId !== appItem.appId) return false;
-          if (entryValue.name && entryValue.name !== appItem.name) return false;
-          return true;
-        });
+        const matchingDesktopEntry = desktopEntries.find(
+          ([entryKey, entryValue]) => {
+            if (consumedDesktopKeys.has(entryKey)) return false;
+            if (entryValue.type !== 'app') return false;
+            if (entryValue.appId !== appItem.appId) return false;
+            if (entryValue.name && entryValue.name !== appItem.name)
+              return false;
+            return true;
+          }
+        );
         if (!matchingDesktopEntry) return;
 
         const [desktopEntryKey] = matchingDesktopEntry;
@@ -603,7 +620,9 @@ const Desktop: FunctionComponent<Props> = ({
       setFocusedDynamicItemId(null);
       removeFocus();
       try {
-        (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+        (event.currentTarget as HTMLElement).setPointerCapture?.(
+          event.pointerId
+        );
       } catch {
         // ignore
       }
@@ -657,7 +676,9 @@ const Desktop: FunctionComponent<Props> = ({
       const desktopElement = desktopRef.current;
       if (!desktopElement) return;
 
-      const isDynamicItem = !files.some((candidate) => candidate.id === file.id);
+      const isDynamicItem = !files.some(
+        (candidate) => candidate.id === file.id
+      );
       if (selectedIds.has(file.id) && selectedIds.size > 1) {
         // Keep multi-selection intact when dragging an already-selected item.
         setFocusedDynamicItemId(null);
@@ -775,7 +796,10 @@ const Desktop: FunctionComponent<Props> = ({
             );
             return rectsIntersect(iconRectFromPosition(nextPos), binRect);
           });
-          if (isDroppedOnRecycleBin && recycleDesktopItems(eligibleDraggedItems)) {
+          if (
+            isDroppedOnRecycleBin &&
+            recycleDesktopItems(eligibleDraggedItems)
+          ) {
             endDrag();
             return;
           }
@@ -799,7 +823,10 @@ const Desktop: FunctionComponent<Props> = ({
             );
             return rectsIntersect(iconRectFromPosition(nextPos), vaultRect);
           });
-          if (appsDroppedOnVault.length > 0 && moveAppsToPasswordVault(appsDroppedOnVault)) {
+          if (
+            appsDroppedOnVault.length > 0 &&
+            moveAppsToPasswordVault(appsDroppedOnVault)
+          ) {
             endDrag();
             return;
           }
@@ -967,10 +994,14 @@ const Desktop: FunctionComponent<Props> = ({
 
     const isInDragGroup =
       !!drag && drag.hasMoved && drag.draggedFileIds.includes(file.id);
-    const startPos = isInDragGroup && drag ? drag.startPositions[file.id] : null;
+    const startPos =
+      isInDragGroup && drag ? drag.startPositions[file.id] : null;
     const renderedPos =
       isInDragGroup && drag && startPos
-        ? clampToDesktop(startPos.left + drag.deltaX, startPos.top + drag.deltaY)
+        ? clampToDesktop(
+            startPos.left + drag.deltaX,
+            startPos.top + drag.deltaY
+          )
         : position;
     const isPrimaryDragged =
       !!drag && drag.hasMoved && drag.primaryFileId === file.id;
@@ -1036,15 +1067,20 @@ const Desktop: FunctionComponent<Props> = ({
       ref={desktopRef}
       style={{ background }}
     >
-      {flags.hasDesktopScrambled && <ScreenshotWallpaper />}
       <div className={style.iconLayer}>
         {desktopItems.map((item) => renderIcon(item))}
         {selectionBox && selectionBox.isActive && (
           <div
             className={style.selectionBox}
             style={{
-              left: `${Math.min(selectionBox.startX, selectionBox.x) - (desktopRef.current?.getBoundingClientRect().left ?? 0)}px`,
-              top: `${Math.min(selectionBox.startY, selectionBox.y) - (desktopRef.current?.getBoundingClientRect().top ?? 0)}px`,
+              left: `${
+                Math.min(selectionBox.startX, selectionBox.x) -
+                (desktopRef.current?.getBoundingClientRect().left ?? 0)
+              }px`,
+              top: `${
+                Math.min(selectionBox.startY, selectionBox.y) -
+                (desktopRef.current?.getBoundingClientRect().top ?? 0)
+              }px`,
               width: `${Math.abs(selectionBox.x - selectionBox.startX)}px`,
               height: `${Math.abs(selectionBox.y - selectionBox.startY)}px`,
             }}

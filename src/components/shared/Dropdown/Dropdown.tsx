@@ -85,7 +85,9 @@ const Dropdown: FunctionComponent<Props> = ({
             const isSelected = option.value === selected;
             return (
               <button
-                className={`${style.option} ${isSelected ? style.optionSelected : ''}`}
+                className={`${style.option} ${
+                  isSelected ? style.optionSelected : ''
+                }`}
                 disabled={option.disabled}
                 key={`${id}-${option.value}`}
                 onClick={() => {

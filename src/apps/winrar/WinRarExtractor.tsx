@@ -76,9 +76,13 @@ type ProgramOption = {
   isExtractor?: boolean;
 };
 
-const WinRarExtractor: FunctionComponent<AppProps> = ({ openApp }: AppProps) => {
+const WinRarExtractor: FunctionComponent<AppProps> = ({
+  openApp,
+}: AppProps) => {
   const { flags, hasEventFired, markEventFired, setFlag } = useGameState();
-  const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
+  const [selectedProgramId, setSelectedProgramId] = useState<string | null>(
+    null
+  );
   const [hasConfirmedProgram, setHasConfirmedProgram] = useState(false);
   const [uiStatusMessage, setUiStatusMessage] = useState<string | null>(null);
 
@@ -100,7 +104,8 @@ const WinRarExtractor: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
   );
 
   const selectedProgram = useMemo(
-    () => programOptions.find((option) => option.id === selectedProgramId) ?? null,
+    () =>
+      programOptions.find((option) => option.id === selectedProgramId) ?? null,
     [programOptions, selectedProgramId]
   );
 
@@ -161,7 +166,9 @@ const WinRarExtractor: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
     if (!flags.hasWinRarInstalled) {
       if (!flags.hasReceivedWinRarLinkEmail) {
         setFlag('hasReceivedWinRarLinkEmail', true);
-        gameEventBus.emit('email:delivered', { emailId: 'corp-winrar-download-link' });
+        gameEventBus.emit('email:delivered', {
+          emailId: 'corp-winrar-download-link',
+        });
         gameEventBus.emit('email:delivered', {
           emailId: 'corp-winrar-download-link-fake',
         });
@@ -212,7 +219,12 @@ const WinRarExtractor: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
           ))}
         </div>
         <div
-          style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}
+          style={{
+            marginTop: '8px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '4px',
+          }}
         >
           <button
             type="button"
@@ -232,7 +244,11 @@ const WinRarExtractor: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
             </div>
             {flags.hasZipFile ? (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                <button onClick={handleExtract} style={buttonStyle} type="button">
+                <button
+                  onClick={handleExtract}
+                  style={buttonStyle}
+                  type="button"
+                >
                   Extract to Desktop
                 </button>
               </div>

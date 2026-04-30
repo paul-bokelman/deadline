@@ -33,7 +33,6 @@ export interface GameFlags {
   zipGarbageBatch: 0 | 1 | 2 | 3;
   hasReceivedPortalIntroCall: boolean;
   hasDesktopScrambled: boolean;
-  narrator: boolean;
   windowsUpdateActive: boolean;
   windowsUpdateRebootAt: number | null;
   isBluescreenSequenceActive: boolean;
@@ -84,7 +83,6 @@ const initialFlags: GameFlags = {
   zipGarbageBatch: 0,
   hasReceivedPortalIntroCall: false,
   hasDesktopScrambled: false,
-  narrator: false,
   windowsUpdateActive: false,
   windowsUpdateRebootAt: null,
   isBluescreenSequenceActive: false,

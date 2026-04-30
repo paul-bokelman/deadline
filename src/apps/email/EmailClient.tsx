@@ -99,16 +99,15 @@ const ToolbarButton: FunctionComponent<ToolbarButtonProps> = ({
 const EmailClient: FunctionComponent<EmailClientProps> = ({
   accountId,
 }: EmailClientProps) => {
-  const {
-    flags,
-    setFlag,
-    setStage,
-  } = useGameState();
+  const { flags, setFlag, setStage } = useGameState();
   const [selectedFolder, setSelectedFolder] = useState<EmailFolder>('inbox');
-  const [selectedEmail, setSelectedEmail] = useState<VisibleEmailItem | null>(null);
+  const [selectedEmail, setSelectedEmail] = useState<VisibleEmailItem | null>(
+    null
+  );
   const [isLoadingEmail, setIsLoadingEmail] = useState(false);
-  const [passwordDialogContext, setPasswordDialogContext] =
-    useState<PasswordDialogContext>(null);
+  const [passwordDialogContext, setPasswordDialogContext] = useState<
+    PasswordDialogContext
+  >(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [readEmailMap, setReadEmailMap] = useState<Record<string, true>>({});
   const [movedToTrashMap, setMovedToTrashMap] = useState<Record<string, true>>(
@@ -218,8 +217,8 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
       typeof configuredBurstCount === 'number' && configuredBurstCount > 0
         ? Math.round(configuredBurstCount)
         : source === 'attachment_open'
-          ? 3
-          : 2;
+        ? 3
+        : 2;
     for (let i = 0; i < burstCount; i += 1) {
       gameEventBus.emit('popup:test_spawn_random', {
         x: 140 + i * 80,
@@ -380,9 +379,7 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
             />
             <div className={style.toolbarSpacer} />
             <ToolbarButton
-              iconId={
-                isSidebarVisible ? 'mailFolderOpen' : 'mailFolderClosed'
-              }
+              iconId={isSidebarVisible ? 'mailFolderOpen' : 'mailFolderClosed'}
               label="Folders"
               onClick={() => setIsSidebarVisible((current) => !current)}
             />
@@ -437,7 +434,8 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
                   )}
                   {folderEmails.map((item) => {
                     const email = item.email;
-                    const isActive = selectedEmail?.instanceId === item.instanceId;
+                    const isActive =
+                      selectedEmail?.instanceId === item.instanceId;
                     const isUnread = !readEmailMap[item.instanceId];
                     const rowIcon: IconId = isUnread
                       ? 'mailEnvelope'
@@ -460,7 +458,9 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
                         >
                           <Icon iconId={rowIcon} size={16} />
                         </div>
-                        <div className={`${style.listCell} ${style.listCellFrom}`}>
+                        <div
+                          className={`${style.listCell} ${style.listCellFrom}`}
+                        >
                           {email.sender}
                         </div>
                         <div
@@ -517,22 +517,24 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
                               <b>Attach:</b>
                             </div>
                             <div>
-                              {selectedEmail.email.attachments.map((attachment) => (
-                                <button
-                                  className={style.previewAttachment}
-                                  key={attachment.id}
-                                  onClick={() =>
-                                    handleClickAttachment(
-                                      selectedEmail.email,
-                                      attachment.id
-                                    )
-                                  }
-                                  type="button"
-                                >
-                                  <Icon iconId="notepadDoc" size={16} />
-                                  <span>{attachment.fileName}</span>
-                                </button>
-                              ))}
+                              {selectedEmail.email.attachments.map(
+                                (attachment) => (
+                                  <button
+                                    className={style.previewAttachment}
+                                    key={attachment.id}
+                                    onClick={() =>
+                                      handleClickAttachment(
+                                        selectedEmail.email,
+                                        attachment.id
+                                      )
+                                    }
+                                    type="button"
+                                  >
+                                    <Icon iconId="notepadDoc" size={16} />
+                                    <span>{attachment.fileName}</span>
+                                  </button>
+                                )
+                              )}
                             </div>
                           </Fragment>
                         )}
@@ -542,13 +544,18 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
                         className={style.previewBodyHtml}
                         onClick={(event) => {
                           const target = event.target as HTMLElement;
-                          const anchor = target.closest('a') as HTMLAnchorElement | null;
+                          const anchor = target.closest(
+                            'a'
+                          ) as HTMLAnchorElement | null;
                           if (!anchor || !selectedEmail) return;
                           const href = anchor.getAttribute('href');
                           if (!href || href.startsWith('#')) return;
                           event.preventDefault();
                           if (selectedEmail.email.isMalwareTrap) {
-                            triggerMalwareEvent(selectedEmail.email, 'email_open');
+                            triggerMalwareEvent(
+                              selectedEmail.email,
+                              'email_open'
+                            );
                             return;
                           }
                           gameEventBus.emit('browser:navigate_to_url', {
@@ -578,10 +585,12 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
 
           <div className={style.statusBar}>
             <div className={`${style.statusCell} ${style.statusCellLeft}`}>
-              {accountToAddressMap[accountId]} | Unread: {unreadInCurrentFolderCount}
+              {accountToAddressMap[accountId]} | Unread:{' '}
+              {unreadInCurrentFolderCount}
             </div>
             <div className={`${style.statusCell} ${style.statusCellMiddle}`}>
-              {folderEmails.length} message{folderEmails.length === 1 ? '' : 's'}
+              {folderEmails.length} message
+              {folderEmails.length === 1 ? '' : 's'}
             </div>
             <div className={`${style.statusCell} ${style.statusCellRight}`}>
               {accountServerMap[accountId]}

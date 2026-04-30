@@ -19,7 +19,10 @@ const createAudio = (src: string, volume: number): HTMLAudioElement => {
   return audio;
 };
 
-const createUnmanagedAudio = (src: string, volume: number): HTMLAudioElement => {
+const createUnmanagedAudio = (
+  src: string,
+  volume: number
+): HTMLAudioElement => {
   const audio = new Audio(src);
   audio.preload = 'auto';
   audio.volume = volume;

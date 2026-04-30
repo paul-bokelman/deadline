@@ -65,7 +65,9 @@ const programsOption: OptionType = {
           iconId: 'settings',
           value: '',
           subMenu: {
-            options: [[appOption('draftDocumentLink'), appOption('winRarInstaller')]],
+            options: [
+              [appOption('draftDocumentLink'), appOption('winRarInstaller')],
+            ],
           },
         },
       ],

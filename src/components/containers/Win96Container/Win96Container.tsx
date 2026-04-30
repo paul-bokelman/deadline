@@ -10,10 +10,8 @@ import GameScenarioController from '../../../game/scenario/GameScenarioControlle
 import OpenWindowsContext from '../../../context/OpenWindowsContext';
 import DownloadStageLayer from '../../../stages/download/DownloadStageLayer';
 import IntrusivePopupManager from '../../../system/intrusivePopups/IntrusivePopupManager';
-import { I18nProvider } from '../../../system/i18n';
 import BluescreenSequence from '../../../stages/transition/BluescreenSequence';
 import WinStageLayer from '../../../stages/win/WinStageLayer';
-import Narrator from '../../../system/narrator/Narrator';
 import WindowsUpdateNag from '../../../system/windowsUpdate/WindowsUpdateNag';
 import BootLoaderScreen, {
   triggerBootLoaderScreen,
@@ -197,13 +195,16 @@ const CtrlAltDelTaskManagerTrap: FunctionComponent = () => {
         >
           WIN96.EXE (Not Responding)
         </div>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
+        <div
+          style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}
+        >
           <button
             type="button"
             style={{
               border: 'none',
               backgroundColor: 'var(--surface)',
-              boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+              boxShadow:
+                'var(--border-raised-outer), var(--border-raised-inner)',
               padding: '4px 8px',
             }}
             onClick={() => setIsDialogOpen(false)}
@@ -215,7 +216,8 @@ const CtrlAltDelTaskManagerTrap: FunctionComponent = () => {
             style={{
               border: 'none',
               backgroundColor: 'var(--surface)',
-              boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+              boxShadow:
+                'var(--border-raised-outer), var(--border-raised-inner)',
               padding: '4px 8px',
             }}
             onClick={() => {
@@ -266,8 +268,14 @@ const Win96Container: FunctionComponent = () => {
 
     return () => {
       window.removeEventListener('resize', updateAppViewportVars);
-      window.visualViewport?.removeEventListener('resize', updateAppViewportVars);
-      window.visualViewport?.removeEventListener('scroll', updateAppViewportVars);
+      window.visualViewport?.removeEventListener(
+        'resize',
+        updateAppViewportVars
+      );
+      window.visualViewport?.removeEventListener(
+        'scroll',
+        updateAppViewportVars
+      );
       document.removeEventListener('fullscreenchange', updateAppViewportVars);
     };
   }, []);
@@ -307,34 +315,31 @@ const Win96Container: FunctionComponent = () => {
         className={`${style.shell} ${isMirrored ? style.shellMirrored : ''}`}
       >
         <GameStateProvider>
-          <I18nProvider>
-            <OpenWindowsProvider>
-              <div className={style.mainView}>
-                <DesktopContainer />
-                <WindowsContainer />
-                <DownloadStageLayer />
-                <BluescreenSequence />
-                <WinStageLayer />
-                <IntrusivePopupManager />
-                <WindowsUpdateNag />
-                <FullscreenRecommendation />
-                <InstantBsodTrap />
-                <ClippyAssistant />
-                <Narrator />
-                <SaveHotkeyTrap />
-                <CtrlAltDelTaskManagerTrap />
-                <NetVoiceCallWindowSync />
-                <BrowserNavigationSync />
-                <GameScenarioController />
-              </div>
-              <div className={style.taskbarView}>
-                <TaskbarContainer />
-              </div>
-              <BootLoaderScreen />
-              <DeadPixelOverlay />
-              <BackgroundFlyOverlay />
-            </OpenWindowsProvider>
-          </I18nProvider>
+          <OpenWindowsProvider>
+            <div className={style.mainView}>
+              <DesktopContainer />
+              <WindowsContainer />
+              <DownloadStageLayer />
+              <BluescreenSequence />
+              <WinStageLayer />
+              <IntrusivePopupManager />
+              <WindowsUpdateNag />
+              <FullscreenRecommendation />
+              <InstantBsodTrap />
+              <ClippyAssistant />
+              <SaveHotkeyTrap />
+              <CtrlAltDelTaskManagerTrap />
+              <NetVoiceCallWindowSync />
+              <BrowserNavigationSync />
+              <GameScenarioController />
+            </div>
+            <div className={style.taskbarView}>
+              <TaskbarContainer />
+            </div>
+            <BootLoaderScreen />
+            <DeadPixelOverlay />
+            <BackgroundFlyOverlay />
+          </OpenWindowsProvider>
         </GameStateProvider>
       </div>
     </div>

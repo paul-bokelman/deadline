@@ -54,7 +54,11 @@ type ProgressBehavior = typeof getErraticProgressStep extends (
 
 const scaleProgressBehavior = (
   behavior: ProgressBehavior,
-  { delayScale, incrementScale, pauseScale }: { delayScale: number; incrementScale: number; pauseScale: number }
+  {
+    delayScale,
+    incrementScale,
+    pauseScale,
+  }: { delayScale: number; incrementScale: number; pauseScale: number }
 ): ProgressBehavior => ({
   ...behavior,
   maxDelayMs: Math.max(1, Math.round(behavior.maxDelayMs * delayScale)),
@@ -77,11 +81,14 @@ const BASE_PROGRESS_BEHAVIOR = {
 };
 
 // "55% quicker" => ~45% of original duration.
-const INSTALL_PROGRESS_BEHAVIOR = scaleProgressBehavior(BASE_PROGRESS_BEHAVIOR, {
-  delayScale: 0.45,
-  incrementScale: 1 / 0.45,
-  pauseScale: 0.45,
-});
+const INSTALL_PROGRESS_BEHAVIOR = scaleProgressBehavior(
+  BASE_PROGRESS_BEHAVIOR,
+  {
+    delayScale: 0.45,
+    incrementScale: 1 / 0.45,
+    pauseScale: 0.45,
+  }
+);
 
 // "70% quicker" => ~30% of original duration.
 const UPDATE_PROGRESS_BEHAVIOR = scaleProgressBehavior(BASE_PROGRESS_BEHAVIOR, {
@@ -93,11 +100,7 @@ const UPDATE_PROGRESS_BEHAVIOR = scaleProgressBehavior(BASE_PROGRESS_BEHAVIOR, {
 const WinRarInstaller: FunctionComponent<AppProps> = ({
   closeWindow,
 }: AppProps) => {
-  const {
-    flags,
-    setFlag,
-    setFlags,
-  } = useGameState();
+  const { flags, setFlag, setFlags } = useGameState();
   const [phase, setPhase] = useState<InstallerPhase>(
     flags.hasPurchasedWinRar ? 'installing' : 'purchase'
   );
@@ -224,7 +227,9 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
                 });
               }}
               style={
-                flags.bankBalance >= WINRAR_PRICE ? buttonStyle : disabledButtonStyle
+                flags.bankBalance >= WINRAR_PRICE
+                  ? buttonStyle
+                  : disabledButtonStyle
               }
               disabled={flags.bankBalance < WINRAR_PRICE}
               type="button"

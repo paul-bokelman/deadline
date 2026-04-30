@@ -37,7 +37,11 @@ const addDeliveredEmailInstance = (emailId: string): void => {
   counter += 1;
   deliveredInstances = [
     ...deliveredInstances,
-    { instanceId: `delivered-${emailId}-${counter}`, emailId, deliveredAt: Date.now() + counter },
+    {
+      instanceId: `delivered-${emailId}-${counter}`,
+      emailId,
+      deliveredAt: Date.now() + counter,
+    },
   ];
   notifyListeners();
 };
@@ -52,12 +56,14 @@ gameEventBus.on('game:rebooted', () => {
   notifyListeners();
 });
 
-export const getDeliveredEmailInstances = (): DeliveredEmailInstance[] => deliveredInstances;
+export const getDeliveredEmailInstances = (): DeliveredEmailInstance[] =>
+  deliveredInstances;
 
-export const subscribeRuntimeMailbox = (listener: MailboxListener): (() => void) => {
+export const subscribeRuntimeMailbox = (
+  listener: MailboxListener
+): (() => void) => {
   listeners.add(listener);
   return () => {
     listeners.delete(listener);
   };
 };
-

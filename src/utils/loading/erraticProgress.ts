@@ -37,7 +37,9 @@ export const getErraticProgressStep = (
 
   if (Math.random() < options.pauseChance) {
     return {
-      delayMs: Math.round(randomBetween(options.minPauseMs, options.maxPauseMs)),
+      delayMs: Math.round(
+        randomBetween(options.minPauseMs, options.maxPauseMs)
+      ),
       nextProgress: currentProgress,
       paused: true,
     };
@@ -47,7 +49,9 @@ export const getErraticProgressStep = (
   const stepSize = options.stepSize ?? 1;
   const rawNext = Math.min(target, currentProgress + increment);
   const steppedNext =
-    stepSize > 1 ? Math.min(target, Math.ceil(rawNext / stepSize) * stepSize) : rawNext;
+    stepSize > 1
+      ? Math.min(target, Math.ceil(rawNext / stepSize) * stepSize)
+      : rawNext;
   return {
     delayMs: Math.round(randomBetween(options.minDelayMs, options.maxDelayMs)),
     nextProgress: steppedNext,

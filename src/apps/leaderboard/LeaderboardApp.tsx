@@ -97,8 +97,8 @@ const LeaderboardApp: FunctionComponent<AppProps> = () => {
               ? `You placed #${youIndex + 1} of ${
                   board.length
                 }. Time: ${formatTime(youEntry.ms)} · Reboots: ${
-                    youEntry.reboots
-                  }`
+                  youEntry.reboots
+                }`
               : `No submitted run yet. ${board.length} entries loaded.`}
           </div>
         </div>

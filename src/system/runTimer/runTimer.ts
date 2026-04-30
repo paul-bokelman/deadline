@@ -54,7 +54,10 @@ export const resetRunTimer = (): void => {
   if (activeRunToken) {
     pendingStart = Promise.resolve(activeRunToken);
     void (async () => {
-      const result = await apiRebootRun(activeRunToken.runId, activeRunToken.token);
+      const result = await apiRebootRun(
+        activeRunToken.runId,
+        activeRunToken.token
+      );
       if (!result.ok) {
         // eslint-disable-next-line no-console
         console.warn('[deadline] /run/reboot failed:', result.error.message);

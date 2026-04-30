@@ -1,4 +1,10 @@
-import { h, FunctionComponent, ComponentChildren, JSX, createRef } from 'preact';
+import {
+  h,
+  FunctionComponent,
+  ComponentChildren,
+  JSX,
+  createRef,
+} from 'preact';
 
 import useDragging from '../../../hooks/useDragging';
 import TitleBar, { Props as TitleBarProps } from '../TitleBar/TitleBar';

@@ -12,7 +12,6 @@ const PasswordsFile: FunctionComponent = () => (
       <Countour>
         <textarea
           autoComplete="off"
-          // eslint-disable-next-line react/no-unknown-property
           readOnly
           spellcheck={false}
           style={{

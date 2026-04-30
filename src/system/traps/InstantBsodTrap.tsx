@@ -3,7 +3,10 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 
 import { gameEventBus } from '../../game/events';
 import { useGameState } from '../../game/state';
-import { enterBsodAudioMode, exitBsodAudioMode } from '../../utils/audio/bsodAudioMode';
+import {
+  enterBsodAudioMode,
+  exitBsodAudioMode,
+} from '../../utils/audio/bsodAudioMode';
 import { Z_INDEX_TIERS } from '../zIndex';
 
 const bsodStyle: JSX.CSSProperties = {
@@ -72,8 +75,13 @@ const InstantBsodTrap: FunctionComponent = () => {
         drivers.
       </div>
       <div style={{ marginTop: '16px' }}>Technical information:</div>
-      <div>*** STOP: 0x0000008E (0xC0000005, 0x804E37B4, 0xF2B9F7A8, 0x00000000)</div>
-      <div>*** FUNWARE_KERNEL_PANIC - Address F2B9F7A8 base at F2A00000, DateStamp 3d6dd67c</div>
+      <div>
+        *** STOP: 0x0000008E (0xC0000005, 0x804E37B4, 0xF2B9F7A8, 0x00000000)
+      </div>
+      <div>
+        *** FUNWARE_KERNEL_PANIC - Address F2B9F7A8 base at F2A00000, DateStamp
+        3d6dd67c
+      </div>
       <div style={{ marginTop: '16px' }}>
         The system detected malware and must restart.
       </div>

@@ -157,7 +157,7 @@ const headingDegFromVec = (v: Vec2, facingOffsetDeg: number): number => {
 };
 
 const shortestAngleDelta = (current: number, target: number): number => {
-  let d = ((target - current) % 360 + 540) % 360 - 180;
+  const d = ((((target - current) % 360) + 540) % 360) - 180;
   return d;
 };
 
@@ -394,8 +394,7 @@ const BackgroundFly: FunctionComponent<BackgroundCritterProps> = ({
       visibleRef.current && !forceHidden && onClick ? 'auto' : 'none',
     cursor: onClick ? 'pointer' : 'default',
     userSelect: 'none',
-    visibility:
-      visibleRef.current && !forceHidden ? 'visible' : 'hidden',
+    visibility: visibleRef.current && !forceHidden ? 'visible' : 'hidden',
     imageRendering: 'auto',
   };
 

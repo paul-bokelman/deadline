@@ -23,4 +23,3 @@ export const getGameDate = (): Date => {
   const elapsed = Date.now() - baseRealMs;
   return new Date(baseVirtualMs + elapsed);
 };
-

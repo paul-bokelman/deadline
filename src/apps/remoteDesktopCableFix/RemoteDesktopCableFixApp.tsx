@@ -291,7 +291,9 @@ const computeNetworkState = (
 
 const buildChallengingScramble = (): TileDef[] => {
   const solved = buildSolvedBoard();
-  const mutableTiles = solved.filter((tile) => tile.type !== 'empty' && !tile.fixed).length;
+  const mutableTiles = solved.filter(
+    (tile) => tile.type !== 'empty' && !tile.fixed
+  ).length;
   const requiredWrongRotations = Math.min(MIN_WRONG_ROTATIONS, mutableTiles);
   let fallback = scrambleRotations(solved);
 
@@ -304,7 +306,10 @@ const buildChallengingScramble = (): TileDef[] => {
     }, 0);
 
     const { isConnected, hasLeaks } = computeNetworkState(candidate);
-    if (wrongRotations >= requiredWrongRotations && (!isConnected || hasLeaks)) {
+    if (
+      wrongRotations >= requiredWrongRotations &&
+      (!isConnected || hasLeaks)
+    ) {
       return candidate;
     }
     fallback = candidate;
@@ -322,7 +327,11 @@ const WireGlyph: FunctionComponent<{
   const wireClass = energized ? `${style.wire} ${style.wireHot}` : style.wire;
   return (
     <div className={style.glyph} aria-hidden="true">
-      <div className={energized ? `${style.wireCenter} ${style.wireHot}` : style.wireCenter} />
+      <div
+        className={
+          energized ? `${style.wireCenter} ${style.wireHot}` : style.wireCenter
+        }
+      />
       {con.has('N') && <div className={`${style.wireN} ${wireClass}`} />}
       {con.has('S') && <div className={`${style.wireS} ${wireClass}`} />}
       {con.has('W') && <div className={`${style.wireW} ${wireClass}`} />}
@@ -331,10 +340,14 @@ const WireGlyph: FunctionComponent<{
   );
 };
 
-const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({ closeWindow }) => {
+const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({
+  closeWindow,
+}) => {
   const { flags, hasEventFired, markEventFired, setFlag } = useGameState();
 
-  const [tiles, setTiles] = useState<TileDef[]>(() => buildChallengingScramble());
+  const [tiles, setTiles] = useState<TileDef[]>(() =>
+    buildChallengingScramble()
+  );
   const [attempts, setAttempts] = useState(0);
 
   const { isConnected, hasLeaks, energized } = useMemo(
@@ -350,18 +363,29 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({ closeWindow }) 
     markEventFired(COMPLETED_EVENT_ID);
     if (!flags.hasReceivedWinRarLinkEmail) {
       setFlag('hasReceivedWinRarLinkEmail', true);
-      gameEventBus.emit('email:delivered', { emailId: 'corp-winrar-download-link' });
+      gameEventBus.emit('email:delivered', {
+        emailId: 'corp-winrar-download-link',
+      });
       gameEventBus.emit('email:delivered', {
         emailId: 'corp-winrar-download-link-fake',
       });
     }
-    gameEventBus.emit('email:delivered', { emailId: 'corp-password-reset-link' });
+    gameEventBus.emit('email:delivered', {
+      emailId: 'corp-password-reset-link',
+    });
 
     const timer = window.setTimeout(() => {
       closeWindow();
     }, 850);
     return () => window.clearTimeout(timer);
-  }, [closeWindow, flags.hasReceivedWinRarLinkEmail, hasEventFired, isSolved, markEventFired, setFlag]);
+  }, [
+    closeWindow,
+    flags.hasReceivedWinRarLinkEmail,
+    hasEventFired,
+    isSolved,
+    markEventFired,
+    setFlag,
+  ]);
 
   const boardStyle: JSX.CSSProperties = {
     gridTemplateColumns: `repeat(${BOARD_W}, ${TILE_SIZE}px)`,
@@ -389,9 +413,9 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({ closeWindow }) 
         <div className={style.alertBox}>
           <div className={style.alertTitle}>Why this popped up</div>
           <div className={style.alertBody}>
-            WinRAR extraction requested a remote handoff from IT, but the remote desktop
-            cable disconnected. Reconnect the cable path to continue extraction and receive
-            the reset message.
+            WinRAR extraction requested a remote handoff from IT, but the remote
+            desktop cable disconnected. Reconnect the cable path to continue
+            extraction and receive the reset message.
           </div>
         </div>
         <div className={style.boardFrame}>
@@ -418,9 +442,9 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({ closeWindow }) 
                   type="button"
                   className={`${style.tile} ${isEmpty ? style.tileEmpty : ''} ${
                     isFixed ? style.tileFixed : ''
-                  } ${isStart ? style.tileStart : ''} ${isEnd ? style.tileEnd : ''} ${
-                    isEnergized ? style.tileEnergized : ''
-                  }`}
+                  } ${isStart ? style.tileStart : ''} ${
+                    isEnd ? style.tileEnd : ''
+                  } ${isEnergized ? style.tileEnergized : ''}`}
                   disabled={isEmpty || isFixed || isSolved}
                   onClick={() => {
                     if (isEmpty || isFixed || isSolved) return;
@@ -439,8 +463,8 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({ closeWindow }) 
                     isEmpty
                       ? 'Empty'
                       : isFixed
-                        ? 'Endpoint'
-                        : 'Rotate cable tile'
+                      ? 'Endpoint'
+                      : 'Rotate cable tile'
                   }
                   title={
                     isFixed
@@ -448,8 +472,8 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({ closeWindow }) 
                         ? 'Remote host'
                         : 'Corp gateway'
                       : isEmpty
-                        ? ''
-                        : 'Click to rotate'
+                      ? ''
+                      : 'Click to rotate'
                   }
                 >
                   <WireGlyph tile={tile} energized={isEnergized} />
@@ -462,11 +486,12 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({ closeWindow }) 
         <div className={style.actions}>
           <div className={style.hintBox}>
             <div>
-              <b>Goal:</b> Rotate tiles to reconnect the full cable network with no loose
-              ends.
+              <b>Goal:</b> Rotate tiles to reconnect the full cable network with
+              no loose ends.
             </div>
             <div className={style.hintSubline}>
-              Attempts: <b>{attempts}</b> {hasLeaks && !isSolved ? '| Leak detected' : ''}
+              Attempts: <b>{attempts}</b>{' '}
+              {hasLeaks && !isSolved ? '| Leak detected' : ''}
             </div>
           </div>
 
@@ -511,4 +536,3 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({ closeWindow }) 
 };
 
 export default RemoteDesktopCableFixApp;
-

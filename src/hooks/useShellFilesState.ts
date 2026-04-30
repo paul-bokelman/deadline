@@ -17,7 +17,9 @@ export const useShellFilesState = (
   const getShellItemIdentity = (item: ShellItem): string => {
     if (item.type === 'app') return `app:${item.appId}:${item.name}`;
     if (item.type === 'dir') {
-      return `dir:${item.fileSystemDir.name}:${item.fileSystemDir.dirType ?? 'default'}`;
+      return `dir:${item.fileSystemDir.name}:${
+        item.fileSystemDir.dirType ?? 'default'
+      }`;
     }
     return `file:${item.fileTypeId}:${item.name}`;
   };

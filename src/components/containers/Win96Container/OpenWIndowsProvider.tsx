@@ -11,7 +11,6 @@ import OpenWindowsContext, {
 } from '../../../context/OpenWindowsContext';
 import { gameEventBus } from '../../../game/events';
 import { useGameState } from '../../../game/state';
-import { translateLiteralForLocale } from '../../../system/i18n';
 import { getAppIconId } from '../../../utils/win96/AppIconUtils';
 import {
   Z_INDEX_TIERS,
@@ -98,11 +97,11 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
     workingDir?: FileSystemDir,
     workingFile?: FileSystemFile
   ): string => {
-    const translatedAppName = translateLiteralForLocale('en', app.name);
+    const translatedAppName = app.name;
     if (workingFile && workingFile.name) {
       return `${workingFile.name} - ${translatedAppName}`;
     }
-    if (workingDir) return translateLiteralForLocale('en', workingDir.name);
+    if (workingDir) return workingDir.name;
     return translatedAppName;
   };
 

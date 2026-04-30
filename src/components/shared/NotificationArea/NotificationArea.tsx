@@ -8,14 +8,20 @@ import { gameEventBus } from '../../../game/events';
 import { useGameState } from '../../../game/state';
 import OpenWindowsContext from '../../../context/OpenWindowsContext';
 import { useIntrusivePopupCount } from '../../../system/intrusivePopups/useIntrusivePopupCount';
-import { calculateUsedRamMb, MAX_RAM_MB } from '../../../system/performance/ramUsage';
+import {
+  calculateUsedRamMb,
+  MAX_RAM_MB,
+} from '../../../system/performance/ramUsage';
 import {
   getMasterVolumePercent,
   registerManagedAudio,
   setMasterVolumePercent,
   updateManagedAudioBaseVolume,
 } from '../../../utils/audio/masterVolume';
-import { enterBsodAudioMode, exitBsodAudioMode } from '../../../utils/audio/bsodAudioMode';
+import {
+  enterBsodAudioMode,
+  exitBsodAudioMode,
+} from '../../../utils/audio/bsodAudioMode';
 
 import style from './NotificationArea.module.css';
 import { getGameDate } from '../../../system/clock/gameClock';
@@ -34,8 +40,9 @@ const formatTrayTime = (date: Date) =>
 
 const NotificationArea: FunctionComponent = () => {
   const { activeNetVoiceCallId, rebootGame, flags } = useGameState();
-  const { focusOnWindow, openApp, unMinimizeWindow, windows } =
-    useContext(OpenWindowsContext);
+  const { focusOnWindow, openApp, unMinimizeWindow, windows } = useContext(
+    OpenWindowsContext
+  );
   const popupCount = useIntrusivePopupCount();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const autoplayRetryCountRef = useRef(0);
@@ -52,18 +59,19 @@ const NotificationArea: FunctionComponent = () => {
   const [volumePercent, setVolumePercent] = useState(getMasterVolumePercent());
   const [isVolumeFlyoutOpen, setIsVolumeFlyoutOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isFullscreenRecommendationVisible, setIsFullscreenRecommendationVisible] =
-    useState(false);
+  const [
+    isFullscreenRecommendationVisible,
+    setIsFullscreenRecommendationVisible,
+  ] = useState(false);
   const [isRamCrashActive, setIsRamCrashActive] = useState(false);
   const [clockText, setClockText] = useState(formatTrayTime(getGameDate()));
   const extraRamLoadCount =
     (activeNetVoiceCallId ? 1 : 0) +
     (isFullscreenRecommendationVisible ? 1 : 0);
   const totalWindowCount = windows.length + popupCount + extraRamLoadCount;
-  const usedRamMb = useMemo(
-    () => calculateUsedRamMb(totalWindowCount),
-    [totalWindowCount]
-  );
+  const usedRamMb = useMemo(() => calculateUsedRamMb(totalWindowCount), [
+    totalWindowCount,
+  ]);
   const ramUsagePercent = (usedRamMb / MAX_RAM_MB) * 100;
   const isRamUsageCritical = ramUsagePercent >= 85;
 
@@ -278,9 +286,12 @@ const NotificationArea: FunctionComponent = () => {
   }, []);
 
   useEffect(() => {
-    return gameEventBus.on('fullscreen:recommendation_visibility', ({ isVisible }) => {
-      setIsFullscreenRecommendationVisible(isVisible);
-    });
+    return gameEventBus.on(
+      'fullscreen:recommendation_visibility',
+      ({ isVisible }) => {
+        setIsFullscreenRecommendationVisible(isVisible);
+      }
+    );
   }, []);
 
   const handleMuteToggle = () => {
@@ -392,8 +403,8 @@ const NotificationArea: FunctionComponent = () => {
       {isRamCrashActive && (
         <div className={`${style.ramCrashOverlay} bsod-overlay`}>
           <div>
-            A fatal exception 0E has occurred at 0028:C0011E36 in VXD
-            VMM(01) + 00010E36.
+            A fatal exception 0E has occurred at 0028:C0011E36 in VXD VMM(01) +
+            00010E36.
           </div>
           <div style={{ marginTop: '14px' }}>
             The current application will be terminated.
@@ -406,14 +417,14 @@ const NotificationArea: FunctionComponent = () => {
             If this is the first time you've seen this Stop error screen,
             restart your computer.
           </div>
+          <div>If this screen appears again, follow these steps:</div>
           <div>
-            If this screen appears again, follow these steps:
+            Check to make sure any new hardware or software is properly
+            installed.
           </div>
           <div>
-            Check to make sure any new hardware or software is properly installed.
-          </div>
-          <div>
-            Disable or remove newly installed components if this is a new install.
+            Disable or remove newly installed components if this is a new
+            install.
           </div>
           <div>
             Press F8 to select Advanced Startup Options and choose Safe Mode.
@@ -423,8 +434,14 @@ const NotificationArea: FunctionComponent = () => {
           </div>
           <div>* Press CTRL+ALT+DEL again to restart your computer.</div>
           <div style={{ marginTop: '14px' }}>Technical information:</div>
-          <div>*** STOP: 0x0000008E (0xC0000005, 0x804E37B4, 0xF2B9F7A8, 0x00000000)</div>
-          <div>*** RAM_LIMIT_OVERFLOW - Address F2B9F7A8 base at F2A00000, DateStamp 3d6dd67c</div>
+          <div>
+            *** STOP: 0x0000008E (0xC0000005, 0x804E37B4, 0xF2B9F7A8,
+            0x00000000)
+          </div>
+          <div>
+            *** RAM_LIMIT_OVERFLOW - Address F2B9F7A8 base at F2A00000,
+            DateStamp 3d6dd67c
+          </div>
           <div style={{ marginTop: '14px' }}>
             System is rebooting due to memory exhaustion...
           </div>
@@ -475,7 +492,11 @@ const NotificationArea: FunctionComponent = () => {
             <span className={style.volumePercentLabel}>{volumePercent}%</span>
           </div>
           <div className={style.volumeFlyoutActions}>
-            <button className={style.volumeButton} onClick={handleMuteToggle} type="button">
+            <button
+              className={style.volumeButton}
+              onClick={handleMuteToggle}
+              type="button"
+            >
               {volumePercent > 0 ? 'Mute' : 'Unmute'}
             </button>
           </div>

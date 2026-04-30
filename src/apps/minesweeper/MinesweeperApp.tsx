@@ -148,8 +148,14 @@ const plantMinesAndCountAdjacencies = (
   return board;
 };
 
-const revealConnectedCells = (board: Cell[][], startRow: number, startCol: number) => {
-  const queue: Array<{ row: number; col: number }> = [{ row: startRow, col: startCol }];
+const revealConnectedCells = (
+  board: Cell[][],
+  startRow: number,
+  startCol: number
+) => {
+  const queue: Array<{ row: number; col: number }> = [
+    { row: startRow, col: startCol },
+  ];
   const visited = new Set<string>();
 
   while (queue.length > 0) {
@@ -208,7 +214,11 @@ const MinesweeperApp: FunctionComponent<AppProps> = () => {
     () =>
       board.reduce(
         (total, row) =>
-          total + row.reduce((rowTotal, cell) => rowTotal + (cell.isFlagged ? 1 : 0), 0),
+          total +
+          row.reduce(
+            (rowTotal, cell) => rowTotal + (cell.isFlagged ? 1 : 0),
+            0
+          ),
         0
       ),
     [board]
@@ -259,7 +269,9 @@ const MinesweeperApp: FunctionComponent<AppProps> = () => {
     const cell = board[row][col];
     if (cell.isRevealed) return;
 
-    const nextBoard = board.map((boardRow) => boardRow.map((nextCell) => ({ ...nextCell })));
+    const nextBoard = board.map((boardRow) =>
+      boardRow.map((nextCell) => ({ ...nextCell }))
+    );
     nextBoard[row][col].isFlagged = !nextBoard[row][col].isFlagged;
     setBoard(nextBoard);
   };
