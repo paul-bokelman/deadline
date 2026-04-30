@@ -8,7 +8,7 @@ import { gameEventBus } from '../../game/events';
 import { Z_INDEX_TIERS } from '../zIndex';
 
 const FLY_AUDIO_URL = '/audio/ambient/fly_buzzing.mp3';
-const FIRST_APPEARANCE_DELAY_MS = 120_000;
+const FIRST_APPEARANCE_DELAY_MS = 180_000;
 
 const BackgroundFlyOverlay: FunctionComponent = () => {
   const { rebootGame, flags } = useGameState();

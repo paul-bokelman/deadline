@@ -291,9 +291,9 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
     flags,
     hasEventFired,
     markEventFired,
-    rebootGame,
     setFlags,
     setStage,
+    triggerNetVoiceCall,
   } = useGameState();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loginEmail, setLoginEmail] = useState(getPortalLoginEmail());
@@ -376,12 +376,13 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
   };
 
   const failCaptcha = (message: string) => {
+    if (captchaLivesRemaining <= 0) return;
     playErrorSfx();
     const nextLives = captchaLivesRemaining - 1;
     if (nextLives <= 0) {
       setCaptchaLivesRemaining(0);
       setCaptchaStatus('Verification failed. Security lockout engaged.');
-      window.setTimeout(() => rebootGame(), 700);
+      triggerNetVoiceCall('computer_heartless');
       return;
     }
     setCaptchaLivesRemaining(nextLives);

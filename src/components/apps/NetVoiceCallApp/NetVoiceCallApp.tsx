@@ -197,7 +197,7 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
 
   const description = (
     <div className={style.description}>
-      <div className={style.descriptionRole}>{caller.role}</div>
+      {caller.role && <div className={style.descriptionRole}>{caller.role}</div>}
       {caller.username && (
         <div className={style.descriptionUsername}>{caller.username}</div>
       )}

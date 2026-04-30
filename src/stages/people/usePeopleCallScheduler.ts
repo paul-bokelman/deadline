@@ -6,6 +6,10 @@ import { useGameState } from '../../game/state';
 import { pickRandom } from '../../utils/random';
 
 const ALICE_HALFWAY_CALL_EVENT_ID = 'people:alice_halfway:triggered';
+const HAROLD_FIRST_CALL_EVENT_ID = 'people:harold_first_call:triggered';
+const HAROLD_SECOND_CALL_EVENT_ID = 'people:harold_second_call:triggered';
+const HAROLD_FIRST_CALL_MS = 13 * 60 * 1000;
+const HAROLD_SECOND_CALL_MS = 15 * 60 * 1000;
 const RANDOM_CALL_POOL: NetVoiceCallId[] = [
   'alice_greg_warning',
   'mom_www_issues',
@@ -40,9 +44,25 @@ export const usePeopleCallScheduler = (): void => {
       if (activeNetVoiceCallId !== null) return;
       const introStartedAt = introStartedAtRef.current;
       if (introStartedAt === null) return;
+      const elapsedMs = Date.now() - introStartedAt;
+
+      if (elapsedMs >= HAROLD_FIRST_CALL_MS && !hasEventFired(HAROLD_FIRST_CALL_EVENT_ID)) {
+        markEventFired(HAROLD_FIRST_CALL_EVENT_ID);
+        triggerNetVoiceCall('harold_first_call');
+        return;
+      }
+
+      if (
+        elapsedMs >= HAROLD_SECOND_CALL_MS &&
+        !hasEventFired(HAROLD_SECOND_CALL_EVENT_ID)
+      ) {
+        markEventFired(HAROLD_SECOND_CALL_EVENT_ID);
+        triggerNetVoiceCall('harold_second_call');
+        return;
+      }
 
       const halfWayMs = Math.floor(systemConfig.windowsUpdate.countdownMs / 2);
-      const hasReachedHalfWay = Date.now() - introStartedAt >= halfWayMs;
+      const hasReachedHalfWay = elapsedMs >= halfWayMs;
       if (hasReachedHalfWay && !hasEventFired(ALICE_HALFWAY_CALL_EVENT_ID)) {
         markEventFired(ALICE_HALFWAY_CALL_EVENT_ID);
         triggerNetVoiceCall('alice_halfway');

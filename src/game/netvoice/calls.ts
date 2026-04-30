@@ -1,5 +1,7 @@
 export type NetVoiceCallId =
   | 'intro_assistant'
+  | 'harold_first_call'
+  | 'harold_second_call'
   | 'alice_halfway'
   | 'alice_greg_warning'
   | 'mom_bailout_1'
@@ -12,9 +14,16 @@ export type NetVoiceCallId =
   | 'it_guy_cleanup'
   | 'boss_intro'
   | 'boss_deadline_reminder'
-  | 'boss_post_bluescreen';
+  | 'boss_post_bluescreen'
+  | 'computer_heartless';
 
-export type NetVoiceCallerId = 'alice' | 'greg' | 'boss' | 'mom';
+export type NetVoiceCallerId =
+  | 'alice'
+  | 'greg'
+  | 'boss'
+  | 'mom'
+  | 'computer'
+  | 'harold';
 
 export interface NetVoiceCaller {
   id: NetVoiceCallerId;
@@ -52,6 +61,15 @@ export const netVoiceCallers: Record<NetVoiceCallerId, NetVoiceCaller> = {
     role: 'Manager',
     address: '10.0.0.1',
   },
+  harold: {
+    id: 'harold',
+    name: 'Harold',
+    username: '@haroldhartsbabes92',
+    avatar: '/assets/img/interface/msg_warning-0.png',
+    role: 'Boss',
+    warning: 'DO NOT PISS OFF!!!',
+    address: '10.0.0.92',
+  },
   mom: {
     id: 'mom',
     name: 'Mom',
@@ -60,6 +78,15 @@ export const netVoiceCallers: Record<NetVoiceCallerId, NetVoiceCaller> = {
     role: 'Family',
     warning: 'Please do not answer this at work',
     address: 'mom@dialup.local',
+  },
+  computer: {
+    id: 'computer',
+    name: 'Computer',
+    avatar: '/audio/netvoice/computer_profile.png',
+    role: '',
+    warning:
+      '??????????????????????????????\n??????????????????????????????\n??????????????????????????????\n??????????????????????????????',
+    address: '127.0.0.1',
   },
 };
 
@@ -78,6 +105,20 @@ export const netVoiceCalls: Record<NetVoiceCallId, NetVoiceCallDefinition> = {
     audioPath: '/audio/netvoice/people/alice-intro.mp3',
     dialogText:
       "Hey, listen, you need to download the Q3 report and send it to the boss before deadline. It's in your email. Heads up - my email address isn't my name, it's an ID number, so don't fall for impersonators. And whatever you do, do NOT reboot the computer - you'll lose everything. Good luck.",
+    autoTriggerNextStage: false,
+  },
+  harold_first_call: {
+    id: 'harold_first_call',
+    callerId: 'harold',
+    audioPath: '/audio/netvoice/people/harold-2m-complete.mp3',
+    dialogText: 'Harold first call.',
+    autoTriggerNextStage: false,
+  },
+  harold_second_call: {
+    id: 'harold_second_call',
+    callerId: 'harold',
+    audioPath: '/audio/netvoice/people/harold-deadline-complete.mp3',
+    dialogText: 'Harold deadline call.',
     autoTriggerNextStage: false,
   },
   alice_halfway: {
@@ -176,6 +217,13 @@ export const netVoiceCalls: Record<NetVoiceCallId, NetVoiceCallDefinition> = {
     callerId: 'boss',
     audioPath: '/audio/netvoice/boss_post_bluescreen.mp3',
     dialogText: 'System crashed? Recover and finish the task now.',
+    autoTriggerNextStage: false,
+  },
+  computer_heartless: {
+    id: 'computer_heartless',
+    callerId: 'computer',
+    audioPath: '/audio/netvoice/computer-complete.mp3',
+    dialogText: '??????????????????',
     autoTriggerNextStage: false,
   },
 };

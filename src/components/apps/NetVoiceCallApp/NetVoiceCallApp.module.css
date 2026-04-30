@@ -89,6 +89,7 @@
 .descriptionWarning {
   color: #c00000;
   font-weight: bold;
+  white-space: pre-line;
 }
 
 .durationRow {

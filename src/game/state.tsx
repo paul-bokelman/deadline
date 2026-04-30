@@ -295,7 +295,13 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
 
   useEffect(() => {
     return gameEventBus.on('netvoice:call_ended', ({ callId }) => {
-      if (callId !== 'greg_3rd_0') return;
+      if (
+        callId !== 'greg_3rd_0' &&
+        callId !== 'computer_heartless' &&
+        callId !== 'harold_second_call'
+      ) {
+        return;
+      }
       window.setTimeout(() => {
         rebootGame();
       }, 100);
