@@ -6,7 +6,7 @@ import { gameEventBus } from './events';
 import { NetVoiceCallId } from './netvoice/calls';
 import { playRebootSfx, playYouGotMailSfx } from '../utils/audio/osSfx';
 import { FileTypeId } from '../types/FileType';
-import { resetRunTimer } from '../system/runTimer/runTimer';
+import { ensureRunStarted, resetRunTimer } from '../system/runTimer/runTimer';
 
 export type GameStage =
   | 'bios'
@@ -157,6 +157,12 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
     setIsNetVoiceCallAcceptedState(false);
     resetRunTimer();
   };
+
+  useEffect(() => {
+    // Kick off the leaderboard run on first mount (parallels resetRunTimer
+    // in applyInitialGameState which runs only on reboot).
+    ensureRunStarted();
+  }, []);
 
   useEffect(() => {
     const unsubscribeAccepted = gameEventBus.on(

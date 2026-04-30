@@ -1,0 +1,20 @@
+{
+  "name": "deadline-api",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create deadline-leaderboard",
+    "db:migrate:remote": "wrangler d1 execute deadline-leaderboard --remote --file=./schema.sql",
+    "db:migrate:local": "wrangler d1 execute deadline-leaderboard --local --file=./schema.sql",
+    "secret:set-token": "wrangler secret put RUN_TOKEN_SECRET",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250101.0",
+    "typescript": "^5.6.0",
+    "wrangler": "^3.90.0"
+  }
+}

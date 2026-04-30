@@ -5,12 +5,19 @@ import Button from '../../components/shared/Button/Button';
 import Window from '../../components/shared/Window/Window';
 import OpenWindowsContext from '../../context/OpenWindowsContext';
 import { useGameState } from '../../game/state';
-import { getSubmittedElapsedMs } from '../../system/runTimer/runTimer';
+import {
+  getSubmittedElapsedMs,
+  setSubmittedElapsedMs,
+} from '../../system/runTimer/runTimer';
 import {
   getLeaderboardInsertionRank,
+  loadLeaderboard,
+  NAME_MAX_LENGTH,
   sanitizeLeaderboardName,
   setLeaderboardPlayerEntry,
+  submitLeaderboardEntry,
 } from '../../system/leaderboard/runtime';
+import { isApiConfigured } from '../../system/api/client';
 import { Z_INDEX_TIERS } from '../../system/zIndex';
 import { playTadaSfx } from '../../utils/audio/osSfx';
 
@@ -57,7 +64,7 @@ const sanitizeDraft = (raw: string): string =>
   (raw ?? '')
     .toUpperCase()
     .replace(/[^A-Z0-9]/g, '')
-    .slice(0, 5);
+    .slice(0, NAME_MAX_LENGTH);
 
 const formatTime = (ms: number): string => {
   const total = Math.floor(ms / 10);
@@ -70,9 +77,13 @@ const formatTime = (ms: number): string => {
 
 const WinStageLayer: FunctionComponent = () => {
   const { stage, setStage } = useGameState();
-  const { focusOnWindow, openApp, unMinimizeWindow, windows } = useContext(OpenWindowsContext);
+  const { focusOnWindow, openApp, unMinimizeWindow, windows } = useContext(
+    OpenWindowsContext
+  );
   const [coords, setCoords] = useState({ x: 240, y: 150 });
   const [nameInput, setNameInput] = useState('');
+  const [submitStatus, setSubmitStatus] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const isVisible = stage === 'win';
@@ -80,6 +91,8 @@ const WinStageLayer: FunctionComponent = () => {
   useEffect(() => {
     if (!isVisible) return;
     playTadaSfx();
+    // Pre-load the leaderboard so the rank preview reflects current data.
+    void loadLeaderboard();
   }, [isVisible]);
 
   const elapsedMs = Math.max(0, getSubmittedElapsedMs() ?? 0);
@@ -93,18 +106,63 @@ const WinStageLayer: FunctionComponent = () => {
     []
   );
 
-  const finish = (rawName: string) => {
-    const sanitized = sanitizeLeaderboardName(rawName);
-    setLeaderboardPlayerEntry(sanitized, elapsedMs);
-    setNameInput('');
-    setStage('desktop_intro');
-    const existingLeaderboard = windows.find((window) => window.app.id === 'leaderboard');
+  const openLeaderboardApp = (): void => {
+    const existingLeaderboard = windows.find(
+      (window) => window.app.id === 'leaderboard'
+    );
     if (existingLeaderboard) {
       unMinimizeWindow(existingLeaderboard.id);
       focusOnWindow(existingLeaderboard.id);
       return;
     }
     openApp({ appId: 'leaderboard' });
+  };
+
+  const goToLeaderboard = (): void => {
+    setNameInput('');
+    setSubmitStatus(null);
+    setStage('desktop_intro');
+    openLeaderboardApp();
+  };
+
+  const finish = async (rawName: string): Promise<void> => {
+    if (isSubmitting) return;
+    const sanitized = sanitizeLeaderboardName(rawName);
+
+    if (!isApiConfigured()) {
+      // Offline / API not configured: keep the legacy local-only behavior.
+      setLeaderboardPlayerEntry(sanitized, elapsedMs);
+      goToLeaderboard();
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitStatus('Submitting...');
+    const result = await submitLeaderboardEntry(sanitized);
+    setIsSubmitting(false);
+
+    if (result.ok) {
+      // Replace local elapsed with the server-computed authoritative value.
+      setSubmittedElapsedMs(result.ms);
+      goToLeaderboard();
+      return;
+    }
+
+    if (result.error.code === 'NAME_TAKEN') {
+      setSubmitStatus('That name is already taken. Try another.');
+      inputRef.current?.focus();
+      return;
+    }
+    if (result.error.code === 'BAD_NAME') {
+      setSubmitStatus('Name must be 1\u20136 letters or numbers.');
+      inputRef.current?.focus();
+      return;
+    }
+    if (result.error.code === 'ALREADY_SUBMITTED') {
+      setSubmitStatus('This run was already submitted.');
+      return;
+    }
+    setSubmitStatus(`Submission failed: ${result.error.message}`);
   };
 
   if (!isVisible) return null;
@@ -117,9 +175,9 @@ const WinStageLayer: FunctionComponent = () => {
           iconId="leaderboard"
           isDraggable
           isResizeable={false}
-          onClickClose={() => finish(nameInput)}
+          onClickClose={() => void finish(nameInput)}
           onMoved={(nextCoords) => setCoords(nextCoords)}
-          size={{ x: 420, y: 248 }}
+          size={{ x: 420, y: 264 }}
           title="New High Score!"
           zIndex={Z_INDEX_TIERS.leaderboard + 99}
         >
@@ -171,34 +229,53 @@ const WinStageLayer: FunctionComponent = () => {
                   id="leaderboard-name"
                   ref={inputRef}
                   style={inputStyle}
-                  maxLength={5}
+                  maxLength={NAME_MAX_LENGTH}
                   placeholder="AAA"
                   value={nameInput}
                   onInput={(event) => {
                     const target = event.currentTarget as HTMLInputElement;
                     const next = sanitizeDraft(target.value ?? '');
                     setNameInput(next);
+                    if (submitStatus) setSubmitStatus(null);
                   }}
                   autoFocus
                 />
-                <span style={countStyle}>{nameInput.length}/5</span>
+                <span style={countStyle}>
+                  {nameInput.length}/{NAME_MAX_LENGTH}
+                </span>
               </div>
               <div
                 style={{ fontSize: '10px', color: '#666666', marginTop: '4px' }}
               >
-                Alphanumeric only. Uppercase. Max 5.
+                Alphanumeric only. Uppercase. Max {NAME_MAX_LENGTH}.
               </div>
+              {submitStatus && (
+                <div
+                  style={{
+                    fontSize: '11px',
+                    color: '#a00000',
+                    marginTop: '6px',
+                  }}
+                >
+                  {submitStatus}
+                </div>
+              )}
             </div>
             <div style={actionsStyle}>
-              <Button label="Skip" onClick={() => finish('AAA')} />
+              <Button
+                disabled={isSubmitting}
+                label="Skip"
+                onClick={() => void finish('AAA')}
+              />
               <Button
                 hasFocus
+                disabled={isSubmitting || nameInput.length === 0}
                 label={
                   <span>
                     <u>S</u>ubmit
                   </span>
                 }
-                onClick={() => finish(nameInput)}
+                onClick={() => void finish(nameInput)}
               />
             </div>
           </div>

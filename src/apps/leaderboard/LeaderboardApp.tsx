@@ -1,10 +1,13 @@
 import { h, FunctionComponent } from 'preact';
+import { useEffect, useState } from 'preact/hooks';
 
 import { AppProps } from '../../types/App';
 import { useGameState } from '../../game/state';
 import {
   getLeaderboardViewModel,
   LeaderboardEntry,
+  loadLeaderboard,
+  subscribeLeaderboard,
 } from '../../system/leaderboard/runtime';
 import style from './LeaderboardApp.module.css';
 
@@ -65,7 +68,17 @@ const PodiumColumn: FunctionComponent<PodiumProps> = ({
 
 const LeaderboardApp: FunctionComponent<AppProps> = () => {
   const { rebootGame } = useGameState();
-  const { board, youIndex } = getLeaderboardViewModel();
+  const [, forceTick] = useState(0);
+
+  useEffect(() => {
+    void loadLeaderboard();
+    const unsubscribe = subscribeLeaderboard(() => {
+      forceTick((tick) => tick + 1);
+    });
+    return unsubscribe;
+  }, []);
+
+  const { board, youIndex, status, errorMessage } = getLeaderboardViewModel();
 
   const youEntry = youIndex >= 0 ? board[youIndex] : null;
   const top = board.slice(0, 3);
@@ -76,7 +89,11 @@ const LeaderboardApp: FunctionComponent<AppProps> = () => {
         <div>
           <div className={style.heroTitle}>GAME OVER</div>
           <div className={style.heroSub}>
-            {youEntry
+            {status === 'loading' && board.length === 0
+              ? 'Loading leaderboard...'
+              : status === 'error' && board.length === 0
+              ? `Leaderboard unavailable: ${errorMessage ?? 'unknown error'}`
+              : youEntry
               ? `You placed #${youIndex + 1} of ${
                   board.length
                 }. Time: ${formatTime(youEntry.ms)}`

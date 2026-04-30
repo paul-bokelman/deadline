@@ -2,6 +2,15 @@ node_modules
 dist
 *.css.d.ts
 
+# Local env
+.env
+.env.local
+.env.*.local
+
+# Cloudflare / wrangler
+.wrangler/
+worker/.wrangler/
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db

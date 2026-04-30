@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 import { AppProps } from '../../types/App';
 import { gameEventBus } from '../../game/events';
 import { setPortalPassword } from '../../system/portalAuth/portalAuth';
+import { recordCheckpoint } from '../../system/runTimer/runTimer';
 
 const rootStyle: JSX.CSSProperties = {
   height: '100%',
@@ -169,13 +170,13 @@ const evaluatePasswordRules = (value: string): PasswordRuleResult[] => {
     },
     {
       id: 'case-paradox',
-      label:
-        'All consonants must be uppercase. All vowels must be lowercase.',
+      label: 'All consonants must be uppercase. All vowels must be lowercase.',
       passed: hasCaseParadox,
     },
     {
       id: 'palindrome-penalty',
-      label: 'Password cannot contain any 3-character palindrome (e.g. ABA or 121).',
+      label:
+        'Password cannot contain any 3-character palindrome (e.g. ABA or 121).',
       passed: hasNoThreeCharPalindrome,
     },
   ];
@@ -257,7 +258,9 @@ const embarrassingHistoryEntries = [
   '1:11 PM - "how to become hot by next tuesday"',
 ] as const;
 
-const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => {
+const WorldWideWebApp: FunctionComponent<AppProps> = ({
+  openApp,
+}: AppProps) => {
   const [historyStack, setHistoryStack] = useState<BrowserPage[]>(['home']);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [typedAddress, setTypedAddress] = useState('http://worldwideweb.home/');
@@ -272,7 +275,10 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
   );
 
   const navigateTo = (nextPage: BrowserPage) => {
-    setHistoryStack((current) => [...current.slice(0, historyIndex + 1), nextPage]);
+    setHistoryStack((current) => [
+      ...current.slice(0, historyIndex + 1),
+      nextPage,
+    ]);
     setHistoryIndex((current) => current + 1);
   };
 
@@ -280,7 +286,8 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
     const q = rawUrl.trim().toLowerCase();
     if (!q) return;
     if (q.includes('news')) return navigateTo('news');
-    if (q.includes('weather') || q.includes('weeather')) return navigateTo('weather');
+    if (q.includes('weather') || q.includes('weeather'))
+      return navigateTo('weather');
     if (q.includes('stocks')) return navigateTo('stocks');
     if (q.includes('sports')) return navigateTo('sports');
     if (q.includes('history')) return navigateTo('history');
@@ -304,9 +311,12 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
     if (page === 'stocks') return 'http://stonks-4-u.biz/market';
     if (page === 'sports') return 'http://sports-yelling.example/live';
     if (page === 'history') return 'worldwideweb://history';
-    if (page === 'search') return `worldwideweb://search?q=${encodeURIComponent(searchQuery)}`;
-    if (page === 'winrarDownload') return 'http://download.winrar-online.example/';
-    if (page === 'portalResetPassword') return 'http://identity.corp.internal/reset-password';
+    if (page === 'search')
+      return `worldwideweb://search?q=${encodeURIComponent(searchQuery)}`;
+    if (page === 'winrarDownload')
+      return 'http://download.winrar-online.example/';
+    if (page === 'portalResetPassword')
+      return 'http://identity.corp.internal/reset-password';
     return 'http://worldwideweb.home/';
   }, [page, searchQuery]);
 
@@ -319,7 +329,9 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
   };
 
   const handleForward = () => {
-    setHistoryIndex((current) => Math.min(historyStack.length - 1, current + 1));
+    setHistoryIndex((current) =>
+      Math.min(historyStack.length - 1, current + 1)
+    );
   };
 
   const handleGo = () => {
@@ -360,7 +372,9 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
           }}
         >
           <h2 style={{ marginTop: 0 }}>The Daily Beeper</h2>
-          <div style={{ color: '#555', fontSize: '12px', marginBottom: '10px' }}>
+          <div
+            style={{ color: '#555', fontSize: '12px', marginBottom: '10px' }}
+          >
             Afternoon Edition | City Desk, Tech Desk, and Office Drama
           </div>
           <div style={{ display: 'grid', gap: '10px' }}>
@@ -369,8 +383,8 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
               launches a 60-person workplace book club called "PDF Fighters."
             </div>
             <div style={sectionCardStyle}>
-              <b>Business:</b> Man claims coffee is a personality trait, receives
-              promotion and free branded mug.
+              <b>Business:</b> Man claims coffee is a personality trait,
+              receives promotion and free branded mug.
             </div>
             <div style={sectionCardStyle}>
               <b>Science:</b> Researchers confirm office printer can detect fear
@@ -378,9 +392,15 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
             </div>
           </div>
           <ul style={storyListStyle}>
-            <li>Transit update: escalator now mostly moving in one direction.</li>
-            <li>City council debates if "snack break" should be tax-deductible.</li>
-            <li>Opinion: Auto-correct has gone rogue and must be negotiated with.</li>
+            <li>
+              Transit update: escalator now mostly moving in one direction.
+            </li>
+            <li>
+              City council debates if "snack break" should be tax-deductible.
+            </li>
+            <li>
+              Opinion: Auto-correct has gone rogue and must be negotiated with.
+            </li>
             <li>Classifieds: Slightly haunted fax machine, best offer.</li>
           </ul>
         </div>
@@ -419,7 +439,9 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
               <li>Thu: Thunder and scattered panic, then calm (71F / 58F)</li>
             </ul>
           </div>
-          <div style={{ marginTop: '10px', fontSize: '12px', color: '#2a5a6a' }}>
+          <div
+            style={{ marginTop: '10px', fontSize: '12px', color: '#2a5a6a' }}
+          >
             Pollen: medium | UV: moderate | Umbrella confidence index: 63%
           </div>
         </div>
@@ -494,7 +516,9 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
           </div>
           <ul style={storyListStyle}>
             <li>Fantasy tip: Start anyone who "looked focused in warmups."</li>
-            <li>Hot take: Defense wins championships, offense wins attention.</li>
+            <li>
+              Hot take: Defense wins championships, offense wins attention.
+            </li>
             <li>Merch alert: Foam fingers now available in "Serious Beige."</li>
           </ul>
         </div>
@@ -513,14 +537,17 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
           }}
         >
           <h2 style={{ marginTop: 0 }}>Browsing History</h2>
-          <div style={{ fontSize: '12px', color: '#6a3d45', marginBottom: '8px' }}>
+          <div
+            style={{ fontSize: '12px', color: '#6a3d45', marginBottom: '8px' }}
+          >
             Last cleared: never | Sync status: unfortunately enabled
           </div>
           <div
             style={{
               fontFamily: 'monospace',
               fontSize: '12px',
-              boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+              boxShadow:
+                'var(--border-sunken-outer), var(--border-sunken-inner)',
               backgroundColor: '#fff',
               padding: '10px',
             }}
@@ -557,7 +584,8 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
                   "Official WinRAR Download - Free Trial"
                 </a>
                 <div style={{ fontSize: '12px' }}>
-                  Download `WinRAR_installer.exe` online to open `.zip` archives.
+                  Download `WinRAR_installer.exe` online to open `.zip`
+                  archives.
                 </div>
               </div>
             )}
@@ -645,7 +673,8 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
               color: '#ffffff',
               fontWeight: 700,
               padding: '4px 8px',
-              boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+              boxShadow:
+                'var(--border-raised-outer), var(--border-raised-inner)',
             }}
           >
             Identity Services - Password Reset Wizard
@@ -654,12 +683,13 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
             style={{
               marginTop: '8px',
               backgroundColor: 'var(--button-highlight)',
-              boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+              boxShadow:
+                'var(--border-sunken-outer), var(--border-sunken-inner)',
               padding: '10px',
             }}
           >
-            Enter a new password. As soon as one requirement is satisfied, another
-            requirement is unlocked.
+            Enter a new password. As soon as one requirement is satisfied,
+            another requirement is unlocked.
           </div>
           <div
             style={{
@@ -677,7 +707,9 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
               type="text"
               value={resetPasswordInput}
               onInput={(event) => {
-                setResetPasswordInput((event.currentTarget as HTMLInputElement).value);
+                setResetPasswordInput(
+                  (event.currentTarget as HTMLInputElement).value
+                );
                 setResetStatus(null);
               }}
               style={{
@@ -691,10 +723,13 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
               style={browserButtonStyle}
               onClick={() => {
                 if (!allPassed) {
-                  setResetStatus('Password does not satisfy all current requirements.');
+                  setResetStatus(
+                    'Password does not satisfy all current requirements.'
+                  );
                   return;
                 }
                 setPortalPassword(resetPasswordInput);
+                recordCheckpoint('password_solved');
                 setResetStatus(
                   'Password updated. Return to CorpPortal and sign in.'
                 );
@@ -733,7 +768,8 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
               style={{
                 marginTop: '8px',
                 backgroundColor: 'var(--button-highlight)',
-                boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+                boxShadow:
+                  'var(--border-raised-outer), var(--border-raised-inner)',
                 padding: '8px 10px',
               }}
             >
@@ -844,7 +880,11 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
           <button style={browserButtonStyle} type="button">
             Stop
           </button>
-          <button style={browserButtonStyle} onClick={() => navigateTo('home')} type="button">
+          <button
+            style={browserButtonStyle}
+            onClick={() => navigateTo('home')}
+            type="button"
+          >
             Home
           </button>
           <button
@@ -863,7 +903,9 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
             type="text"
             value={typedAddress}
             style={addressInputStyle}
-            onInput={(e) => setTypedAddress((e.currentTarget as HTMLInputElement).value)}
+            onInput={(e) =>
+              setTypedAddress((e.currentTarget as HTMLInputElement).value)
+            }
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleGo();
             }}
@@ -880,4 +922,3 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({ openApp }: AppProps) => 
 };
 
 export default WorldWideWebApp;
-

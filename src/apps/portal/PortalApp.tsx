@@ -11,7 +11,10 @@ import {
   requestPortalPasswordReset,
   validatePortalCredentials,
 } from '../../system/portalAuth/portalAuth';
-import { markRunSubmitted } from '../../system/runTimer/runTimer';
+import {
+  markRunSubmitted,
+  recordCheckpoint,
+} from '../../system/runTimer/runTimer';
 import { playErrorSfx } from '../../utils/audio/osSfx';
 import { AppProps } from '../../types/App';
 import { ShellItem } from '../../types/Shell';
@@ -132,13 +135,29 @@ const CAPTCHA_LIVES_TOTAL = 3;
 
 const marketCharts: MarketChart[] = [
   { id: 'ch-1', points: [12.2, 12.1, 12.25, 12.0, 11.95, 11.9], bearish: true },
-  { id: 'ch-2', points: [10.4, 10.55, 10.5, 10.65, 10.6, 10.75], bearish: false },
+  {
+    id: 'ch-2',
+    points: [10.4, 10.55, 10.5, 10.65, 10.6, 10.75],
+    bearish: false,
+  },
   { id: 'ch-3', points: [13.1, 13.0, 13.05, 12.9, 12.85, 12.8], bearish: true },
   { id: 'ch-4', points: [9.8, 9.7, 9.85, 9.75, 9.9, 9.95], bearish: false },
-  { id: 'ch-5', points: [11.5, 11.45, 11.35, 11.4, 11.25, 11.2], bearish: true },
+  {
+    id: 'ch-5',
+    points: [11.5, 11.45, 11.35, 11.4, 11.25, 11.2],
+    bearish: true,
+  },
   { id: 'ch-6', points: [8.9, 8.95, 8.85, 9.0, 8.95, 9.05], bearish: false },
-  { id: 'ch-7', points: [12.7, 12.65, 12.7, 12.5, 12.45, 12.35], bearish: true },
-  { id: 'ch-8', points: [10.9, 10.8, 10.95, 10.9, 11.0, 11.05], bearish: false },
+  {
+    id: 'ch-7',
+    points: [12.7, 12.65, 12.7, 12.5, 12.45, 12.35],
+    bearish: true,
+  },
+  {
+    id: 'ch-8',
+    points: [10.9, 10.8, 10.95, 10.9, 11.0, 11.05],
+    bearish: false,
+  },
   { id: 'ch-9', points: [11.9, 12.0, 11.85, 11.8, 11.75, 11.7], bearish: true },
 ];
 
@@ -202,7 +221,9 @@ const toCircleAccuracy = (points: { x: number; y: number }[]): number => {
   return Math.round(clamp(raw, 0, 100));
 };
 
-const MarketChartTile: FunctionComponent<{ chart: MarketChart }> = ({ chart }) => {
+const MarketChartTile: FunctionComponent<{ chart: MarketChart }> = ({
+  chart,
+}) => {
   const maxY = Math.max(...chart.points);
   const minY = Math.min(...chart.points);
   const spread = Math.max(1, maxY - minY);
@@ -221,7 +242,8 @@ const MarketChartTile: FunctionComponent<{ chart: MarketChart }> = ({ chart }) =
         const next = plotPoints[index + 1];
         if (!next) return null;
         const delta = next.value - point.value;
-        const stroke = delta > 0 ? '#0a8a0a' : delta < 0 ? '#b00000' : '#666666';
+        const stroke =
+          delta > 0 ? '#0a8a0a' : delta < 0 ? '#b00000' : '#666666';
         return (
           <line
             key={`${chart.id}-seg-${index}`}
@@ -238,7 +260,9 @@ const MarketChartTile: FunctionComponent<{ chart: MarketChart }> = ({ chart }) =
   );
 };
 
-const PixelHeart: FunctionComponent<{ lost?: boolean }> = ({ lost = false }) => {
+const PixelHeart: FunctionComponent<{ lost?: boolean }> = ({
+  lost = false,
+}) => {
   const fill = lost ? '#8a8a8a' : '#c00000';
   const shadow = lost ? '#5b5b5b' : '#7c0000';
   return (
@@ -296,8 +320,9 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
   );
   const [captchaIdx, setCaptchaIdx] = useState(0);
   const [captchaPassed, setCaptchaPassed] = useState(false);
-  const [captchaLivesRemaining, setCaptchaLivesRemaining] =
-    useState(CAPTCHA_LIVES_TOTAL);
+  const [captchaLivesRemaining, setCaptchaLivesRemaining] = useState(
+    CAPTCHA_LIVES_TOTAL
+  );
 
   const [stroopMode, setStroopMode] = useState<'background' | 'ink'>(
     'background'
@@ -310,13 +335,15 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
   const [stroopBgColor, setStroopBgColor] = useState<StroopColor>(
     STROOP_COLORS[1] ?? { name: 'green', css: '#2f9f2f' }
   );
-  const [microSelections, setMicroSelections] = useState<Set<number>>(new Set());
+  const [microSelections, setMicroSelections] = useState<Set<number>>(
+    new Set()
+  );
   const [bearOrder, setBearOrder] = useState<MarketChart[]>([]);
   const [bearSelections, setBearSelections] = useState<Set<string>>(new Set());
   const [fleeCheckboxPos, setFleeCheckboxPos] = useState({ x: 85, y: 48 });
-  const [circlePoints, setCirclePoints] = useState<Array<{ x: number; y: number }>>(
-    []
-  );
+  const [circlePoints, setCirclePoints] = useState<
+    Array<{ x: number; y: number }>
+  >([]);
   const [isCircleDrawing, setIsCircleDrawing] = useState(false);
   const [circleAccuracy, setCircleAccuracy] = useState<number | null>(null);
   const circleCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -366,6 +393,7 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
     setCaptchaStatus(null);
     if (captchaIdx >= 2) {
       setCaptchaPassed(true);
+      recordCheckpoint('portal_captcha_cleared');
       return;
     }
     setCaptchaIdx((i) => i + 1);
@@ -375,14 +403,22 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
     if (!captchaStep) return;
     setCaptchaStatus(null);
     if (captchaStep === 'stroop_trap') {
-      setStroopMode((captchaSeed + captchaIdx) % 2 === 0 ? 'background' : 'ink');
+      setStroopMode(
+        (captchaSeed + captchaIdx) % 2 === 0 ? 'background' : 'ink'
+      );
       setStroopInput('');
-      const wordColor = STROOP_COLORS[(captchaSeed >>> 1) % STROOP_COLORS.length];
-      const inkColor = STROOP_COLORS[(captchaSeed >>> 4) % STROOP_COLORS.length];
+      const wordColor =
+        STROOP_COLORS[(captchaSeed >>> 1) % STROOP_COLORS.length];
+      const inkColor =
+        STROOP_COLORS[(captchaSeed >>> 4) % STROOP_COLORS.length];
       let bgColor = STROOP_COLORS[(captchaSeed >>> 7) % STROOP_COLORS.length];
       if (bgColor?.name === inkColor?.name) {
-        const inkIndex = STROOP_COLORS.findIndex((color) => color.name === inkColor?.name);
-        bgColor = STROOP_COLORS[(inkIndex + 1) % STROOP_COLORS.length] ?? STROOP_COLORS[0];
+        const inkIndex = STROOP_COLORS.findIndex(
+          (color) => color.name === inkColor?.name
+        );
+        bgColor =
+          STROOP_COLORS[(inkIndex + 1) % STROOP_COLORS.length] ??
+          STROOP_COLORS[0];
       }
       setStroopWord((wordColor?.name ?? 'blue').toUpperCase());
       setStroopInkColor(inkColor ?? STROOP_COLORS[0]);
@@ -392,7 +428,9 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
       setMicroSelections(new Set());
     }
     if (captchaStep === 'bear_market') {
-      setBearOrder(shuffleWithSeed(marketCharts, captchaSeed + captchaIdx * 77));
+      setBearOrder(
+        shuffleWithSeed(marketCharts, captchaSeed + captchaIdx * 77)
+      );
       setBearSelections(new Set());
     }
     if (captchaStep === 'fleeing_checkbox') {
@@ -546,6 +584,7 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
     if (hasEventFired(PORTAL_RESET_EVENT_ID)) return;
     markEventFired(PORTAL_RESET_EVENT_ID);
     gameEventBus.emit('email:delivered', { emailId: PORTAL_RESET_EMAIL_ID });
+    recordCheckpoint('email_sent');
   };
 
   return (
@@ -562,7 +601,9 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
               style={textInputStyle}
               value={loginEmail}
               onInput={(event) =>
-                setLoginEmail((event.currentTarget as HTMLInputElement).value ?? '')
+                setLoginEmail(
+                  (event.currentTarget as HTMLInputElement).value ?? ''
+                )
               }
               placeholder="email@domain.com"
             />
@@ -574,13 +615,19 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
               style={textInputStyle}
               value={loginPassword}
               onInput={(event) =>
-                setLoginPassword((event.currentTarget as HTMLInputElement).value ?? '')
+                setLoginPassword(
+                  (event.currentTarget as HTMLInputElement).value ?? ''
+                )
               }
               placeholder="password"
             />
           </div>
           <div style={{ marginTop: '10px' }}>
-            <button style={buttonStyle} type="button" onClick={handlePortalLogin}>
+            <button
+              style={buttonStyle}
+              type="button"
+              onClick={handlePortalLogin}
+            >
               Sign In
             </button>
             <button onClick={closeWindow} style={buttonStyle} type="button">
@@ -599,458 +646,497 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
                 style={textInputStyle}
                 value={resetEmail}
                 onInput={(event) =>
-                  setResetEmail((event.currentTarget as HTMLInputElement).value ?? '')
+                  setResetEmail(
+                    (event.currentTarget as HTMLInputElement).value ?? ''
+                  )
                 }
                 placeholder="email@domain.com"
               />
             </div>
             <div style={{ marginTop: '8px' }}>
-              <button style={buttonStyle} type="button" onClick={handleSendResetLink}>
+              <button
+                style={buttonStyle}
+                type="button"
+                onClick={handleSendResetLink}
+              >
                 Send Reset Link
               </button>
             </div>
-            {resetStatus && <div style={{ marginTop: '8px' }}>{resetStatus}</div>}
+            {resetStatus && (
+              <div style={{ marginTop: '8px' }}>{resetStatus}</div>
+            )}
           </div>
         </div>
       )}
       {isAuthenticated && (
         <div>
-      <div style={{ fontWeight: 700 }}>CorpPortal</div>
-      <div style={{ marginTop: '8px' }}>
-        Destination:{' '}
-        <span style={{ fontFamily: 'monospace' }}>boss@10.0.0.1</span>
-      </div>
-
-      <div style={{ marginTop: '10px' }}>
-        <div>Required file:</div>
-        <div style={{ fontFamily: 'monospace', marginTop: '4px' }}>
-          {REQUIRED_REPORT_FILE_NAME} (must be .png)
-        </div>
-      </div>
-
-      <div style={{ marginTop: '12px' }}>
-        <div>Select file to upload:</div>
-        <div style={{ marginTop: '6px', width: '100%', maxWidth: '520px' }}>
-          <Dropdown
-            id="portal-file-select"
-            selected={selectedFileId}
-            disabled={flags.hasSubmittedFinalReport || isSubmitting}
-            onChange={(value) => {
-              setSelectedFileId(value);
-              setStatus(null);
-            }}
-            options={[
-              { value: '', label: '(choose a file)' },
-              ...desktopFiles.map((file) => ({ value: file.id, label: file.name })),
-            ]}
-          />
-        </div>
-        {selectedFile && (
-          <div style={{ marginTop: '6px' }}>
-            Selected:{' '}
-            <span style={{ fontFamily: 'monospace' }}>{selectedFile.name}</span>
+          <div style={{ fontWeight: 700 }}>CorpPortal</div>
+          <div style={{ marginTop: '8px' }}>
+            Destination:{' '}
+            <span style={{ fontFamily: 'monospace' }}>boss@10.0.0.1</span>
           </div>
-        )}
-      </div>
 
-      <div style={{ marginTop: '12px' }}>
-        <button
-          onClick={handleSubmit}
-          style={canSubmit && !isSubmitting ? buttonStyle : disabledButtonStyle}
-          disabled={flags.hasSubmittedFinalReport || isSubmitting}
-          type="button"
-        >
-          {isSubmitting ? 'Submitting...' : 'Submit'}
-        </button>
-        <button onClick={closeWindow} style={buttonStyle} type="button">
-          Close
-        </button>
-      </div>
+          <div style={{ marginTop: '10px' }}>
+            <div>Required file:</div>
+            <div style={{ fontFamily: 'monospace', marginTop: '4px' }}>
+              {REQUIRED_REPORT_FILE_NAME} (must be .png)
+            </div>
+          </div>
 
-      {!flags.hasSubmittedFinalReport && (
-        <div style={captchaPanelStyle}>
-          <div style={{ fontWeight: 700 }}>
-            Human Verification (
-            {captchaPassed ? 'complete' : `step ${captchaIdx + 1}/3`})
-          </div>
-          <div style={{ marginTop: '6px', ...smallMutedStyle }}>
-            Failing any step restarts verification.
-          </div>
-          <div
-            style={{
-              marginTop: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-            }}
-          >
-            {Array.from({ length: CAPTCHA_LIVES_TOTAL }, (_unused, index) => (
-              <PixelHeart
-                key={`captcha-heart-${index}`}
-                lost={index >= captchaLivesRemaining}
+          <div style={{ marginTop: '12px' }}>
+            <div>Select file to upload:</div>
+            <div style={{ marginTop: '6px', width: '100%', maxWidth: '520px' }}>
+              <Dropdown
+                id="portal-file-select"
+                selected={selectedFileId}
+                disabled={flags.hasSubmittedFinalReport || isSubmitting}
+                onChange={(value) => {
+                  setSelectedFileId(value);
+                  setStatus(null);
+                }}
+                options={[
+                  { value: '', label: '(choose a file)' },
+                  ...desktopFiles.map((file) => ({
+                    value: file.id,
+                    label: file.name,
+                  })),
+                ]}
               />
-            ))}
-          </div>
-
-          {!captchaPassed && captchaStep === 'stroop_trap' && (
-            <div style={{ marginTop: '10px' }}>
-              <div>
-                {stroopMode === 'background'
-                  ? 'Type the background color.'
-                  : 'Type the ink color.'}
-              </div>
-              <div
-                style={{
-                  marginTop: '8px',
-                  width: '240px',
-                  padding: '18px 10px',
-                  textAlign: 'center',
-                  fontWeight: 700,
-                  color: stroopInkColor.css,
-                  backgroundColor: stroopBgColor.css,
-                  boxShadow: 'var(--border-field)',
-                  userSelect: 'none',
-                }}
-              >
-                {stroopWord}
-              </div>
-              <div
-                style={{
-                  marginTop: '8px',
-                  display: 'flex',
-                  gap: '8px',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                }}
-              >
-                <input
-                  style={textInputStyle}
-                  value={stroopInput}
-                  onInput={(event) =>
-                    setStroopInput(
-                      (event.currentTarget as HTMLInputElement).value ?? ''
-                    )
-                  }
-                  placeholder={
-                    stroopMode === 'background' ? 'Background color...' : 'Ink color...'
-                  }
-                />
-                <button
-                  style={buttonStyle}
-                  type="button"
-                  onClick={() => {
-                    const answer = stroopInput.trim().toLowerCase();
-                    const expected =
-                      stroopMode === 'background'
-                        ? stroopBgColor.name
-                        : stroopInkColor.name;
-                    if (answer === expected) passStep();
-                    else failCaptcha('Wrong color interpretation.');
-                  }}
-                >
-                  Verify
-                </button>
-              </div>
             </div>
-          )}
-
-          {!captchaPassed && captchaStep === 'micro_pixel_grid' && (
-            <div style={{ marginTop: '10px' }}>
-              <div>Select all required tiles in this 16x16 grid.</div>
-              <div style={{ marginTop: '6px', ...smallMutedStyle }}>
-                Selected: {microSelections.size} / 45
-              </div>
-              <div style={tinyGridStyle}>
-                {Array.from(
-                  { length: MICRO_GRID_DIMENSION * MICRO_GRID_DIMENSION },
-                  (_unused, idx) => {
-                  const isCrosswalk = crosswalkTargetCells.has(idx);
-                  const isSelected = microSelections.has(idx);
-                  return (
-                    <button
-                      key={`micro-${idx}`}
-                      type="button"
-                      onClick={() => {
-                        if (!isCrosswalk) {
-                          failCaptcha('Wrong tile selected.');
-                          return;
-                        }
-                        setMicroSelections((current) => {
-                          const next = new Set(current);
-                          if (next.has(idx)) next.delete(idx);
-                          else next.add(idx);
-                          return next;
-                        });
-                      }}
-                      style={{
-                        width: `${MICRO_TILE_SIZE}px`,
-                        height: `${MICRO_TILE_SIZE}px`,
-                        border: 'none',
-                        padding: 0,
-                        backgroundColor: isSelected
-                          ? '#3b6cff'
-                          : isCrosswalk
-                          ? '#f4f4f4'
-                          : '#636363',
-                        boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.22)',
-                      }}
-                      aria-label="micro-grid-cell"
-                    />
-                  );
-                  }
-                )}
-              </div>
-              <div style={{ marginTop: '8px' }}>
-                <button
-                  style={buttonStyle}
-                  type="button"
-                  onClick={() => {
-                    const exactlyMatches =
-                      microSelections.size === crosswalkTargetCells.size &&
-                      [...crosswalkTargetCells].every((idx) =>
-                        microSelections.has(idx)
-                      );
-                    if (exactlyMatches) passStep();
-                    else failCaptcha('Required tile selection incomplete.');
-                  }}
-                >
-                  Verify Grid
-                </button>
-              </div>
-            </div>
-          )}
-
-          {!captchaPassed && captchaStep === 'bear_market' && (
-            <div style={{ marginTop: '10px' }}>
-              <div>Select all squares indicating a bearish trend.</div>
-              <div style={chartGridStyle}>
-                {bearOrder.map((chart) => {
-                  const selected = bearSelections.has(chart.id);
-                  return (
-                    <button
-                      key={chart.id}
-                      type="button"
-                      onClick={() => {
-                        setBearSelections((current) => {
-                          const next = new Set(current);
-                          if (next.has(chart.id)) next.delete(chart.id);
-                          else next.add(chart.id);
-                          return next;
-                        });
-                      }}
-                      style={{
-                        border: 'none',
-                        padding: '4px',
-                        backgroundColor: selected ? '#c9d7ff' : '#e3e3e3',
-                        boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
-                      }}
-                    >
-                      <MarketChartTile chart={chart} />
-                    </button>
-                  );
-                })}
-              </div>
-              <div style={{ marginTop: '8px' }}>
-                <button
-                  style={buttonStyle}
-                  type="button"
-                  onClick={() => {
-                    const bearishIds = new Set(
-                      bearOrder.filter((chart) => chart.bearish).map((chart) => chart.id)
-                    );
-                    const exact =
-                      bearSelections.size === bearishIds.size &&
-                      [...bearishIds].every((id) => bearSelections.has(id));
-                    if (exact) passStep();
-                    else failCaptcha('Incorrect market trend picks.');
-                  }}
-                >
-                  Verify Charts
-                </button>
-              </div>
-            </div>
-          )}
-
-          {!captchaPassed && captchaStep === 'fleeing_checkbox' && (
-            <div style={{ marginTop: '10px' }}>
-              <div>Click <em>I am not a robot</em>.</div>
-              <div
-                style={{
-                  marginTop: '8px',
-                  width: '100%',
-                  maxWidth: '520px',
-                  height: '240px',
-                  position: 'relative',
-                  backgroundColor: '#ffffff',
-                  boxShadow: 'var(--border-field)',
-                  overflow: 'hidden',
-                }}
-                onMouseMove={(event) => {
-                  const area = event.currentTarget as HTMLDivElement;
-                  const bounds = area.getBoundingClientRect();
-                  const mx = event.clientX - bounds.left;
-                  const my = event.clientY - bounds.top;
-                  setFleeCheckboxPos((prev) => {
-                    const areaWidth = Math.max(bounds.width, FLEE_BOX_WIDTH + 1);
-                    const areaHeight = Math.max(bounds.height, FLEE_BOX_HEIGHT + 1);
-                    const centerX = prev.x + FLEE_BOX_WIDTH / 2;
-                    const centerY = prev.y + FLEE_BOX_HEIGHT / 2;
-                    const dx = centerX - mx;
-                    const dy = centerY - my;
-                    const distance = Math.hypot(dx, dy);
-                    if (distance > FLEE_TRIGGER_RADIUS || distance < FLEE_MIN_RADIUS) {
-                      return prev;
-                    }
-                    const push =
-                      ((FLEE_TRIGGER_RADIUS - distance) / FLEE_TRIGGER_RADIUS) *
-                      FLEE_MAX_PUSH;
-                    const jitter = ((mx + my + distance) % 2) * 18 - 9;
-                    const nx = prev.x + (dx / distance) * push;
-                    const ny = prev.y + (dy / distance) * push + jitter;
-                    return {
-                      x: clamp(nx, 0, areaWidth - FLEE_BOX_WIDTH),
-                      y: clamp(ny, 0, areaHeight - FLEE_BOX_HEIGHT),
-                    };
-                  });
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => passStep()}
-                  style={{
-                    position: 'absolute',
-                    left: `${fleeCheckboxPos.x}px`,
-                    top: `${fleeCheckboxPos.y}px`,
-                    marginRight: 0,
-                    border: 'none',
-                    backgroundColor: 'var(--surface)',
-                    boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
-                    padding: '6px 8px',
-                    fontSize: '12px',
-                    fontFamily: 'sans-serif',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <span
-                    style={{
-                      width: '12px',
-                      height: '12px',
-                      backgroundColor: '#ffffff',
-                      boxShadow: 'var(--border-field)',
-                    }}
-                  />
-                  I am not a robot
-                </button>
-              </div>
-            </div>
-          )}
-
-          {!captchaPassed && captchaStep === 'circle_game' && (
-            <div style={{ marginTop: '10px' }}>
-              <div>Draw a circle above 80% accuracy.</div>
-              <canvas
-                ref={circleCanvasRef}
-                width={220}
-                height={220}
-                style={{
-                  marginTop: '8px',
-                  width: '220px',
-                  height: '220px',
-                  backgroundColor: '#ffffff',
-                  boxShadow: 'var(--border-field)',
-                  touchAction: 'none',
-                }}
-                onPointerDown={(event) => {
-                  const point = getCanvasPoint(event);
-                  setCirclePoints([point]);
-                  setIsCircleDrawing(true);
-                  setCircleAccuracy(null);
-                }}
-                onPointerMove={(event) => {
-                  if (!isCircleDrawing) return;
-                  const point = getCanvasPoint(event);
-                  setCirclePoints((current) => [...current, point]);
-                }}
-                onPointerUp={() => {
-                  setIsCircleDrawing(false);
-                }}
-                onPointerLeave={() => {
-                  setIsCircleDrawing(false);
-                }}
-              />
-              <div
-                style={{
-                  marginTop: '8px',
-                  display: 'flex',
-                  gap: '8px',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                }}
-              >
-                <button
-                  style={buttonStyle}
-                  type="button"
-                  onClick={() => {
-                    const accuracy = toCircleAccuracy(circlePoints);
-                    setCircleAccuracy(accuracy);
-                    if (accuracy >= 80) passStep();
-                    else failCaptcha(`Circle accuracy ${accuracy}%. Need 80%+.`);
-                  }}
-                >
-                  Verify Circle
-                </button>
+            {selectedFile && (
+              <div style={{ marginTop: '6px' }}>
+                Selected:{' '}
                 <span style={{ fontFamily: 'monospace' }}>
-                  Accuracy: {circleAccuracy ?? '--'}%
+                  {selectedFile.name}
                 </span>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          {captchaStatus && (
-            <div style={{ marginTop: '10px' }}>{captchaStatus}</div>
-          )}
-          {!captchaPassed && (
-            <div style={{ marginTop: '10px' }}>
-              <button
-                style={buttonStyle}
-                type="button"
-                onClick={() => resetCaptchas(Date.now())}
+          <div style={{ marginTop: '12px' }}>
+            <button
+              onClick={handleSubmit}
+              style={
+                canSubmit && !isSubmitting ? buttonStyle : disabledButtonStyle
+              }
+              disabled={flags.hasSubmittedFinalReport || isSubmitting}
+              type="button"
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit'}
+            </button>
+            <button onClick={closeWindow} style={buttonStyle} type="button">
+              Close
+            </button>
+          </div>
+
+          {!flags.hasSubmittedFinalReport && (
+            <div style={captchaPanelStyle}>
+              <div style={{ fontWeight: 700 }}>
+                Human Verification (
+                {captchaPassed ? 'complete' : `step ${captchaIdx + 1}/3`})
+              </div>
+              <div style={{ marginTop: '6px', ...smallMutedStyle }}>
+                Failing any step restarts verification.
+              </div>
+              <div
+                style={{
+                  marginTop: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
               >
-                Restart Verification
-              </button>
+                {Array.from(
+                  { length: CAPTCHA_LIVES_TOTAL },
+                  (_unused, index) => (
+                    <PixelHeart
+                      key={`captcha-heart-${index}`}
+                      lost={index >= captchaLivesRemaining}
+                    />
+                  )
+                )}
+              </div>
+
+              {!captchaPassed && captchaStep === 'stroop_trap' && (
+                <div style={{ marginTop: '10px' }}>
+                  <div>
+                    {stroopMode === 'background'
+                      ? 'Type the background color.'
+                      : 'Type the ink color.'}
+                  </div>
+                  <div
+                    style={{
+                      marginTop: '8px',
+                      width: '240px',
+                      padding: '18px 10px',
+                      textAlign: 'center',
+                      fontWeight: 700,
+                      color: stroopInkColor.css,
+                      backgroundColor: stroopBgColor.css,
+                      boxShadow: 'var(--border-field)',
+                      userSelect: 'none',
+                    }}
+                  >
+                    {stroopWord}
+                  </div>
+                  <div
+                    style={{
+                      marginTop: '8px',
+                      display: 'flex',
+                      gap: '8px',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <input
+                      style={textInputStyle}
+                      value={stroopInput}
+                      onInput={(event) =>
+                        setStroopInput(
+                          (event.currentTarget as HTMLInputElement).value ?? ''
+                        )
+                      }
+                      placeholder={
+                        stroopMode === 'background'
+                          ? 'Background color...'
+                          : 'Ink color...'
+                      }
+                    />
+                    <button
+                      style={buttonStyle}
+                      type="button"
+                      onClick={() => {
+                        const answer = stroopInput.trim().toLowerCase();
+                        const expected =
+                          stroopMode === 'background'
+                            ? stroopBgColor.name
+                            : stroopInkColor.name;
+                        if (answer === expected) passStep();
+                        else failCaptcha('Wrong color interpretation.');
+                      }}
+                    >
+                      Verify
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {!captchaPassed && captchaStep === 'micro_pixel_grid' && (
+                <div style={{ marginTop: '10px' }}>
+                  <div>Select all required tiles in this 16x16 grid.</div>
+                  <div style={{ marginTop: '6px', ...smallMutedStyle }}>
+                    Selected: {microSelections.size} / 45
+                  </div>
+                  <div style={tinyGridStyle}>
+                    {Array.from(
+                      { length: MICRO_GRID_DIMENSION * MICRO_GRID_DIMENSION },
+                      (_unused, idx) => {
+                        const isCrosswalk = crosswalkTargetCells.has(idx);
+                        const isSelected = microSelections.has(idx);
+                        return (
+                          <button
+                            key={`micro-${idx}`}
+                            type="button"
+                            onClick={() => {
+                              if (!isCrosswalk) {
+                                failCaptcha('Wrong tile selected.');
+                                return;
+                              }
+                              setMicroSelections((current) => {
+                                const next = new Set(current);
+                                if (next.has(idx)) next.delete(idx);
+                                else next.add(idx);
+                                return next;
+                              });
+                            }}
+                            style={{
+                              width: `${MICRO_TILE_SIZE}px`,
+                              height: `${MICRO_TILE_SIZE}px`,
+                              border: 'none',
+                              padding: 0,
+                              backgroundColor: isSelected
+                                ? '#3b6cff'
+                                : isCrosswalk
+                                ? '#f4f4f4'
+                                : '#636363',
+                              boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.22)',
+                            }}
+                            aria-label="micro-grid-cell"
+                          />
+                        );
+                      }
+                    )}
+                  </div>
+                  <div style={{ marginTop: '8px' }}>
+                    <button
+                      style={buttonStyle}
+                      type="button"
+                      onClick={() => {
+                        const exactlyMatches =
+                          microSelections.size === crosswalkTargetCells.size &&
+                          [...crosswalkTargetCells].every((idx) =>
+                            microSelections.has(idx)
+                          );
+                        if (exactlyMatches) passStep();
+                        else failCaptcha('Required tile selection incomplete.');
+                      }}
+                    >
+                      Verify Grid
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {!captchaPassed && captchaStep === 'bear_market' && (
+                <div style={{ marginTop: '10px' }}>
+                  <div>Select all squares indicating a bearish trend.</div>
+                  <div style={chartGridStyle}>
+                    {bearOrder.map((chart) => {
+                      const selected = bearSelections.has(chart.id);
+                      return (
+                        <button
+                          key={chart.id}
+                          type="button"
+                          onClick={() => {
+                            setBearSelections((current) => {
+                              const next = new Set(current);
+                              if (next.has(chart.id)) next.delete(chart.id);
+                              else next.add(chart.id);
+                              return next;
+                            });
+                          }}
+                          style={{
+                            border: 'none',
+                            padding: '4px',
+                            backgroundColor: selected ? '#c9d7ff' : '#e3e3e3',
+                            boxShadow:
+                              'var(--border-raised-outer), var(--border-raised-inner)',
+                          }}
+                        >
+                          <MarketChartTile chart={chart} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div style={{ marginTop: '8px' }}>
+                    <button
+                      style={buttonStyle}
+                      type="button"
+                      onClick={() => {
+                        const bearishIds = new Set(
+                          bearOrder
+                            .filter((chart) => chart.bearish)
+                            .map((chart) => chart.id)
+                        );
+                        const exact =
+                          bearSelections.size === bearishIds.size &&
+                          [...bearishIds].every((id) => bearSelections.has(id));
+                        if (exact) passStep();
+                        else failCaptcha('Incorrect market trend picks.');
+                      }}
+                    >
+                      Verify Charts
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {!captchaPassed && captchaStep === 'fleeing_checkbox' && (
+                <div style={{ marginTop: '10px' }}>
+                  <div>
+                    Click <em>I am not a robot</em>.
+                  </div>
+                  <div
+                    style={{
+                      marginTop: '8px',
+                      width: '100%',
+                      maxWidth: '520px',
+                      height: '240px',
+                      position: 'relative',
+                      backgroundColor: '#ffffff',
+                      boxShadow: 'var(--border-field)',
+                      overflow: 'hidden',
+                    }}
+                    onMouseMove={(event) => {
+                      const area = event.currentTarget as HTMLDivElement;
+                      const bounds = area.getBoundingClientRect();
+                      const mx = event.clientX - bounds.left;
+                      const my = event.clientY - bounds.top;
+                      setFleeCheckboxPos((prev) => {
+                        const areaWidth = Math.max(
+                          bounds.width,
+                          FLEE_BOX_WIDTH + 1
+                        );
+                        const areaHeight = Math.max(
+                          bounds.height,
+                          FLEE_BOX_HEIGHT + 1
+                        );
+                        const centerX = prev.x + FLEE_BOX_WIDTH / 2;
+                        const centerY = prev.y + FLEE_BOX_HEIGHT / 2;
+                        const dx = centerX - mx;
+                        const dy = centerY - my;
+                        const distance = Math.hypot(dx, dy);
+                        if (
+                          distance > FLEE_TRIGGER_RADIUS ||
+                          distance < FLEE_MIN_RADIUS
+                        ) {
+                          return prev;
+                        }
+                        const push =
+                          ((FLEE_TRIGGER_RADIUS - distance) /
+                            FLEE_TRIGGER_RADIUS) *
+                          FLEE_MAX_PUSH;
+                        const jitter = ((mx + my + distance) % 2) * 18 - 9;
+                        const nx = prev.x + (dx / distance) * push;
+                        const ny = prev.y + (dy / distance) * push + jitter;
+                        return {
+                          x: clamp(nx, 0, areaWidth - FLEE_BOX_WIDTH),
+                          y: clamp(ny, 0, areaHeight - FLEE_BOX_HEIGHT),
+                        };
+                      });
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => passStep()}
+                      style={{
+                        position: 'absolute',
+                        left: `${fleeCheckboxPos.x}px`,
+                        top: `${fleeCheckboxPos.y}px`,
+                        marginRight: 0,
+                        border: 'none',
+                        backgroundColor: 'var(--surface)',
+                        boxShadow:
+                          'var(--border-raised-outer), var(--border-raised-inner)',
+                        padding: '6px 8px',
+                        fontSize: '12px',
+                        fontFamily: 'sans-serif',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: '12px',
+                          height: '12px',
+                          backgroundColor: '#ffffff',
+                          boxShadow: 'var(--border-field)',
+                        }}
+                      />
+                      I am not a robot
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {!captchaPassed && captchaStep === 'circle_game' && (
+                <div style={{ marginTop: '10px' }}>
+                  <div>Draw a circle above 80% accuracy.</div>
+                  <canvas
+                    ref={circleCanvasRef}
+                    width={220}
+                    height={220}
+                    style={{
+                      marginTop: '8px',
+                      width: '220px',
+                      height: '220px',
+                      backgroundColor: '#ffffff',
+                      boxShadow: 'var(--border-field)',
+                      touchAction: 'none',
+                    }}
+                    onPointerDown={(event) => {
+                      const point = getCanvasPoint(event);
+                      setCirclePoints([point]);
+                      setIsCircleDrawing(true);
+                      setCircleAccuracy(null);
+                    }}
+                    onPointerMove={(event) => {
+                      if (!isCircleDrawing) return;
+                      const point = getCanvasPoint(event);
+                      setCirclePoints((current) => [...current, point]);
+                    }}
+                    onPointerUp={() => {
+                      setIsCircleDrawing(false);
+                    }}
+                    onPointerLeave={() => {
+                      setIsCircleDrawing(false);
+                    }}
+                  />
+                  <div
+                    style={{
+                      marginTop: '8px',
+                      display: 'flex',
+                      gap: '8px',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <button
+                      style={buttonStyle}
+                      type="button"
+                      onClick={() => {
+                        const accuracy = toCircleAccuracy(circlePoints);
+                        setCircleAccuracy(accuracy);
+                        if (accuracy >= 80) passStep();
+                        else
+                          failCaptcha(
+                            `Circle accuracy ${accuracy}%. Need 80%+.`
+                          );
+                      }}
+                    >
+                      Verify Circle
+                    </button>
+                    <span style={{ fontFamily: 'monospace' }}>
+                      Accuracy: {circleAccuracy ?? '--'}%
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {captchaStatus && (
+                <div style={{ marginTop: '10px' }}>{captchaStatus}</div>
+              )}
+              {!captchaPassed && (
+                <div style={{ marginTop: '10px' }}>
+                  <button
+                    style={buttonStyle}
+                    type="button"
+                    onClick={() => resetCaptchas(Date.now())}
+                  >
+                    Restart Verification
+                  </button>
+                </div>
+              )}
             </div>
           )}
-        </div>
-      )}
 
-      <div style={{ marginTop: '12px', minHeight: '18px' }}>
-        {flags.hasSubmittedFinalReport ? (
-          <span>Already submitted.</span>
-        ) : (
-          <span
-            style={{
-              color: !flags.hasFinalReportFile
-                ? 'maroon'
-                : selectedFileId && !isCorrectFileSelected
-                ? 'maroon'
-                : 'inherit',
-            }}
-          >
-            {!flags.hasFinalReportFile
-              ? 'Missing required file. Extract the archive first.'
-              : !selectedFileId
-              ? 'Select the correct file to enable upload.'
-              : isCorrectFileSelected
-              ? 'Ready to submit.'
-              : 'Incorrect file selected (must be the final report in PNG format).'}
-          </span>
-        )}
-      </div>
+          <div style={{ marginTop: '12px', minHeight: '18px' }}>
+            {flags.hasSubmittedFinalReport ? (
+              <span>Already submitted.</span>
+            ) : (
+              <span
+                style={{
+                  color: !flags.hasFinalReportFile
+                    ? 'maroon'
+                    : selectedFileId && !isCorrectFileSelected
+                    ? 'maroon'
+                    : 'inherit',
+                }}
+              >
+                {!flags.hasFinalReportFile
+                  ? 'Missing required file. Extract the archive first.'
+                  : !selectedFileId
+                  ? 'Select the correct file to enable upload.'
+                  : isCorrectFileSelected
+                  ? 'Ready to submit.'
+                  : 'Incorrect file selected (must be the final report in PNG format).'}
+              </span>
+            )}
+          </div>
 
-      {status && <div style={{ marginTop: '6px' }}>{status}</div>}
+          {status && <div style={{ marginTop: '6px' }}>{status}</div>}
         </div>
       )}
     </div>
