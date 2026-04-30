@@ -1,4 +1,4 @@
-import { h, FunctionComponent, JSX } from 'preact';
+import { h, Fragment, FunctionComponent, JSX } from 'preact';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 
 import { AppProps } from '../../types/App';
@@ -287,7 +287,7 @@ const MinesweeperApp: FunctionComponent<AppProps> = () => {
         <rect fill="#ffff33" height="14" width="14" x="4" y="4" />
 
         {mood === 'dead' ? (
-          <>
+          <Fragment>
             <rect {...eyeStyle} height="1" width="3" x="5" y="7" />
             <rect {...eyeStyle} height="1" width="3" x="14" y="7" />
             <rect {...eyeStyle} height="1" width="1" x="6" y="6" />
@@ -295,22 +295,22 @@ const MinesweeperApp: FunctionComponent<AppProps> = () => {
             <rect {...eyeStyle} height="1" width="1" x="15" y="6" />
             <rect {...eyeStyle} height="1" width="1" x="15" y="8" />
             <rect fill="#000000" height="1" width="8" x="7" y="14" />
-          </>
+          </Fragment>
         ) : (
-          <>
+          <Fragment>
             <rect {...eyeStyle} height="3" width="3" x="6" y="7" />
             <rect {...eyeStyle} height="3" width="3" x="13" y="7" />
             <rect fill="#000000" height="1" width="10" x="6" y="14" />
             <rect fill="#000000" height="1" width="1" x="6" y="13" />
             <rect fill="#000000" height="1" width="1" x="15" y="13" />
             {mood === 'cool' && (
-              <>
+              <Fragment>
                 <rect fill="#000000" height="3" width="5" x="4" y="6" />
                 <rect fill="#000000" height="3" width="5" x="13" y="6" />
                 <rect fill="#000000" height="1" width="4" x="9" y="7" />
-              </>
+              </Fragment>
             )}
-          </>
+          </Fragment>
         )}
       </svg>
     );

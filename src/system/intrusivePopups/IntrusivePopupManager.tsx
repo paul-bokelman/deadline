@@ -1,6 +1,5 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
-import { v4 as uuid } from 'uuid';
 
 import IntrusivePopupWindow from './IntrusivePopupWindow';
 import { ActiveIntrusivePopup, IntrusivePopupConfig } from './types';
@@ -119,7 +118,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
       const autoSpawnSeconds = config.behavior.autoSpawnEverySeconds;
 
       return {
-        id: uuid(),
+        id: crypto.randomUUID(),
         config,
         coords: { x, y },
         isMaximized: false,

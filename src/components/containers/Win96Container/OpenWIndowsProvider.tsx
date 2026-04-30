@@ -1,6 +1,5 @@
 import { h, FunctionComponent, ComponentChildren } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
-import { v4 as uuid } from 'uuid';
 
 import { App } from '../../../types/App';
 import { IconId } from '../../../types/Icon';
@@ -65,7 +64,7 @@ const createInitialOpenWindows = (): OpenWindow[] => {
       coords: { x: 420, y: 56 },
       hasFocus: true,
       iconId: getAppIconId(timerApp.id),
-      id: uuid(),
+      id: crypto.randomUUID(),
       isDraggable: timerApp.isDraggable ?? true,
       isMaximized: false,
       isMinimized: false,
@@ -167,7 +166,7 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
           canMaximize: true,
           canMinimize: !isEulaWindow,
           iconId,
-          id: uuid(),
+          id: crypto.randomUUID(),
           coords: isEulaWindow
             ? eulaCoords
             : {

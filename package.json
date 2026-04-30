@@ -9,7 +9,6 @@
     "lint": "eslint . --ext .ts,.tsx",
     "start": "vite",
     "type-check": "tsc --noEmit",
-    "update-config": "node ./scripts/update-config.js",
     "dev": "vite",
     "preview": "vite preview"
   },
@@ -35,9 +34,7 @@
   },
   "homepage": "https://deadline.pab.dev",
   "dependencies": {
-    "@types/uuid": "^8.3.0",
-    "preact": "^10.29.1",
-    "uuid": "^14.0.0"
+    "preact": "^10.29.1"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.5",

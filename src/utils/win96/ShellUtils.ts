@@ -1,5 +1,3 @@
-import { v4 as uuid } from 'uuid';
-
 import {
   FileSystemApp,
   FileSystemDir,
@@ -45,7 +43,7 @@ const getShellApp = (
 ): ShellItem => {
   return {
     appId: fileSystemApp.appId,
-    id: uuid(),
+    id: crypto.randomUUID(),
     iconId: fileSystemApp.iconId ?? getAppIconId(fileSystemApp.appId),
     hasFocus: false,
     hasSoftFocus,
@@ -61,7 +59,7 @@ const getShellDir = (
   hasSoftFocus: boolean
 ): ShellItem => ({
   fileSystemDir,
-  id: uuid(),
+  id: crypto.randomUUID(),
   iconId: fileSystemDir.iconId ?? 'folderClosed',
   hasFocus: false,
   hasSoftFocus,
@@ -75,7 +73,7 @@ const getShellFile = (
 ): ShellItem => ({
   fileSystemFile,
   fileTypeId: fileSystemFile.fileTypeId,
-  id: uuid(),
+  id: crypto.randomUUID(),
   iconId: fileTypeList[fileSystemFile.fileTypeId].iconId,
   hasFocus: false,
   hasSoftFocus,

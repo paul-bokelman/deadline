@@ -4,7 +4,7 @@ import { useContext, useEffect, useState } from 'preact/hooks';
 import DesktopContainer from '../DesktopContainer/DesktopContainer';
 import TaskbarContainer from '../TaskbarContainer/TaskbarContainer';
 import WindowsContainer from '../WindowsContainer/WindowsContainer';
-import OpenWindowsProvider from './OpenWIndowsProvider';
+import OpenWindowsProvider from './OpenWindowsProvider';
 import { GameStateProvider, useGameState } from '../../../game/state';
 import GameScenarioController from '../../../game/scenario/GameScenarioController';
 import OpenWindowsContext from '../../../context/OpenWindowsContext';
