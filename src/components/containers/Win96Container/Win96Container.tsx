@@ -241,6 +241,38 @@ const Win96Container: FunctionComponent = () => {
   const [isMirrored, setIsMirrored] = useState(false);
 
   useEffect(() => {
+    const root = document.documentElement;
+
+    const updateAppViewportVars = () => {
+      const vv = window.visualViewport;
+      const width = Math.round(vv?.width ?? window.innerWidth);
+      const height = Math.round(vv?.height ?? window.innerHeight);
+      root.style.setProperty('--app-width', `${width}px`);
+      root.style.setProperty('--app-height', `${height}px`);
+    };
+
+    updateAppViewportVars();
+
+    window.addEventListener('resize', updateAppViewportVars, { passive: true });
+    window.visualViewport?.addEventListener('resize', updateAppViewportVars, {
+      passive: true,
+    });
+    window.visualViewport?.addEventListener('scroll', updateAppViewportVars, {
+      passive: true,
+    });
+    document.addEventListener('fullscreenchange', updateAppViewportVars, {
+      passive: true,
+    });
+
+    return () => {
+      window.removeEventListener('resize', updateAppViewportVars);
+      window.visualViewport?.removeEventListener('resize', updateAppViewportVars);
+      window.visualViewport?.removeEventListener('scroll', updateAppViewportVars);
+      document.removeEventListener('fullscreenchange', updateAppViewportVars);
+    };
+  }, []);
+
+  useEffect(() => {
     void triggerBootLoaderScreen();
   }, []);
 

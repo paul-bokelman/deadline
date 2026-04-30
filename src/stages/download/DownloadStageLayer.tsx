@@ -7,7 +7,6 @@ import DownloadDialog from './DownloadDialog';
 import ProgressBarWindow from './ProgressBarWindow';
 
 const IT_GUY_INTRO_TRIGGER_EVENT_ID = 'download:it_guy_intro:triggered';
-const WINRAR_LINK_EMAIL_EVENT_ID = 'download:winrar_link_email:emailed';
 
 const DownloadStageLayer: FunctionComponent = () => {
   const {
@@ -28,16 +27,6 @@ const DownloadStageLayer: FunctionComponent = () => {
           setFlag('hasZipFile', true);
           setFlag('zipExtractionLevel', 1);
           setFlag('zipGarbageBatch', 0);
-          if (!hasEventFired(WINRAR_LINK_EMAIL_EVENT_ID)) {
-            markEventFired(WINRAR_LINK_EMAIL_EVENT_ID);
-            setFlag('hasReceivedWinRarLinkEmail', true);
-            gameEventBus.emit('email:delivered', {
-              emailId: 'corp-winrar-download-link',
-            });
-            gameEventBus.emit('email:delivered', {
-              emailId: 'corp-winrar-download-link-fake',
-            });
-          }
         }
 
       }

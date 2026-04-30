@@ -51,6 +51,7 @@ export const appIds = [
   'bank',
   'worldWideWeb',
   'minesweeper',
+  'remoteDesktopCableFix',
 ] as const;
 
 export type AppId = typeof appIds[number];

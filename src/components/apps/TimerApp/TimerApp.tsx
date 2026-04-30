@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { AppProps } from '../../../types/App';
 import useInterval from '../../../hooks/useInterval';
 import WindowContent from '../../shared/WindowContent/WindowContent';
+import { gameEventBus } from '../../../game/events';
 
 const DEADLINE_TEXT = '5:00 PM';
 const COUNTDOWN_MS = 15 * 60 * 1000;
@@ -80,6 +81,11 @@ const TimerApp: FunctionComponent<AppProps> = () => {
   useInterval(() => {
     setRemainingMs(Math.max(0, deadlineAt - Date.now()));
   }, 1000);
+
+  useEffect(() => {
+    const seconds = Math.max(0, Math.ceil(remainingMs / 1000));
+    gameEventBus.emit('deadline:seconds_remaining', { seconds, remainingMs });
+  }, [remainingMs]);
 
   useEffect(() => {
     const panel = panelRef.current;

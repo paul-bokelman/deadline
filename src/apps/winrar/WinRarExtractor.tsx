@@ -6,6 +6,8 @@ import { gameEventBus } from '../../game/events';
 import { getZipNameForLevel } from '../../game/download/archive';
 import { useGameState } from '../../game/state';
 
+const REMOTE_FIX_SHOWN_EVENT_ID = 'winrar:remote_fix:shown';
+
 const panelStyle: JSX.CSSProperties = {
   margin: '8px',
   padding: '10px',
@@ -73,8 +75,8 @@ type ProgramOption = {
   isExtractor?: boolean;
 };
 
-const WinRarExtractor: FunctionComponent<AppProps> = () => {
-  const { flags, setFlag } = useGameState();
+const WinRarExtractor: FunctionComponent<AppProps> = ({ openApp }: AppProps) => {
+  const { flags, hasEventFired, markEventFired, setFlag } = useGameState();
   const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
   const [hasConfirmedProgram, setHasConfirmedProgram] = useState(false);
   const [uiStatusMessage, setUiStatusMessage] = useState<string | null>(null);
@@ -136,6 +138,18 @@ const WinRarExtractor: FunctionComponent<AppProps> = () => {
       return;
     }
     if (!flags.hasWinRarInstalled) {
+      if (
+        !flags.hasReceivedWinRarLinkEmail &&
+        !hasEventFired(REMOTE_FIX_SHOWN_EVENT_ID)
+      ) {
+        markEventFired(REMOTE_FIX_SHOWN_EVENT_ID);
+        openApp({ appId: 'remoteDesktopCableFix' });
+        setUiStatusMessage(
+          'Network cable disconnected.\nLaunching Remote Desktop Cable Fix...'
+        );
+        setHasConfirmedProgram(false);
+        return;
+      }
       setUiStatusMessage(
         flags.hasReceivedWinRarLinkEmail
           ? 'WinRAR is not installed yet.\nA download link has been emailed to you.'

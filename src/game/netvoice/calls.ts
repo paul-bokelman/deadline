@@ -67,7 +67,7 @@ export const netVoiceCallers: Record<NetVoiceCallerId, NetVoiceCaller> = {
     id: 'harold',
     name: 'Harold',
     username: '@haroldhartsbabes92',
-    avatar: '/assets/img/interface/msg_warning-0.png',
+    avatar: '/audio/netvoice/harold_profile.png',
     role: 'Boss',
     warning: 'DO NOT PISS OFF!!!',
     address: '10.0.0.92',

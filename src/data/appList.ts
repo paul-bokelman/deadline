@@ -319,4 +319,11 @@ export const appList: AppList = {
     name: 'Minesweeper',
     size: { width: 360, height: 460 },
   },
+  remoteDesktopCableFix: {
+    id: 'remoteDesktopCableFix',
+    iconId: 'networkNeighborhood',
+    name: 'Remote Desktop Cable Fix',
+    size: { width: 640, height: 520 },
+    isResizeable: true,
+  },
 };

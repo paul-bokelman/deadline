@@ -15,6 +15,7 @@ import MinesweeperApp from './minesweeper/MinesweeperApp';
 import PasswordsFile from './notepad/PasswordsFile';
 import PortalApp from './portal/PortalApp';
 import RecycleBinApp from './recycleBin/RecycleBinApp';
+import RemoteDesktopCableFixApp from './remoteDesktopCableFix/RemoteDesktopCableFixApp';
 import WinRarExtractor from './winrar/WinRarExtractor';
 import WorldWideWebApp from './worldWideWeb/WorldWideWebApp';
 import WinRarInstaller from '../stages/download/WinRarInstaller';
@@ -91,4 +92,5 @@ export const appComponents: Record<AppId, FunctionComponent<AppProps>> = {
   bank: WalletApp,
   worldWideWeb: WorldWideWebApp,
   minesweeper: MinesweeperApp,
+  remoteDesktopCableFix: RemoteDesktopCableFixApp,
 };

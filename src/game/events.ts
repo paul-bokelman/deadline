@@ -63,6 +63,7 @@ export type CoreGameEvents = {
   'screen:mirror_toggled': Record<string, never>;
   'trap:instant_bsod': { source: 'desktop_shortcut' };
   'fullscreen:recommendation_visibility': { isVisible: boolean };
+  'deadline:seconds_remaining': { seconds: number; remainingMs: number };
 };
 
 type EventHandler<TPayload> = (payload: TPayload) => void;
