@@ -1,7 +1,7 @@
 {
-  "name": "windows-96",
+  "name": "deadline",
   "version": "1.0.0",
-  "description": "A faithful recreation of the Windows 96 exploitation system.",
+  "description": "A Windows 96-style desktop game where you race the clock to send the Q3 report before the deadline.",
   "main": "index.html",
   "scripts": {
     "build": "vite build",
@@ -15,22 +15,25 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/beurkinger/windows-96.git"
+    "url": "git+https://github.com/pab/deadline.git"
   },
   "keywords": [
-    "javascript",
+    "game",
+    "browser-game",
+    "vibejam",
+    "vibejam2026",
+    "windows-96",
+    "retro",
     "typescript",
-    "os",
-    "windows",
-    "windows 96"
+    "preact"
   ],
-  "author": "Thibault Goehringer",
+  "author": "pab",
   "license": "GPL-3.0",
   "packageManager": "bun@1.3.12",
   "bugs": {
-    "url": "https://github.com/beurkinger/windows-96/issues"
+    "url": "https://github.com/pab/deadline/issues"
   },
-  "homepage": "https://github.com/beurkinger/preact-starter-kit#readme",
+  "homepage": "https://deadline.pab.dev",
   "dependencies": {
     "@types/uuid": "^8.3.0",
     "preact": "^10.29.1",
