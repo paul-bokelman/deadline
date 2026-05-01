@@ -16,7 +16,6 @@ import WindowsUpdateNag from '@/system/windowsUpdate/WindowsUpdateNag';
 import BootLoaderScreen, {
   triggerBootLoaderScreen,
 } from '@/components/shared/BootLoaderScreen/BootLoaderScreen';
-import { playClickSfx } from '@/utils/audio/sfx';
 import DeadPixelOverlay from '@/system/deadPixels/DeadPixelOverlay';
 import BackgroundFlyOverlay from '@/system/backgroundFly/BackgroundFlyOverlay';
 import { gameEventBus } from '@/game/events';
@@ -238,8 +237,6 @@ const CtrlAltDelTaskManagerTrap: FunctionComponent = () => {
 };
 
 const Win96Container: FunctionComponent = () => {
-  const [isMirrored, setIsMirrored] = useState(false);
-
   useEffect(() => {
     const root = document.documentElement;
 
@@ -282,36 +279,11 @@ const Win96Container: FunctionComponent = () => {
     void triggerBootLoaderScreen();
   }, []);
 
-  useEffect(() => {
-    const handlePointerDown = (event: PointerEvent) => {
-      if (event.button !== 0) return;
-      playClickSfx();
-    };
-
-    document.addEventListener('pointerdown', handlePointerDown, true);
-    return () => {
-      document.removeEventListener('pointerdown', handlePointerDown, true);
-    };
-  }, []);
-
-  useEffect(() => {
-    const unsubscribeMirror = gameEventBus.on('screen:mirror_toggled', () => {
-      setIsMirrored((current) => !current);
-    });
-    const unsubscribeRebooted = gameEventBus.on('game:rebooted', () => {
-      setIsMirrored(false);
-    });
-    return () => {
-      unsubscribeMirror();
-      unsubscribeRebooted();
-    };
-  }, []);
+  // Intentionally no global pointer-down click SFX and no screen mirroring.
 
   return (
     <div className={style.win96}>
-      <div
-        className={`${style.shell} ${isMirrored ? style.shellMirrored : ''}`}
-      >
+      <div className={style.shell}>
         <GameStateProvider>
           <OpenWindowsProvider>
             <div className={style.mainView}>
