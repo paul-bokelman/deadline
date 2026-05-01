@@ -58,7 +58,7 @@ const MyComputerApp: FunctionComponent<AppProps> = ({
       openApp({ appId: file.appId });
     }
     if (file.type === 'dir') {
-      openApp({ appId: 'myComputer', workingDir: file.fileSystemDir });
+      openApp({ appId: 'explorer', workingDir: file.fileSystemDir });
     }
     if (file.type === 'file') {
       openApp({

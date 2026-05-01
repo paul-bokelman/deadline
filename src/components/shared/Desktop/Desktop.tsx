@@ -904,7 +904,7 @@ const Desktop: FunctionComponent<Props> = ({
           openApp({ appId: 'recycleBinViewer' });
           return;
         }
-        openApp({ appId: 'myComputer', workingDir: file.fileSystemDir });
+        openApp({ appId: 'explorer', workingDir: file.fileSystemDir });
       }
       if (file.type === 'file') {
         const isRealReport =

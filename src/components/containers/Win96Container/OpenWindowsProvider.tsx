@@ -126,7 +126,7 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
   // Window + taskbar icons should match the app's desktop icon when one
   // exists; otherwise fall back to whatever icon the app declares.
   const getWindowIconId = (app: App, workingDir?: FileSystemDir): IconId => {
-    if (app.id === 'myComputer') {
+    if (app.id === 'myComputer' || app.id === 'explorer') {
       if (workingDir && workingDir.iconId) return workingDir.iconId;
       if (workingDir) return 'folderOpen';
     }
@@ -153,7 +153,7 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
       return;
     }
 
-    if (appId === 'myComputer' && workingDir?.name === 'DoNotOpen') {
+    if ((appId === 'myComputer' || appId === 'explorer') && workingDir?.name === 'DoNotOpen') {
       rebootGame();
       return;
     }

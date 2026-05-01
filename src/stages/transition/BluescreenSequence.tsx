@@ -135,10 +135,7 @@ const BluescreenSequence: FunctionComponent = () => {
       setCursorPos({ x, y });
     }, 90);
 
-    const openTimerA = window.setTimeout(
-      () => openApp({ appId: 'myComputer' }),
-      600
-    );
+    const openTimerA = window.setTimeout(() => openApp({ appId: 'explorer' }), 600);
     const openTimerB = window.setTimeout(
       () => openApp({ appId: 'corpMail' }),
       1550

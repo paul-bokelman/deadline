@@ -53,7 +53,6 @@ const programsOption: OptionType = {
             isLarge: false,
             options: [
               [
-                appOption('myComputer'),
                 appOption('notepad'),
                 appOption('timer', 'Project Deadline'),
               ],

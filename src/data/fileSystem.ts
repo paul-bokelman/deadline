@@ -133,7 +133,7 @@ export const startMenuFs = {
           iconId: 'controlPanel',
           dirPath: 'controlPanel',
           name: 'Control Panel',
-          toAppId: 'myComputer',
+          toAppId: 'explorer',
           type: 'shortcut',
         },
         printers: {
@@ -184,15 +184,10 @@ export const startMenuFs = {
 
 export const myComputerFs = {
   name: 'My Computer',
-  iconId: appList.myComputer.iconId,
+  iconId: appList.explorer.iconId,
   type: 'dir',
   dir: {
-    'A:': floppyDriveFs,
     'C:': hardDriveFs,
-    'D:': cdDriveFs,
-    controlPanel: controlPanelFs,
-    printers: printersFs,
-    dialUpNetwork: dialUpNetworkFs,
   },
 } as const;
 
