@@ -5,7 +5,7 @@ import { FileSystemDir } from '@/types/FileSystem';
 import { IconId } from '@/types/Icon';
 import { getDirFromPath } from './FileSystemUtils';
 
-const DESKTOP_PATH = 'C:/Windows/Desktop';
+const DESKTOP_PATH = 'Desktop';
 
 const dynamicDesktopAppIcons: Partial<Record<AppId, IconId>> = {};
 

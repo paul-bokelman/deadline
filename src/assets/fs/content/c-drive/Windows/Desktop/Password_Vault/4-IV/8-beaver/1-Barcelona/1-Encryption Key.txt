@@ -1,5 +1,0 @@
-Encryption Key
-==============
-
-Use this encryption key to download the document:
-VAULT-DL-9X2K-7M4Q

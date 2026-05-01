@@ -54,7 +54,7 @@ const Desktop: FunctionComponent<Props> = ({
   openApp,
 }: Props) => {
   const { flags, setFlags, rebootGame } = useGameState();
-  const desktopWorkingDir = getDirFromPath('C:/Windows/Desktop', rootFs);
+  const desktopWorkingDir = getDirFromPath('Desktop', rootFs);
   const { files, focusOnFile, removeFocus } = useShellFilesState(
     desktopWorkingDir,
     false

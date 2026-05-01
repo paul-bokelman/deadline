@@ -15,7 +15,7 @@ import {
 import { getFileFromPath } from '@/utils/win96/FileSystemUtils';
 
 const ATTACHMENT_KEY_FILE_PATH =
-  'C:/Windows/Desktop/Password_Vault/4-IV/8-beaver/1-Barcelona/1-Encryption Key.txt';
+  'Desktop/Password_Vault/4-IV/8-beaver/1-Barcelona/1-Encryption Key.txt';
 
 const createRandomAttachmentKey = (): string => {
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
