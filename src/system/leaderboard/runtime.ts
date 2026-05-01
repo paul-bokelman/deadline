@@ -5,7 +5,7 @@
 // reactive consumers, and tracks the local "you" entry that gets merged
 // into the cached board after a successful submit.
 
-import { gameEventBus } from '@/game/events';
+import { registerOnReboot } from '@/system/lifecycle';
 import { apiFetchLeaderboard, apiSubmitRun } from '../api/leaderboard';
 import { isApiConfigured, ApiError } from '../api/client';
 import { getActiveRunToken } from '../runTimer/runTimer';
@@ -42,18 +42,12 @@ const notify = (): void => {
   listeners.forEach((listener) => listener());
 };
 
-let hasResetHook = false;
-const ensureResetHook = (): void => {
-  if (hasResetHook) return;
-  hasResetHook = true;
-  gameEventBus.on('game:rebooted', () => {
-    playerEntry = null;
-    notify();
-  });
-};
+registerOnReboot(() => {
+  playerEntry = null;
+  notify();
+});
 
 export const subscribeLeaderboard = (listener: Listener): (() => void) => {
-  ensureResetHook();
   listeners.add(listener);
   return () => {
     listeners.delete(listener);
@@ -73,7 +67,6 @@ export const setLeaderboardPlayerEntry = (
   ms: number,
   reboots = 0
 ): void => {
-  ensureResetHook();
   playerEntry = {
     name: sanitizeLeaderboardName(name),
     ms: Math.max(0, Math.floor(ms)),
@@ -84,7 +77,6 @@ export const setLeaderboardPlayerEntry = (
 };
 
 export const loadLeaderboard = async (): Promise<void> => {
-  ensureResetHook();
   if (!isApiConfigured()) {
     state = { status: 'ready', entries: [], errorMessage: null };
     notify();
@@ -126,7 +118,6 @@ export const submitLeaderboardEntry = async (
   | { ok: true; ms: number; rank: number; reboots: number }
   | { ok: false; error: ApiError }
 > => {
-  ensureResetHook();
   const sanitized = sanitizeLeaderboardName(name);
   const run = await getActiveRunToken();
   if (!run) {
@@ -164,7 +155,6 @@ export const getLeaderboardViewModel = (): {
   status: LoadStatus;
   errorMessage: string | null;
 } => {
-  ensureResetHook();
   const base = state.entries;
   if (!playerEntry) {
     return {

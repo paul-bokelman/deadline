@@ -83,6 +83,7 @@ export const iconIds = [
   'notepad',
   'notepadDoc',
   'passwords',
+  'passwordVault',
   'phoneDialer',
   'power',
   'printers',

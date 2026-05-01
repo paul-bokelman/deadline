@@ -1,8 +1,8 @@
 import fileTypeList from '@/data/fileTypeList';
 import { myComputerFs } from '@/data/fileSystem';
 import { getZipNameForLevel } from '@/game/download/archive';
-import { gameEventBus } from '@/game/events';
 import { GameFlags } from '@/game/state';
+import { registerOnReboot } from '@/system/lifecycle';
 import { AppId } from '@/types/App';
 import { FileSystemFile } from '@/types/FileSystem';
 import { FileTypeId } from '@/types/FileType';
@@ -28,7 +28,6 @@ const createRandomAttachmentKey = (): string => {
 };
 
 let attachmentDecryptionKey = createRandomAttachmentKey();
-let hasAttachmentKeyBootHook = false;
 
 const renderAttachmentKeyFileContent = (key: string): string => {
   return `Encryption Key
@@ -44,17 +43,12 @@ const syncAttachmentKeyFileContent = (): void => {
   keyFile.content = renderAttachmentKeyFileContent(attachmentDecryptionKey);
 };
 
-const ensureAttachmentKeyBootHook = (): void => {
-  if (hasAttachmentKeyBootHook) return;
-  hasAttachmentKeyBootHook = true;
-  gameEventBus.on('game:rebooted', () => {
-    attachmentDecryptionKey = createRandomAttachmentKey();
-    syncAttachmentKeyFileContent();
-  });
-};
+registerOnReboot(() => {
+  attachmentDecryptionKey = createRandomAttachmentKey();
+  syncAttachmentKeyFileContent();
+});
 
 export const getAttachmentDecryptionKeyFromDump = (): string => {
-  ensureAttachmentKeyBootHook();
   syncAttachmentKeyFileContent();
   return attachmentDecryptionKey;
 };
@@ -244,5 +238,4 @@ export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
   return dynamicItems;
 };
 
-ensureAttachmentKeyBootHook();
 syncAttachmentKeyFileContent();

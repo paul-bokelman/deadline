@@ -1,5 +1,5 @@
 const infos = {
-  iconId: 'folderClosed',
+  iconId: 'passwordVault',
   name: 'PasswordVault',
 };
 

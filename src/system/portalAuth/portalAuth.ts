@@ -1,8 +1,15 @@
-const DEFAULT_PORTAL_EMAIL = 'conner.work@aol.com';
+import { PORTAL_DEFAULT_EMAIL } from '@/data/contacts';
+import { registerOnReboot } from '@/system/lifecycle';
 
-let portalLoginEmail = DEFAULT_PORTAL_EMAIL;
-let pendingResetEmail = DEFAULT_PORTAL_EMAIL;
+let portalLoginEmail = PORTAL_DEFAULT_EMAIL;
+let pendingResetEmail = PORTAL_DEFAULT_EMAIL;
 let portalPassword: string | null = null;
+
+registerOnReboot(() => {
+  portalLoginEmail = PORTAL_DEFAULT_EMAIL;
+  pendingResetEmail = PORTAL_DEFAULT_EMAIL;
+  portalPassword = null;
+});
 
 export const hasPortalPassword = (): boolean => portalPassword !== null;
 
