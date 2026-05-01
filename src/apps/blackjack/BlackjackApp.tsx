@@ -11,13 +11,25 @@
  */
 
 import { h, Fragment, FunctionComponent, JSX } from 'preact';
-import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'preact/hooks';
 
 import MenuBar from '@/components/shared/MenuBar/MenuBar';
 import StatusBar from '@/components/shared/StatusBar/StatusBar';
 import { AppProps } from '@/types/App';
 import { useGameState } from '@/game/state';
 import { gameEventBus } from '@/game/events';
+import {
+  playBlackjackChipsInSfx,
+  playBlackjackDealCardSfx,
+  playBlackjackLoseSfx,
+  playBlackjackWinSfx,
+} from '@/utils/audio/blackjackSfx';
 
 import chipRedUrl from '@/assets/images/blackjack/chip_red.png';
 import chipBlueUrl from '@/assets/images/blackjack/chip_blue.png';
@@ -190,6 +202,7 @@ interface ChipBtnProps {
   label: string;
   title: string;
   onClick: () => void;
+  onPointerDown?: () => void;
   disabled?: boolean;
 }
 
@@ -198,12 +211,14 @@ const ChipBtn: FunctionComponent<ChipBtnProps> = ({
   label,
   title,
   onClick,
+  onPointerDown,
   disabled,
 }: ChipBtnProps) => (
   <button
     type="button"
     className={style.chipBtn}
     onClick={onClick}
+    onPointerDown={disabled ? undefined : onPointerDown}
     disabled={disabled}
     title={title}
   >
@@ -236,6 +251,15 @@ const BlackjackApp: FunctionComponent<AppProps> = () => {
   // Track whether a hand is currently in progress so we emit the
   // events the bailout system listens to in src/game/state.tsx.
   const hasActiveHandRef = useRef(false);
+
+  /** Chips SFX on pointerdown runs before click; dedupe when startRound runs ms later. */
+  const lastChipsSfxAtRef = useRef(0);
+  const triggerChipsInSfx = useCallback((): void => {
+    const now = Date.now();
+    if (now - lastChipsSfxAtRef.current < 220) return;
+    lastChipsSfxAtRef.current = now;
+    playBlackjackChipsInSfx();
+  }, []);
 
   useEffect(() => {
     const inProgress = phase === 'playing' || phase === 'dealer';
@@ -310,8 +334,10 @@ const BlackjackApp: FunctionComponent<AppProps> = () => {
     setPhase('settled');
 
     if (result === 'win' || result === 'bj') {
+      playBlackjackWinSfx();
       setMoneyFx('flash');
     } else if (result === 'lose') {
+      playBlackjackLoseSfx();
       setMoneyFx('loss');
       setTableShake(true);
       window.setTimeout(() => setTableShake(false), 350);
@@ -321,6 +347,8 @@ const BlackjackApp: FunctionComponent<AppProps> = () => {
 
   const startRound = (betAmount: number): void => {
     if (betAmount <= 0 || betAmount > bankroll) return;
+
+    triggerChipsInSfx();
 
     let s = shoe;
     const draw = (): CardModel => {
@@ -362,6 +390,7 @@ const BlackjackApp: FunctionComponent<AppProps> = () => {
     const newHand = [...player, c];
     setShoe(nextShoe);
     setPlayer(newHand);
+    playBlackjackDealCardSfx();
     if (handValue(newHand) >= 21) {
       // bust or 21 — auto-stand.
       window.setTimeout(() => stand(newHand), 350);
@@ -387,6 +416,7 @@ const BlackjackApp: FunctionComponent<AppProps> = () => {
         d = [...d, c];
         setShoe(s);
         setDealer(d);
+        playBlackjackDealCardSfx();
         window.setTimeout(playOut, 600);
       } else {
         window.setTimeout(() => settleRound(ph, d, betRef.current), 500);
@@ -612,6 +642,7 @@ const BlackjackApp: FunctionComponent<AppProps> = () => {
                   label={formatMoney(b.amount)}
                   title={`${formatMoney(b.amount)} — ${b.sub}`}
                   onClick={() => startRound(b.amount)}
+                  onPointerDown={triggerChipsInSfx}
                   disabled={b.amount <= 0 || b.amount > bankroll}
                 />
               ))}
@@ -621,6 +652,11 @@ const BlackjackApp: FunctionComponent<AppProps> = () => {
               type="button"
               className={`${style.btn} ${style.btnDefault}`}
               onClick={() => startRound(defaultDealAmount)}
+              onPointerDown={
+                defaultDealAmount <= 0 || defaultDealAmount > bankroll
+                  ? undefined
+                  : triggerChipsInSfx
+              }
               disabled={defaultDealAmount <= 0 || defaultDealAmount > bankroll}
             >
               <span>
