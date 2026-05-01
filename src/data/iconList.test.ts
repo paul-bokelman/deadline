@@ -6,7 +6,10 @@ import { iconIds, iconSizes } from '../types/Icon';
 describe('iconList', () => {
   it('contains an entry for every iconId declared in src/types/Icon.ts', () => {
     for (const iconId of iconIds) {
-      expect(iconList[iconId], `missing icon entry for ${iconId}`).toBeDefined();
+      expect(
+        iconList[iconId],
+        `missing icon entry for ${iconId}`
+      ).toBeDefined();
     }
   });
 
@@ -14,10 +17,9 @@ describe('iconList', () => {
     for (const iconId of iconIds) {
       const urls = iconList[iconId];
       const hasAtLeastOneSize = iconSizes.some((size) => Boolean(urls[size]));
-      expect(
-        hasAtLeastOneSize,
-        `${iconId} resolves no supported size`
-      ).toBe(true);
+      expect(hasAtLeastOneSize, `${iconId} resolves no supported size`).toBe(
+        true
+      );
     }
   });
 

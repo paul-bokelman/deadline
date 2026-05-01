@@ -8,6 +8,11 @@
  */
 
 export const Z_INDEX_TIERS = {
+  // Background and decorative layers sit at z-index 1 (above wallpaper).
+  background: 1,
+  // Modal-style password / file dialogs that should sit above normal windows
+  // but below the system overlay layers.
+  modal: 100_000,
   normalBase: 300_000,
   leaderboard: 1_000_000,
   plot: 2_000_000,
@@ -16,8 +21,16 @@ export const Z_INDEX_TIERS = {
   // Ambient critters sit above all gameplay layers but below the bluescreen
   // sequence and the bootloader takeover.
   ambientCritter: 5_000_000,
+  // Start-menu / taskbar pop-ups must sit above all windows.
+  startMenu: 6_000_000,
+  // System nag overlays (Windows Update / Fullscreen recommendation).
+  systemOverlay: 7_000_000,
+  // Task manager + fake bluescreen seen via Ctrl+Alt+Del.
+  taskManager: 8_000_000,
   // Bluescreen must sit above *everything* in the game UI.
   bluescreen: 100_000_000,
+  // Boot loader takes over the entire viewport above bluescreen.
+  bootLoader: 1_000_000_000,
 } as const;
 
 let normalCounter = Z_INDEX_TIERS.normalBase + 1;

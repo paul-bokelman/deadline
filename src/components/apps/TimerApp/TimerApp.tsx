@@ -7,7 +7,11 @@ import WindowContent from '../../shared/WindowContent/WindowContent';
 import { gameEventBus } from '../../../game/events';
 import { getGameDate } from '../../../system/clock/gameClock';
 
-import { COUNTDOWN_MS, computeRemainingMsTo5pm, formatCountdown } from './timerMath';
+import {
+  COUNTDOWN_MS,
+  computeRemainingMsTo5pm,
+  formatCountdown,
+} from './timerMath';
 
 const DEADLINE_TEXT = '5:00 PM';
 const BASE_WIDTH = 360;

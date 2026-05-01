@@ -1,12 +1,12 @@
 import { h, FunctionComponent } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useGameState } from '../../game/state';
+import { CLIPPY_VIDEO_URL } from '../../data/urls';
 import { playClippyTipSfx } from '../../utils/audio/sfx';
 
 import style from './ClippyAssistant.module.css';
 
-const CLIPPY_SRC =
-  'https://media.tenor.com/dGMlMQfZDtgAAAPs/clippy-clippit.webm';
+const CLIPPY_SRC = CLIPPY_VIDEO_URL;
 const OUTPUT_CANVAS_WIDTH = 420;
 const OUTPUT_CANVAS_HEIGHT = 420;
 const CROP_PADDING_X_RATIO = 0.16;

@@ -1,6 +1,7 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { gameEventBus } from '../../../game/events';
+import { Z_INDEX_TIERS } from '../../../system/zIndex';
 import { playStartupSfx } from '../../../utils/audio/osSfx';
 
 const BOOT_DURATION_MS = 3000;
@@ -344,7 +345,7 @@ const containerStyle: JSX.CSSProperties = {
   lineHeight: 1.25,
   padding: '14px 18px',
   // Bootloader must visually sit above *all* windows and overlays.
-  zIndex: 9999999,
+  zIndex: Z_INDEX_TIERS.bootLoader,
   overflow: 'hidden',
   whiteSpace: 'pre',
   letterSpacing: '0.3px',

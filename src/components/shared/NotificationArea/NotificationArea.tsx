@@ -28,11 +28,14 @@ import {
   advanceGameClockByMinutes,
   getGameDate,
 } from '../../../system/clock/gameClock';
+import {
+  AMBIENT_MUSIC_MP3_URL,
+  AMBIENT_MUSIC_WEBM_URL,
+  VIBE_JAM_HOME_URL,
+} from '../../../data/urls';
 
-const AUDIO_SOURCE_WEBM =
-  'https://www.cameronsworld.net/sound/cameronsworld.webm';
-const AUDIO_SOURCE_MP3 =
-  'https://www.cameronsworld.net/sound/cameronsworld.mp3';
+const AUDIO_SOURCE_WEBM = AMBIENT_MUSIC_WEBM_URL;
+const AUDIO_SOURCE_MP3 = AMBIENT_MUSIC_MP3_URL;
 
 const formatTrayTime = (date: Date) =>
   date.toLocaleTimeString([], {
@@ -459,7 +462,7 @@ const NotificationArea: FunctionComponent = () => {
       )}
       <a
         className={style.vibeJam}
-        href="https://vibej.am/"
+        href={VIBE_JAM_HOME_URL}
         target="_blank"
         rel="noreferrer noopener"
         title="Vibe Jam 2026"

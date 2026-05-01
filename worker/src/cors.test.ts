@@ -14,7 +14,7 @@ const requestWith = (origin: string | null): Request => {
         name.toLowerCase() === 'origin' ? origin : null,
     },
   };
-  return stub as unknown as Request;
+  return (stub as unknown) as Request;
 };
 
 describe('buildCorsHeaders', () => {

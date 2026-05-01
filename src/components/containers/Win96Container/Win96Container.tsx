@@ -25,6 +25,7 @@ import FullscreenRecommendation from '../../../system/fullscreen/FullscreenRecom
 import InstantBsodTrap from '../../../system/traps/InstantBsodTrap';
 
 import style from './Win96Container.module.css';
+import { Z_INDEX_TIERS } from '../../../system/zIndex';
 
 const taskManagerBackdropStyle: JSX.CSSProperties = {
   position: 'fixed',
@@ -33,7 +34,7 @@ const taskManagerBackdropStyle: JSX.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  zIndex: 8_000_000,
+  zIndex: Z_INDEX_TIERS.taskManager,
 };
 
 const taskManagerWindowStyle: JSX.CSSProperties = {
@@ -49,7 +50,7 @@ const fakeBsodStyle: JSX.CSSProperties = {
   inset: 0,
   backgroundColor: '#001e9f',
   color: '#ffffff',
-  zIndex: 8_000_100,
+  zIndex: Z_INDEX_TIERS.taskManager + 100,
   padding: '24px',
   fontFamily: 'var(--font-family-sys)',
   fontSize: '18px',

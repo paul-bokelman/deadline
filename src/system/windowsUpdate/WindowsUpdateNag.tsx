@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
 import Button from '../../components/shared/Button/Button';
 import Window from '../../components/shared/Window/Window';
+import { Z_INDEX_TIERS } from '../zIndex';
 import { useUpdateScheduler } from './useUpdateScheduler';
 
 const POPUP_WIDTH = 280;
@@ -46,7 +47,7 @@ const WindowsUpdateNag: FunctionComponent = () => {
         position: 'absolute',
         inset: 0,
         pointerEvents: 'none',
-        zIndex: 98500,
+        zIndex: Z_INDEX_TIERS.systemOverlay,
       }}
     >
       <Window
@@ -64,7 +65,7 @@ const WindowsUpdateNag: FunctionComponent = () => {
           pointerEvents: 'auto',
         }}
         title="Required Windows Update"
-        zIndex={98501}
+        zIndex={Z_INDEX_TIERS.systemOverlay + 1}
       >
         <div style={{ padding: '8px' }}>
           <div

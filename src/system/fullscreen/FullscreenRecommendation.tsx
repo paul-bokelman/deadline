@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import Window from '../../components/shared/Window/Window';
 import Button from '../../components/shared/Button/Button';
 import Icon from '../../components/shared/Icon/Icon';
+import { Z_INDEX_TIERS } from '../zIndex';
 import { gameEventBus } from '../../game/events';
 
 const WIDTH = 340;
@@ -67,7 +68,7 @@ const FullscreenRecommendation: FunctionComponent = () => {
         position: 'absolute',
         inset: 0,
         pointerEvents: 'none',
-        zIndex: 99000,
+        zIndex: Z_INDEX_TIERS.systemOverlay + 500,
       }}
     >
       <Window
@@ -81,7 +82,7 @@ const FullscreenRecommendation: FunctionComponent = () => {
         size={{ x: WIDTH, y: HEIGHT }}
         style={{ pointerEvents: 'auto' }}
         title="Fullscreen recommended"
-        zIndex={99001}
+        zIndex={Z_INDEX_TIERS.systemOverlay + 501}
       >
         <div
           style={{

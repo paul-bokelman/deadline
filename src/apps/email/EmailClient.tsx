@@ -60,17 +60,10 @@ interface VisibleEmailItem {
   email: EmailRecord;
 }
 
-const accountToAddressMap: Record<EmailAccountId, string> = {
-  corpMail: 'conner.work@aol.com',
-  personalMail: 'connerdabeast@aol.com',
-  corpMailLegacy: 'you@legacy.corp.internal',
-};
-
-const accountServerMap: Record<EmailAccountId, string> = {
-  corpMail: 'POP3: corp.internal',
-  personalMail: 'POP3: personalmail.com',
-  corpMailLegacy: 'POP3: legacy.corp.internal',
-};
+import {
+  EMAIL_ADDRESS_BY_ACCOUNT as accountToAddressMap,
+  EMAIL_SERVER_BY_ACCOUNT as accountServerMap,
+} from '../../data/contacts';
 
 interface ToolbarButtonProps {
   label: string;

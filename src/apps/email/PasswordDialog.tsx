@@ -1,5 +1,6 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
+import { Z_INDEX_TIERS } from '../../system/zIndex';
 
 interface PasswordDialogProps {
   isOpen: boolean;
@@ -19,7 +20,7 @@ const overlayStyle: JSX.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  zIndex: 100000,
+  zIndex: Z_INDEX_TIERS.modal,
 };
 
 const dialogStyle: JSX.CSSProperties = {

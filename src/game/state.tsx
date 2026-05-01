@@ -13,6 +13,7 @@ import { NetVoiceCallId } from './netvoice/calls';
 import { playRebootSfx, playYouGotMailSfx } from '../utils/audio/osSfx';
 import { FileTypeId } from '../types/FileType';
 import { ensureRunStarted, resetRunTimer } from '../system/runTimer/runTimer';
+import { BAILOUT_DEBOUNCE_MS, REBOOT_AFTER_CALL_MS } from '../system/timing';
 
 export type GameStage =
   | 'bios'
@@ -245,7 +246,7 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
           : 'greg_3rd_0';
       setActiveNetVoiceCallIdState(nextCallId);
       setIsNetVoiceCallAcceptedState(false);
-    }, 250);
+    }, BAILOUT_DEBOUNCE_MS);
 
     return () => window.clearTimeout(timer);
   }, [
@@ -308,7 +309,7 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
       }
       window.setTimeout(() => {
         rebootGame();
-      }, 100);
+      }, REBOOT_AFTER_CALL_MS);
     });
   }, [rebootGame]);
 
