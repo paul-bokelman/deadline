@@ -7,7 +7,6 @@ import { Z_INDEX_TIERS } from '../zIndex';
 // Editable tuning values.
 const DEAD_PIXEL_SIZE_PX = 2;
 const DEAD_PIXEL_START_DELAY_MS = 60_000;
-const DEAD_PIXEL_TARGET_COUNT = 3200;
 const DEAD_PIXEL_SPAWN_INTERVAL_MS = 3000;
 
 const generateRandomRgbCss = (): string => {
@@ -101,14 +100,6 @@ const DeadPixelOverlay: FunctionComponent = () => {
 
     startTimeoutIdRef.current = window.setTimeout(() => {
       spawnIntervalIdRef.current = window.setInterval(() => {
-        if (spawnedCountRef.current >= DEAD_PIXEL_TARGET_COUNT) {
-          if (spawnIntervalIdRef.current !== null) {
-            window.clearInterval(spawnIntervalIdRef.current);
-            spawnIntervalIdRef.current = null;
-          }
-          return;
-        }
-
         drawRandomDeadPixel();
         spawnedCountRef.current += 1;
       }, DEAD_PIXEL_SPAWN_INTERVAL_MS);

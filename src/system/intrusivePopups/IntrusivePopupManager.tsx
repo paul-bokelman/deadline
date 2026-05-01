@@ -15,7 +15,7 @@ import {
 } from './sfx';
 
 const TASKBAR_HEIGHT_PX = 28;
-const AMBIENT_SPAWN_EVERY_MS = 120_000;
+const AMBIENT_SPAWN_EVERY_MS = 60_000;
 const clamp = (value: number, min: number, max: number): number =>
   Math.max(min, Math.min(value, max));
 
