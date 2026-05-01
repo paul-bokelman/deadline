@@ -374,6 +374,8 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
       setTypedAddress(url);
       navigateForUrl(url);
     });
+    // navigateForUrl is captured by closure; mount-only is correct here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

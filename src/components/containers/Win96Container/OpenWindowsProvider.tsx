@@ -167,11 +167,16 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
       const title = getWindowTitle(app, workingDir, workingFile);
       const eulaWidth = Math.round(window.innerWidth * 0.8);
       const eulaHeight = Math.round(window.innerHeight * 0.8);
-      const eulaSize = clampWindowSizeToViewport({ x: eulaWidth, y: eulaHeight });
+      const eulaSize = clampWindowSizeToViewport({
+        x: eulaWidth,
+        y: eulaHeight,
+      });
       const defaultSize = getDefaultWindowSize(app);
       const eulaCoords = {
         x: Math.round((window.innerWidth - eulaSize.x) / 2),
-        y: Math.round((window.innerHeight - TASKBAR_DOCK_HEIGHT - eulaSize.y) / 2),
+        y: Math.round(
+          (window.innerHeight - TASKBAR_DOCK_HEIGHT - eulaSize.y) / 2
+        ),
       };
       const randomCoords = clampWindowCoordsToViewport(
         {
@@ -207,9 +212,7 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
             : app.isResizeable ?? true,
           showCloseButton: isEulaWindow ? false : !isProjectDeadlineWindow,
           showMaximizeButton: !isNetVoiceCallWindow,
-          size: isEulaWindow
-            ? eulaSize
-            : defaultSize,
+          size: isEulaWindow ? eulaSize : defaultSize,
           title,
           workingDir,
           workingFile,

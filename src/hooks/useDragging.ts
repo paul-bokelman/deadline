@@ -43,6 +43,9 @@ const useDragging = (
 
   useEffect(() => {
     setCoords(initialCoords);
+    // Intentionally re-syncs only when the *initial* coords change (resets).
+    // Including the full object would re-fire on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialCoords.x, initialCoords.y]);
 
   useEffect(() => {
@@ -62,6 +65,8 @@ const useDragging = (
       removePointerMoveEventListeners();
       removePointerStopEventListeners();
     };
+    // Mount-only: handler functions are stable closures over refs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const addPointerStartEventListeners = (): void => {

@@ -28,7 +28,7 @@ let voiceCallCounter = Z_INDEX_TIERS.voiceCall;
 // sits at `leaderboardBase + 99`.
 const LEADERBOARD_APP_MAX_Z_INDEX = Z_INDEX_TIERS.leaderboard + 98;
 
-export const resetZIndexAllocators = () => {
+export const resetZIndexAllocators = (): void => {
   normalCounter = Z_INDEX_TIERS.normalBase + 1;
   leaderboardCounter = Z_INDEX_TIERS.leaderboard;
   voiceCallCounter = Z_INDEX_TIERS.voiceCall;
@@ -39,7 +39,7 @@ export const resetZIndexAllocators = () => {
  * This is shared across normal windows + popups so whichever spawns last
  * will appear on top.
  */
-export const allocateNormalZIndex = () => {
+export const allocateNormalZIndex = (): number => {
   // Keep normal-tier items strictly below the leaderboard exception tier.
   // This guarantees exceptions never get covered "no matter what".
   if (normalCounter >= Z_INDEX_TIERS.leaderboard) {
@@ -52,7 +52,7 @@ export const allocateNormalZIndex = () => {
  * Allocate a monotonically increasing zIndex for the "leaderboard" tier.
  * (This tier is exception #4 in the requested ordering.)
  */
-export const allocateLeaderboardZIndex = () => {
+export const allocateLeaderboardZIndex = (): number => {
   // Keep leaderboard *app* windows below the leaderboard exception overlay
   // (WinStageLayer), which is fixed at `leaderboardBase + 99`.
   if (leaderboardCounter > LEADERBOARD_APP_MAX_Z_INDEX) {
@@ -65,6 +65,6 @@ export const allocateLeaderboardZIndex = () => {
  * Allocate a monotonically increasing zIndex for the "voice call" tier.
  * (This tier is exception #1 in the requested ordering.)
  */
-export const allocateVoiceCallZIndex = () => {
+export const allocateVoiceCallZIndex = (): number => {
   return voiceCallCounter++;
 };

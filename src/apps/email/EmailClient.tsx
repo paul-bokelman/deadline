@@ -129,6 +129,9 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
   );
 
   const accountEmails = useMemo<VisibleEmailItem[]>(() => {
+    // mailboxVersion is intentionally a dep: it's bumped on every delivery
+    // event so that the runtime mailbox snapshot is re-read here.
+    void mailboxVersion;
     const instances = getDeliveredEmailInstances();
     const visibleItems = instances
       .map((item) => {

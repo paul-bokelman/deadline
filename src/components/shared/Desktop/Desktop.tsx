@@ -256,45 +256,42 @@ const Desktop: FunctionComponent<Props> = ({
   }, [desktopItems, desktopSize.h, desktopSize.w]);
 
   useEffect(() => {
-    const unsubscribeScatter = gameEventBus.on(
-      'desktop:scatter_icons',
-      (_payload) => {
-        setIconPositions(() => {
-          const next: Record<string, IconPosition> = {};
-          const ICON_W = CELL_WIDTH;
-          const ICON_H = CELL_HEIGHT;
-          const maxLeft = Math.max(ICON_PADDING_X, desktopSize.w - ICON_W);
-          const maxTop = Math.max(ICON_PADDING_Y, desktopSize.h - ICON_H);
+    const unsubscribeScatter = gameEventBus.on('desktop:scatter_icons', () => {
+      setIconPositions(() => {
+        const next: Record<string, IconPosition> = {};
+        const ICON_W = CELL_WIDTH;
+        const ICON_H = CELL_HEIGHT;
+        const maxLeft = Math.max(ICON_PADDING_X, desktopSize.w - ICON_W);
+        const maxTop = Math.max(ICON_PADDING_Y, desktopSize.h - ICON_H);
 
-          const buildOrderedSlots = (): IconPosition[] => {
-            const slots: IconPosition[] = [];
-            for (let left = ICON_PADDING_X; left <= maxLeft; left += ICON_W) {
-              for (let top = ICON_PADDING_Y; top <= maxTop; top += ICON_H) {
-                slots.push({ left, top });
-              }
+        const buildOrderedSlots = (): IconPosition[] => {
+          const slots: IconPosition[] = [];
+          for (let left = ICON_PADDING_X; left <= maxLeft; left += ICON_W) {
+            for (let top = ICON_PADDING_Y; top <= maxTop; top += ICON_H) {
+              slots.push({ left, top });
             }
-            return slots;
-          };
+          }
+          return slots;
+        };
 
-          const slots = buildOrderedSlots();
-          slots.sort(() => Math.random() - 0.5);
+        const slots = buildOrderedSlots();
+        slots.sort(() => Math.random() - 0.5);
 
-          desktopItems.forEach((item) => {
-            const slot = slots.pop();
-            next[item.id] =
-              slot ??
-              ({ left: ICON_PADDING_X, top: ICON_PADDING_Y } as IconPosition);
-          });
-
-          return next;
+        desktopItems.forEach((item) => {
+          const slot = slots.pop();
+          next[item.id] =
+            slot ??
+            ({ left: ICON_PADDING_X, top: ICON_PADDING_Y } as IconPosition);
         });
 
-        // Clear selection so the next interaction feels "fresh".
-        setFocusedDynamicItemId(null);
-        setSelectedIds(new Set());
-        removeFocus();
-      }
-    );
+        return next;
+      });
+
+      // Clear selection so the next interaction feels "fresh".
+      setFocusedDynamicItemId(null);
+      setSelectedIds(new Set());
+      removeFocus();
+    });
 
     return () => unsubscribeScatter();
   }, [desktopItems, desktopSize.h, desktopSize.w, removeFocus]);

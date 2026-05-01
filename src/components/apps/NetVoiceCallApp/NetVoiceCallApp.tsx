@@ -172,6 +172,8 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
 
   const handleAccept = useCallback(() => {
     if (isAccepted || !activeNetVoiceCallId || !call) return;
+    void attachCallNormalization;
+    void stopCallOverTone;
 
     setIsAccepted(true);
     ringAudioRef.current?.pause();
@@ -196,7 +198,13 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
       callId: call.id,
       autoTriggerNextStage: call.autoTriggerNextStage ?? false,
     });
-  }, [activeNetVoiceCallId, call, isAccepted]);
+  }, [
+    activeNetVoiceCallId,
+    attachCallNormalization,
+    call,
+    isAccepted,
+    stopCallOverTone,
+  ]);
 
   const handleHangup = useCallback(
     (reason: 'hangup' | 'call_over' = 'hangup') => {

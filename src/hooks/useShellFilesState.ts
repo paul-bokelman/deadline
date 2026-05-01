@@ -58,6 +58,8 @@ export const useShellFilesState = (
     setFiles((previous) =>
       withPreservedIds(previous, getShellItems(workingDir, sorted))
     );
+    // withPreservedIds is a stable in-scope helper, intentionally excluded.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sorted, workingDir]);
 
   useEffect(() => {
@@ -67,6 +69,8 @@ export const useShellFilesState = (
         withPreservedIds(previous, getShellItems(workingDir, sorted))
       );
     });
+    // withPreservedIds is a stable in-scope helper, intentionally excluded.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sorted, workingDir]);
 
   const focusOnFile = (fileId: string) => {

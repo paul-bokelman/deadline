@@ -504,11 +504,10 @@ const IntrusivePopupManager: FunctionComponent = () => {
   }, [getBounds, hasAntiVirus]);
 
   useEffect(() => {
+    const popupLoopMap = popupLoopSfxRef.current;
     return () => {
-      popupLoopSfxRef.current.forEach((audio) =>
-        stopIntrusivePopupLoopSfx(audio)
-      );
-      popupLoopSfxRef.current.clear();
+      popupLoopMap.forEach((audio) => stopIntrusivePopupLoopSfx(audio));
+      popupLoopMap.clear();
     };
   }, []);
 

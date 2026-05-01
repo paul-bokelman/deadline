@@ -8,6 +8,8 @@ const useDocumentClickToggle = (
   useEffect(() => {
     if (bool) addEventListener();
     return removeEventListener;
+    // Mount-only: toggle wires its own listeners imperatively in updateBool.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const addEventListener = () => {

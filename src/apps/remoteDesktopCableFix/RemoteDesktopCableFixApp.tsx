@@ -34,7 +34,8 @@ const END = { x: BOARD_W - 1, y: 5 };
 const rotateDir = (dir: Dir, steps: number): Dir => {
   const order: Dir[] = ['N', 'E', 'S', 'W'];
   const idx = order.indexOf(dir);
-  return order[(idx + steps + 4) % 4]!;
+  // (idx + steps + 4) % 4 is always in [0,3], so order[i] is always defined.
+  return order[(idx + steps + 4) % 4] as Dir;
 };
 
 const baseConnections = (type: TileType): Dir[] => {
@@ -166,7 +167,10 @@ const buildSolvedBoard = (): TileDef[] => {
 
   const addPath = (points: Coord[]) => {
     for (let i = 0; i < points.length - 1; i += 1) {
-      addConnection(points[i]!, points[i + 1]!);
+      const from = points[i];
+      const to = points[i + 1];
+      if (!from || !to) continue;
+      addConnection(from, to);
     }
   };
 
@@ -233,13 +237,20 @@ const computeNetworkState = (
   const energized = new Set<number>();
 
   const idx = (x: number, y: number) => y * BOARD_W + x;
-  const tileAt = (x: number, y: number) => tiles[idx(x, y)]!;
+  const tileAt = (x: number, y: number): TileDef => {
+    const tile = tiles[idx(x, y)];
+    if (!tile) {
+      throw new Error(`No tile at (${x}, ${y})`);
+    }
+    return tile;
+  };
 
   // Traverse from START.
   const q: Array<{ x: number; y: number }> = [{ x: START.x, y: START.y }];
   energized.add(idx(START.x, START.y));
   while (q.length) {
-    const cur = q.shift()!;
+    const cur = q.shift();
+    if (!cur) break;
     const t = tileAt(cur.x, cur.y);
     const con = connectionsFor(t);
     con.forEach((dir) => {
@@ -300,7 +311,8 @@ const buildChallengingScramble = (): TileDef[] => {
   for (let attempt = 0; attempt < SCRAMBLE_ATTEMPTS; attempt += 1) {
     const candidate = scrambleRotations(solved);
     const wrongRotations = candidate.reduce((count, tile, index) => {
-      const solvedTile = solved[index]!;
+      const solvedTile = solved[index];
+      if (!solvedTile) return count;
       if (tile.type === 'empty' || tile.fixed) return count;
       return tile.rotation === solvedTile.rotation ? count : count + 1;
     }, 0);
@@ -451,7 +463,8 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({
                     setAttempts((n) => n + 1);
                     setTiles((current) => {
                       const next = [...current];
-                      const cur = next[i]!;
+                      const cur = next[i];
+                      if (!cur) return current;
                       next[i] = {
                         ...cur,
                         rotation: ((cur.rotation + 1) % 4) as 0 | 1 | 2 | 3,

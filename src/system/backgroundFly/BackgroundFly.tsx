@@ -266,6 +266,9 @@ const BackgroundFly: FunctionComponent<BackgroundCritterProps> = ({
       phaseEndsAtRef.current = performance.now() + 100;
     }
     forceRender((n) => n + 1);
+    // initialPosition + spawnDelayMs are read intentionally only when
+    // resetNonce changes; they should not retrigger the spawn-reset effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetNonce]);
 
   useEffect(() => {
@@ -363,6 +366,10 @@ const BackgroundFly: FunctionComponent<BackgroundCritterProps> = ({
         rafIdRef.current = null;
       }
     };
+    // The animation loop captures helpers and ranges via refs/closures.
+    // Reattaching the loop on every prop change would re-create the rAF
+    // and skip frames, which is undesirable here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     walkSpeedPx,
     rotationLerpRate,

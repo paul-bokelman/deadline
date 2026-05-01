@@ -128,6 +128,8 @@ const DeadPixelOverlay: FunctionComponent = () => {
       stopSpawning();
       unsubscribeRebooted();
     };
+    // Mount-only: setupCanvas/startSpawning/stopSpawning capture refs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

@@ -1,5 +1,11 @@
 import { h, FunctionComponent, ComponentChildren, createContext } from 'preact';
-import { useContext, useEffect, useRef, useState } from 'preact/hooks';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'preact/hooks';
 
 import { triggerBootLoaderScreen } from '../components/shared/BootLoaderScreen/BootLoaderScreen';
 import { gameEventBus } from './events';
@@ -274,7 +280,7 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
     });
   }, []);
 
-  const rebootGame: GameStateContextValue['rebootGame'] = () => {
+  const rebootGame = useCallback<GameStateContextValue['rebootGame']>(() => {
     queuedNetVoiceCallIdsRef.current = [];
     setActiveNetVoiceCallIdState(null);
     setIsNetVoiceCallAcceptedState(false);
@@ -283,7 +289,7 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
     void triggerBootLoaderScreen({
       preFadeMs: 500,
     }).then(() => applyInitialGameState());
-  };
+  }, []);
 
   useEffect(() => {
     return gameEventBus.on('email:delivered', () => {

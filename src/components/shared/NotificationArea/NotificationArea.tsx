@@ -69,8 +69,9 @@ const NotificationArea: FunctionComponent = () => {
   ] = useState(false);
   const [isRamCrashActive, setIsRamCrashActive] = useState(false);
   const [clockText, setClockText] = useState(formatTrayTime(getGameDate()));
-  const [isClockAdvanceCoolingDown, setIsClockAdvanceCoolingDown] =
-    useState(false);
+  const [isClockAdvanceCoolingDown, setIsClockAdvanceCoolingDown] = useState(
+    false
+  );
   const extraRamLoadCount =
     (activeNetVoiceCallId ? 1 : 0) +
     (isFullscreenRecommendationVisible ? 1 : 0);
