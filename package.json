@@ -8,6 +8,8 @@
     "deploy": "gh-pages -d dist",
     "lint": "eslint . --ext .ts,.tsx",
     "start": "vite",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "type-check": "tsc --noEmit",
     "dev": "vite",
     "preview": "vite preview"
@@ -40,15 +42,18 @@
     "@preact/preset-vite": "^2.10.5",
     "@typescript-eslint/eslint-plugin": "^3.6.0",
     "@typescript-eslint/parser": "^3.6.0",
+    "@vitest/expect": "^4.1.5",
     "eslint": "^7.4.0",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.4",
     "eslint-plugin-react": "^7.20.3",
     "eslint-plugin-react-hooks": "^4.0.7",
     "gh-pages": "^3.1.0",
+    "happy-dom": "^20.9.0",
     "postcss-preset-env": "^6.7.0",
     "prettier": "^2.0.5",
     "typescript": "^6.0.3",
-    "vite": "^8.0.10"
+    "vite": "^8.0.10",
+    "vitest": "^4.1.5"
   }
 }

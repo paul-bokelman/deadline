@@ -7,8 +7,9 @@ import WindowContent from '../../shared/WindowContent/WindowContent';
 import { gameEventBus } from '../../../game/events';
 import { getGameDate } from '../../../system/clock/gameClock';
 
+import { COUNTDOWN_MS, computeRemainingMsTo5pm, formatCountdown } from './timerMath';
+
 const DEADLINE_TEXT = '5:00 PM';
-const COUNTDOWN_MS = 15 * 60 * 1000;
 const BASE_WIDTH = 360;
 const BASE_HEIGHT = 200;
 
@@ -61,22 +62,8 @@ const urgencyStyle: JSX.CSSProperties = {
   color: 'var(--button-shadow)',
 };
 
-const formatCountdown = (remainingMs: number): string => {
-  const totalSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(
-    2,
-    '0'
-  )}`;
-};
-
-const getRemainingMsToDeadline = (): number => {
-  const now = getGameDate();
-  const deadline = new Date(now);
-  deadline.setHours(17, 0, 0, 0);
-  return Math.max(0, deadline.getTime() - now.getTime());
-};
+const getRemainingMsToDeadline = (): number =>
+  computeRemainingMsTo5pm(getGameDate());
 
 const TimerApp: FunctionComponent<AppProps> = () => {
   const [remainingMs, setRemainingMs] = useState(getRemainingMsToDeadline);
