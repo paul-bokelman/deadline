@@ -30,6 +30,7 @@ const MIN_WINDOW_WIDTH = 200;
 const DEFAULT_WINDOW_WIDTH = 360;
 const DEFAULT_WINDOW_HEIGHT = 300;
 const WINDOW_SCREEN_MARGIN = 12;
+const STARTUP_WINDOW_GAP_PX = 12;
 
 const clampWindowSizeToViewport = (size: { x: number; y: number }) => {
   const maxWidth = Math.max(
@@ -83,11 +84,16 @@ const createInitialOpenWindows = (): OpenWindow[] => {
     x: leaderboardApp.size ? leaderboardApp.size.width : 300,
     y: leaderboardApp.size ? leaderboardApp.size.height : 300,
   });
+  const defaultTimerCoords = clampWindowCoordsToViewport(
+    { x: 420, y: 56 },
+    timerSize
+  );
+
   const timerWindow: OpenWindow = {
     app: timerApp,
     canMaximize: true,
     canMinimize: true,
-    coords: clampWindowCoordsToViewport({ x: 420, y: 56 }, timerSize),
+    coords: defaultTimerCoords,
     hasFocus: true,
     iconId: getAppIconId(timerApp.id),
     id: crypto.randomUUID(),
@@ -133,6 +139,15 @@ const createInitialOpenWindows = (): OpenWindow[] => {
     title: leaderboardApp.name,
     zIndex: allocateLeaderboardZIndex(),
   };
+
+  const timerToRightCoords = clampWindowCoordsToViewport(
+    {
+      x: leaderboardWindow.coords.x + leaderboardWindow.size.x + STARTUP_WINDOW_GAP_PX,
+      y: leaderboardWindow.coords.y,
+    },
+    timerSize
+  );
+  timerWindow.coords = timerToRightCoords;
 
   return [leaderboardWindow, timerWindow];
 };

@@ -13,9 +13,8 @@ import IntrusivePopupManager from '@/system/intrusivePopups/IntrusivePopupManage
 import BluescreenSequence from '@/stages/transition/BluescreenSequence';
 import WinStageLayer from '@/stages/win/WinStageLayer';
 import WindowsUpdateNag from '@/system/windowsUpdate/WindowsUpdateNag';
-import BootLoaderScreen, {
-  triggerBootLoaderScreen,
-} from '@/components/shared/BootLoaderScreen/BootLoaderScreen';
+import BootLoaderScreen from '@/components/shared/BootLoaderScreen/BootLoaderScreen';
+import { playClickSfx } from '@/utils/audio/sfx';
 import DeadPixelOverlay from '@/system/deadPixels/DeadPixelOverlay';
 import BackgroundFlyOverlay from '@/system/backgroundFly/BackgroundFlyOverlay';
 import { gameEventBus } from '@/game/events';
@@ -276,10 +275,27 @@ const Win96Container: FunctionComponent = () => {
   }, []);
 
   useEffect(() => {
-    void triggerBootLoaderScreen();
+    // Skip the bootloader screen and startup SFX on the very first load —
+    // the player drops straight into the desktop. Subsequent reboots still
+    // go through the full BIOS sequence via `rebootGame`. We synthesize the
+    // bootloader/startup lifecycle events so subsystems (notably the
+    // ambient-music gate in NotificationArea) start in their post-boot state.
+    const at = Date.now();
+    gameEventBus.emit('bootloader:ended', { at });
+    gameEventBus.emit('startup_sfx:ended', { at });
   }, []);
 
-  // Intentionally no global pointer-down click SFX and no screen mirroring.
+  useEffect(() => {
+    const handlePointerDown = (event: PointerEvent) => {
+      if (event.button !== 0) return;
+      playClickSfx();
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown, true);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown, true);
+    };
+  }, []);
 
   return (
     <div className={style.win96}>
