@@ -1,4 +1,4 @@
-import { IconId } from '../../types/Icon';
+import { IconId } from '@/types/Icon';
 
 export type IntrusivePopupSpawnMode = 'random' | 'cursorExact';
 

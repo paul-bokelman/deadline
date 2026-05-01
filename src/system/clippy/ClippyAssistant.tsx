@@ -1,8 +1,8 @@
 import { h, FunctionComponent } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { useGameState } from '../../game/state';
-import { CLIPPY_VIDEO_URL } from '../../data/urls';
-import { playClippyTipSfx } from '../../utils/audio/sfx';
+import { useGameState } from '@/game/state';
+import { CLIPPY_VIDEO_URL } from '@/data/urls';
+import { playClippyTipSfx } from '@/utils/audio/sfx';
 
 import style from './ClippyAssistant.module.css';
 

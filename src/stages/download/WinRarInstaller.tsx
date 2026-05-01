@@ -1,11 +1,11 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 
-import { AppProps } from '../../types/App';
-import { gameEventBus } from '../../game/events';
-import { useGameState } from '../../game/state';
-import { createLoadingSfxController } from '../../utils/audio/sfx';
-import { getErraticProgressStep } from '../../utils/loading/erraticProgress';
+import { AppProps } from '@/types/App';
+import { gameEventBus } from '@/game/events';
+import { useGameState } from '@/game/state';
+import { createLoadingSfxController } from '@/utils/audio/sfx';
+import { getErraticProgressStep } from '@/utils/loading/erraticProgress';
 
 type InstallerPhase =
   | 'installing'

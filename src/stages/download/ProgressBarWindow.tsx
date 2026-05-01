@@ -1,10 +1,10 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 
-import Window from '../../components/shared/Window/Window';
-import { createLoadingSfxController } from '../../utils/audio/sfx';
-import { getErraticProgressStep } from '../../utils/loading/erraticProgress';
-import { Z_INDEX_TIERS } from '../../system/zIndex';
+import Window from '@/components/shared/Window/Window';
+import { createLoadingSfxController } from '@/utils/audio/sfx';
+import { getErraticProgressStep } from '@/utils/loading/erraticProgress';
+import { Z_INDEX_TIERS } from '@/system/zIndex';
 
 interface ProgressBarWindowProps {
   onClose: () => void;

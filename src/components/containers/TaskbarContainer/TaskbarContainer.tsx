@@ -1,8 +1,8 @@
 import { h, FunctionComponent } from 'preact';
 import { useContext } from 'preact/hooks';
 
-import OpenWindowsContext from '../../../context/OpenWindowsContext';
-import Taskbar from '../../shared/Taskbar/Taskbar';
+import OpenWindowsContext from '@/context/OpenWindowsContext';
+import Taskbar from '@/components/shared/Taskbar/Taskbar';
 
 const TaskbarContainer: FunctionComponent = () => {
   const {

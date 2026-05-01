@@ -6,7 +6,7 @@ import {
   RefObject,
 } from 'preact';
 
-import Window from '../../components/shared/Window/Window';
+import Window from '@/components/shared/Window/Window';
 import { ActiveIntrusivePopup } from './types';
 
 interface Props {

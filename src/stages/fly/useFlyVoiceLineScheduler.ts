@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 
-import { useGameState } from '../../game/state';
-import { getGameDate } from '../../system/clock/gameClock';
+import { useGameState } from '@/game/state';
+import { getGameDate } from '@/system/clock/gameClock';
 
 const FLY_VOICE_LINE_EVENT_ID = 'fly:voice_line:triggered';
 const TICK_INTERVAL_MS = 60_000; // 1 minute

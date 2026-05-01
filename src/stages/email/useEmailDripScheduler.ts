@@ -1,9 +1,9 @@
 import { useEffect } from 'preact/hooks';
 
-import { allEmails, getEmailsForAccount } from '../../data/emails';
-import { gameEventBus } from '../../game/events';
-import { useGameState } from '../../game/state';
-import { pickRandom, randomIntBetween } from '../../utils/random';
+import { allEmails, getEmailsForAccount } from '@/data/emails';
+import { gameEventBus } from '@/game/events';
+import { useGameState } from '@/game/state';
+import { pickRandom, randomIntBetween } from '@/utils/random';
 
 const MIN_DELAY_MS = 20_000;
 const MAX_DELAY_MS = 60_000;

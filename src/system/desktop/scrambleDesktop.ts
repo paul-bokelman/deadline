@@ -1,4 +1,4 @@
-import { ShellItem } from '../../types/Shell';
+import { ShellItem } from '@/types/Shell';
 
 const hashString = (input: string): number => {
   let hash = 0;

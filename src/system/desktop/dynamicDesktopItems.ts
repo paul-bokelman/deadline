@@ -1,18 +1,18 @@
-import fileTypeList from '../../data/fileTypeList';
-import { myComputerFs } from '../../data/fileSystem';
-import { getZipNameForLevel } from '../../game/download/archive';
-import { gameEventBus } from '../../game/events';
-import { GameFlags } from '../../game/state';
-import { AppId } from '../../types/App';
-import { FileSystemFile } from '../../types/FileSystem';
-import { FileTypeId } from '../../types/FileType';
-import { IconId } from '../../types/Icon';
-import { ShellItem } from '../../types/Shell';
+import fileTypeList from '@/data/fileTypeList';
+import { myComputerFs } from '@/data/fileSystem';
+import { getZipNameForLevel } from '@/game/download/archive';
+import { gameEventBus } from '@/game/events';
+import { GameFlags } from '@/game/state';
+import { AppId } from '@/types/App';
+import { FileSystemFile } from '@/types/FileSystem';
+import { FileTypeId } from '@/types/FileType';
+import { IconId } from '@/types/Icon';
+import { ShellItem } from '@/types/Shell';
 import {
   getAppIconId,
   registerDynamicDesktopAppIcon,
-} from '../../utils/win96/AppIconUtils';
-import { getFileFromPath } from '../../utils/win96/FileSystemUtils';
+} from '@/utils/win96/AppIconUtils';
+import { getFileFromPath } from '@/utils/win96/FileSystemUtils';
 
 const ATTACHMENT_KEY_FILE_PATH =
   'C:/Windows/Desktop/Password_Vault/4-IV/8-beaver/1-Barcelona/1-Encryption Key.txt';

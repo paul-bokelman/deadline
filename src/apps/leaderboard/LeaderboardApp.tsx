@@ -1,14 +1,14 @@
 import { h, FunctionComponent } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 
-import { AppProps } from '../../types/App';
-import { useGameState } from '../../game/state';
+import { AppProps } from '@/types/App';
+import { useGameState } from '@/game/state';
 import {
   getLeaderboardViewModel,
   LeaderboardEntry,
   loadLeaderboard,
   subscribeLeaderboard,
-} from '../../system/leaderboard/runtime';
+} from '@/system/leaderboard/runtime';
 import style from './LeaderboardApp.module.css';
 
 const formatTime = (ms: number): string => {

@@ -1,10 +1,10 @@
 import { h, FunctionComponent } from 'preact';
-import { AppProps } from '../../../types/App';
+import { AppProps } from '@/types/App';
 
-import Countour from '../../shared/Countour/Countour';
-import MenuBar from '../../shared/MenuBar/MenuBar';
-import StatusBar from '../../shared/StatusBar/StatusBar';
-import WindowContent from '../../shared/WindowContent/WindowContent';
+import Countour from '@/components/shared/Countour/Countour';
+import MenuBar from '@/components/shared/MenuBar/MenuBar';
+import StatusBar from '@/components/shared/StatusBar/StatusBar';
+import WindowContent from '@/components/shared/WindowContent/WindowContent';
 
 import style from './QuickViewApp.module.css';
 

@@ -1,5 +1,5 @@
-import { AppId } from '../../types/App';
-import { IconId } from '../../types/Icon';
+import { AppId } from '@/types/App';
+import { IconId } from '@/types/Icon';
 import {
   dirTypes,
   DirType,
@@ -8,7 +8,7 @@ import {
   FileSystemFile,
   FileSystemItem,
   FileSystemShortcut,
-} from '../../types/FileSystem';
+} from '@/types/FileSystem';
 import { appExists } from './AppUtils';
 import { getFileTypeIdFromFileExtension } from './FileTypeUtils';
 import { iconExists } from './IconUtils';

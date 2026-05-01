@@ -1,9 +1,9 @@
 import { h, FunctionComponent } from 'preact';
 
-import { AppProps } from '../../../types/App';
-import Button from '../../shared/Button/Button';
-import Icon from '../../shared/Icon/Icon';
-import WindowContent from '../../shared/WindowContent/WindowContent';
+import { AppProps } from '@/types/App';
+import Button from '@/components/shared/Button/Button';
+import Icon from '@/components/shared/Icon/Icon';
+import WindowContent from '@/components/shared/WindowContent/WindowContent';
 
 import style from './VoidApp.module.css';
 

@@ -2,10 +2,10 @@ import {
   FileSystemApp,
   FileSystemDir,
   FileSystemFile,
-} from '../../types/FileSystem';
-import { ShellItem } from '../../types/Shell';
-import { appList } from '../../data/appList';
-import fileTypeList from '../../data/fileTypeList';
+} from '@/types/FileSystem';
+import { ShellItem } from '@/types/Shell';
+import { appList } from '@/data/appList';
+import fileTypeList from '@/data/fileTypeList';
 import { getAppIconId } from './AppIconUtils';
 
 export const getShellItems = (

@@ -1,10 +1,10 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useMemo, useState } from 'preact/hooks';
 
-import { AppProps } from '../../types/App';
-import { gameEventBus } from '../../game/events';
-import { getZipNameForLevel } from '../../game/download/archive';
-import { useGameState } from '../../game/state';
+import { AppProps } from '@/types/App';
+import { gameEventBus } from '@/game/events';
+import { getZipNameForLevel } from '@/game/download/archive';
+import { useGameState } from '@/game/state';
 
 const REMOTE_FIX_SHOWN_EVENT_ID = 'winrar:remote_fix:shown';
 const REMOTE_FIX_COMPLETED_EVENT_ID = 'remote_cable_fix:completed';

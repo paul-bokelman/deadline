@@ -1,7 +1,7 @@
 import { h, Fragment, FunctionComponent, JSX } from 'preact';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 
-import { AppProps } from '../../types/App';
+import { AppProps } from '@/types/App';
 
 type GameStatus = 'idle' | 'playing' | 'won' | 'lost';
 type FaceMood = 'normal' | 'dead' | 'cool';

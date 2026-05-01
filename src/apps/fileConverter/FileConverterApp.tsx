@@ -1,12 +1,12 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 
-import Dropdown from '../../components/shared/Dropdown/Dropdown';
-import { getDynamicDesktopItems } from '../../system/desktop/dynamicDesktopItems';
-import { useGameState } from '../../game/state';
-import { FileTypeId } from '../../types/FileType';
-import { AppProps } from '../../types/App';
-import { ShellItem } from '../../types/Shell';
+import Dropdown from '@/components/shared/Dropdown/Dropdown';
+import { getDynamicDesktopItems } from '@/system/desktop/dynamicDesktopItems';
+import { useGameState } from '@/game/state';
+import { FileTypeId } from '@/types/FileType';
+import { AppProps } from '@/types/App';
+import { ShellItem } from '@/types/Shell';
 
 const panelStyle: JSX.CSSProperties = {
   margin: '8px',

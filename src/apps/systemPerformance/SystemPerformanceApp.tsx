@@ -1,17 +1,17 @@
 import { h, FunctionComponent } from 'preact';
 import { useContext, useEffect, useMemo, useState } from 'preact/hooks';
 
-import OpenWindowsContext from '../../context/OpenWindowsContext';
-import { AppProps } from '../../types/App';
-import { useGameState } from '../../game/state';
-import { useIntrusivePopupCount } from '../../system/intrusivePopups/useIntrusivePopupCount';
-import { gameEventBus } from '../../game/events';
+import OpenWindowsContext from '@/context/OpenWindowsContext';
+import { AppProps } from '@/types/App';
+import { useGameState } from '@/game/state';
+import { useIntrusivePopupCount } from '@/system/intrusivePopups/useIntrusivePopupCount';
+import { gameEventBus } from '@/game/events';
 import {
   calculateUsedRamMb,
   MAX_RAM_MB,
   RAM_PER_WINDOW_MB,
   STARTING_RAM_MB,
-} from '../../system/performance/ramUsage';
+} from '@/system/performance/ramUsage';
 import style from './SystemPerformanceApp.module.css';
 
 const formatMb = (value: number): string => `${value.toFixed(1)} MB`;

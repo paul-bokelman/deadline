@@ -1,8 +1,8 @@
 import { h, FunctionComponent } from 'preact';
 import { useEffect } from 'preact/hooks';
 
-import { gameEventBus } from '../../game/events';
-import { useGameState } from '../../game/state';
+import { gameEventBus } from '@/game/events';
+import { useGameState } from '@/game/state';
 import DownloadDialog from './DownloadDialog';
 import ProgressBarWindow from './ProgressBarWindow';
 

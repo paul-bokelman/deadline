@@ -1,11 +1,11 @@
 import { h, FunctionComponent } from 'preact';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
-import Window from '../../components/shared/Window/Window';
-import Button from '../../components/shared/Button/Button';
-import Icon from '../../components/shared/Icon/Icon';
+import Window from '@/components/shared/Window/Window';
+import Button from '@/components/shared/Button/Button';
+import Icon from '@/components/shared/Icon/Icon';
 import { Z_INDEX_TIERS } from '../zIndex';
-import { gameEventBus } from '../../game/events';
+import { gameEventBus } from '@/game/events';
 
 const WIDTH = 340;
 const HEIGHT = 172;

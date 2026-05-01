@@ -1,8 +1,8 @@
 import { h, FunctionComponent } from 'preact';
 import { useState } from 'preact/hooks';
 
-import { gameEventBus } from '../../game/events';
-import { AppProps } from '../../types/App';
+import { gameEventBus } from '@/game/events';
+import { AppProps } from '@/types/App';
 
 const appStyle = {
   height: '100%',

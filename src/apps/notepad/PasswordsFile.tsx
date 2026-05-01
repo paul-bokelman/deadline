@@ -1,9 +1,9 @@
 import { h, FunctionComponent } from 'preact';
 
-import Countour from '../../components/shared/Countour/Countour';
-import MenuBar from '../../components/shared/MenuBar/MenuBar';
-import WindowContent from '../../components/shared/WindowContent/WindowContent';
-import { importantPasswordsFileContent } from '../../data/passwords';
+import Countour from '@/components/shared/Countour/Countour';
+import MenuBar from '@/components/shared/MenuBar/MenuBar';
+import WindowContent from '@/components/shared/WindowContent/WindowContent';
+import { importantPasswordsFileContent } from '@/data/passwords';
 
 const PasswordsFile: FunctionComponent = () => (
   <WindowContent

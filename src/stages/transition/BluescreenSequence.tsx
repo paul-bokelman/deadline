@@ -1,14 +1,14 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useContext, useEffect, useState } from 'preact/hooks';
 
-import OpenWindowsContext from '../../context/OpenWindowsContext';
-import { gameEventBus } from '../../game/events';
-import { useGameState } from '../../game/state';
-import { Z_INDEX_TIERS } from '../../system/zIndex';
+import OpenWindowsContext from '@/context/OpenWindowsContext';
+import { gameEventBus } from '@/game/events';
+import { useGameState } from '@/game/state';
+import { Z_INDEX_TIERS } from '@/system/zIndex';
 import {
   enterBsodAudioMode,
   exitBsodAudioMode,
-} from '../../utils/audio/bsodAudioMode';
+} from '@/utils/audio/bsodAudioMode';
 
 type TransitionPhase = 'idle' | 'remote' | 'bluescreen' | 'rebooting' | 'done';
 

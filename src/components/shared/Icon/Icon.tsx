@@ -1,7 +1,7 @@
 import { h, FunctionComponent } from 'preact';
 
-import { IconId } from '../../../types/Icon';
-import { iconList } from '../../../data/iconList';
+import { IconId } from '@/types/Icon';
+import { iconList } from '@/data/iconList';
 
 import style from './Icon.module.css';
 

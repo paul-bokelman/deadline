@@ -8,17 +8,17 @@ import {
   useState,
 } from 'preact/hooks';
 
-import { OpenWindowsContextType } from '../../../context/OpenWindowsContext';
-import { myComputerFs } from '../../../data/fileSystem';
-import fileTypeList from '../../../data/fileTypeList';
-import { gameEventBus } from '../../../game/events';
-import { useGameState } from '../../../game/state';
-import useShellFilesState from '../../../hooks/useShellFilesState';
-import { getDynamicDesktopItems } from '../../../system/desktop/dynamicDesktopItems';
-import { scrambleDesktop } from '../../../system/desktop/scrambleDesktop';
-import { FileSystemApp } from '../../../types/FileSystem';
-import { ShellItem } from '../../../types/Shell';
-import { getDirFromPath } from '../../../utils/win96/FileSystemUtils';
+import { OpenWindowsContextType } from '@/context/OpenWindowsContext';
+import { myComputerFs } from '@/data/fileSystem';
+import fileTypeList from '@/data/fileTypeList';
+import { gameEventBus } from '@/game/events';
+import { useGameState } from '@/game/state';
+import useShellFilesState from '@/hooks/useShellFilesState';
+import { getDynamicDesktopItems } from '@/system/desktop/dynamicDesktopItems';
+import { scrambleDesktop } from '@/system/desktop/scrambleDesktop';
+import { FileSystemApp } from '@/types/FileSystem';
+import { ShellItem } from '@/types/Shell';
+import { getDirFromPath } from '@/utils/win96/FileSystemUtils';
 import Icon from '../Icon/Icon';
 
 import fileGridStyle from '../FileGrid/FileGrid.module.css';

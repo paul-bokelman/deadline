@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 
-import { gameEventBus } from '../../game/events';
+import { gameEventBus } from '@/game/events';
 
 export const useIntrusivePopupCount = (): number => {
   const [popupCount, setPopupCount] = useState(0);

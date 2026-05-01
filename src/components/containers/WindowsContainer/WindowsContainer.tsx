@@ -1,12 +1,10 @@
 import { h, FunctionComponent } from 'preact';
 import { useContext } from 'preact/hooks';
 
-import { appComponents } from '../../../apps/appComponents';
-import OpenWindowsContext, {
-  OpenWindow,
-} from '../../../context/OpenWindowsContext';
-import { useGameState } from '../../../game/state';
-import Window from '../../shared/Window/Window';
+import { appComponents } from '@/apps/appComponents';
+import OpenWindowsContext, { OpenWindow } from '@/context/OpenWindowsContext';
+import { useGameState } from '@/game/state';
+import Window from '@/components/shared/Window/Window';
 
 import style from './WindowsContainer.module.css';
 

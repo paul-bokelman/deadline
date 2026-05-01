@@ -1,14 +1,14 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useContext, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
-import Button from '../../components/shared/Button/Button';
-import Window from '../../components/shared/Window/Window';
-import OpenWindowsContext from '../../context/OpenWindowsContext';
-import { useGameState } from '../../game/state';
+import Button from '@/components/shared/Button/Button';
+import Window from '@/components/shared/Window/Window';
+import OpenWindowsContext from '@/context/OpenWindowsContext';
+import { useGameState } from '@/game/state';
 import {
   getSubmittedElapsedMs,
   setSubmittedElapsedMs,
-} from '../../system/runTimer/runTimer';
+} from '@/system/runTimer/runTimer';
 import {
   getLeaderboardInsertionRank,
   loadLeaderboard,
@@ -16,10 +16,10 @@ import {
   sanitizeLeaderboardName,
   setLeaderboardPlayerEntry,
   submitLeaderboardEntry,
-} from '../../system/leaderboard/runtime';
-import { isApiConfigured } from '../../system/api/client';
-import { Z_INDEX_TIERS } from '../../system/zIndex';
-import { playTadaSfx } from '../../utils/audio/osSfx';
+} from '@/system/leaderboard/runtime';
+import { isApiConfigured } from '@/system/api/client';
+import { Z_INDEX_TIERS } from '@/system/zIndex';
+import { playTadaSfx } from '@/utils/audio/osSfx';
 
 const containerStyle: JSX.CSSProperties = {
   position: 'absolute',

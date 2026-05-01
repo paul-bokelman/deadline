@@ -2,9 +2,9 @@ import { h, FunctionComponent } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 
 import BackgroundFly from './BackgroundFly';
-import flyAssetUrl from '../../assets/images/ambient/fly_final.png';
-import { useGameState } from '../../game/state';
-import { gameEventBus } from '../../game/events';
+import flyAssetUrl from '@/assets/images/ambient/fly_final.png';
+import { useGameState } from '@/game/state';
+import { gameEventBus } from '@/game/events';
 import { Z_INDEX_TIERS } from '../zIndex';
 
 const FLY_AUDIO_URL = '/audio/ambient/fly_buzzing.mp3';

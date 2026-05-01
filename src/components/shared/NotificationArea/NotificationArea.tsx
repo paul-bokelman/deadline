@@ -2,37 +2,34 @@ import { h, FunctionComponent } from 'preact';
 import { useContext, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
 import Icon from '../Icon/Icon';
-import fullscreenEnterIcon from '../../../assets/images/ui/fullscreen-enter.svg';
-import fullscreenExitIcon from '../../../assets/images/ui/fullscreen-exit.svg';
-import { gameEventBus } from '../../../game/events';
-import { useGameState } from '../../../game/state';
-import OpenWindowsContext from '../../../context/OpenWindowsContext';
-import { useIntrusivePopupCount } from '../../../system/intrusivePopups/useIntrusivePopupCount';
-import {
-  calculateUsedRamMb,
-  MAX_RAM_MB,
-} from '../../../system/performance/ramUsage';
+import fullscreenEnterIcon from '@/assets/images/ui/fullscreen-enter.svg';
+import fullscreenExitIcon from '@/assets/images/ui/fullscreen-exit.svg';
+import { gameEventBus } from '@/game/events';
+import { useGameState } from '@/game/state';
+import OpenWindowsContext from '@/context/OpenWindowsContext';
+import { useIntrusivePopupCount } from '@/system/intrusivePopups/useIntrusivePopupCount';
+import { calculateUsedRamMb, MAX_RAM_MB } from '@/system/performance/ramUsage';
 import {
   getMasterVolumePercent,
   registerManagedAudio,
   setMasterVolumePercent,
   updateManagedAudioBaseVolume,
-} from '../../../utils/audio/masterVolume';
+} from '@/utils/audio/masterVolume';
 import {
   enterBsodAudioMode,
   exitBsodAudioMode,
-} from '../../../utils/audio/bsodAudioMode';
+} from '@/utils/audio/bsodAudioMode';
 
 import style from './NotificationArea.module.css';
 import {
   advanceGameClockByMinutes,
   getGameDate,
-} from '../../../system/clock/gameClock';
+} from '@/system/clock/gameClock';
 import {
   AMBIENT_MUSIC_MP3_URL,
   AMBIENT_MUSIC_WEBM_URL,
   VIBE_JAM_HOME_URL,
-} from '../../../data/urls';
+} from '@/data/urls';
 
 const AUDIO_SOURCE_WEBM = AMBIENT_MUSIC_WEBM_URL;
 const AUDIO_SOURCE_MP3 = AMBIENT_MUSIC_MP3_URL;

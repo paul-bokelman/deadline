@@ -1,10 +1,10 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 
-import { AppProps } from '../../types/App';
-import { gameEventBus } from '../../game/events';
-import { setPortalPassword } from '../../system/portalAuth/portalAuth';
-import { recordCheckpoint } from '../../system/runTimer/runTimer';
+import { AppProps } from '@/types/App';
+import { gameEventBus } from '@/game/events';
+import { setPortalPassword } from '@/system/portalAuth/portalAuth';
+import { recordCheckpoint } from '@/system/runTimer/runTimer';
 
 const rootStyle: JSX.CSSProperties = {
   height: '100%',

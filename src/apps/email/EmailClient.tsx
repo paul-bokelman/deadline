@@ -2,23 +2,23 @@ import { h, Fragment, FunctionComponent } from 'preact';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
 import PasswordDialog from './PasswordDialog';
-import Icon from '../../components/shared/Icon/Icon';
-import MenuBar from '../../components/shared/MenuBar/MenuBar';
-import WindowContent from '../../components/shared/WindowContent/WindowContent';
+import Icon from '@/components/shared/Icon/Icon';
+import MenuBar from '@/components/shared/MenuBar/MenuBar';
+import WindowContent from '@/components/shared/WindowContent/WindowContent';
 import {
   EmailAccountId,
   EmailFolder,
   EmailRecord,
   getEmailsForAccount,
-} from '../../data/emails';
-import { gameEventBus } from '../../game/events';
-import { useGameState } from '../../game/state';
-import { getAttachmentDecryptionKeyFromDump } from '../../system/desktop/dynamicDesktopItems';
+} from '@/data/emails';
+import { gameEventBus } from '@/game/events';
+import { useGameState } from '@/game/state';
+import { getAttachmentDecryptionKeyFromDump } from '@/system/desktop/dynamicDesktopItems';
 import {
   getDeliveredEmailInstances,
   subscribeRuntimeMailbox,
-} from '../../system/email/runtimeMailbox';
-import { IconId } from '../../types/Icon';
+} from '@/system/email/runtimeMailbox';
+import { IconId } from '@/types/Icon';
 
 import style from './EmailClient.module.css';
 
@@ -63,7 +63,7 @@ interface VisibleEmailItem {
 import {
   EMAIL_ADDRESS_BY_ACCOUNT as accountToAddressMap,
   EMAIL_SERVER_BY_ACCOUNT as accountServerMap,
-} from '../../data/contacts';
+} from '@/data/contacts';
 
 interface ToolbarButtonProps {
   label: string;

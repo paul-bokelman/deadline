@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 
-import { systemConfig } from '../../data/systemConfig';
-import { GameStage, useGameState } from '../../game/state';
+import { systemConfig } from '@/data/systemConfig';
+import { GameStage, useGameState } from '@/game/state';
 
 const stageOrder: Record<GameStage, number> = {
   bios: 0,

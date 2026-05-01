@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { gameEventBus } from '../../game/events';
+import { gameEventBus } from '@/game/events';
 import {
   advanceGameClockByMinutes,
   advanceGameClockByMs,

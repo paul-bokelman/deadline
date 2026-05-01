@@ -1,12 +1,12 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 
-import { gameEventBus } from '../../game/events';
-import { useGameState } from '../../game/state';
+import { gameEventBus } from '@/game/events';
+import { useGameState } from '@/game/state';
 import {
   enterBsodAudioMode,
   exitBsodAudioMode,
-} from '../../utils/audio/bsodAudioMode';
+} from '@/utils/audio/bsodAudioMode';
 import { Z_INDEX_TIERS } from '../zIndex';
 
 const bsodStyle: JSX.CSSProperties = {

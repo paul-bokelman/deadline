@@ -1,9 +1,9 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useState } from 'preact/hooks';
 
-import Button from '../../components/shared/Button/Button';
-import Window from '../../components/shared/Window/Window';
-import { Z_INDEX_TIERS } from '../../system/zIndex';
+import Button from '@/components/shared/Button/Button';
+import Window from '@/components/shared/Window/Window';
+import { Z_INDEX_TIERS } from '@/system/zIndex';
 
 interface DownloadDialogProps {
   onReboot: () => void;

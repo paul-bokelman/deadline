@@ -1,8 +1,8 @@
 import { h, FunctionComponent } from 'preact';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
-import Button from '../../components/shared/Button/Button';
-import Window from '../../components/shared/Window/Window';
+import Button from '@/components/shared/Button/Button';
+import Window from '@/components/shared/Window/Window';
 import { Z_INDEX_TIERS } from '../zIndex';
 import { useUpdateScheduler } from './useUpdateScheduler';
 

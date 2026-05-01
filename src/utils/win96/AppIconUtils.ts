@@ -1,8 +1,8 @@
-import { appList } from '../../data/appList';
-import { myComputerFs } from '../../data/fileSystem';
-import { AppId } from '../../types/App';
-import { FileSystemDir } from '../../types/FileSystem';
-import { IconId } from '../../types/Icon';
+import { appList } from '@/data/appList';
+import { myComputerFs } from '@/data/fileSystem';
+import { AppId } from '@/types/App';
+import { FileSystemDir } from '@/types/FileSystem';
+import { IconId } from '@/types/Icon';
 import { getDirFromPath } from './FileSystemUtils';
 
 const DESKTOP_PATH = 'C:/Windows/Desktop';

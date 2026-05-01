@@ -7,21 +7,21 @@ import {
   useState,
 } from 'preact/hooks';
 
-import { AppProps } from '../../../types/App';
-import { gameEventBus } from '../../../game/events';
-import { useGameState } from '../../../game/state';
-import { netVoiceCallers, netVoiceCalls } from '../../../game/netvoice/calls';
-import MenuBar from '../../shared/MenuBar/MenuBar';
-import StatusBar from '../../shared/StatusBar/StatusBar';
-import WindowContent from '../../shared/WindowContent/WindowContent';
-import Icon from '../../shared/Icon/Icon';
+import { AppProps } from '@/types/App';
+import { gameEventBus } from '@/game/events';
+import { useGameState } from '@/game/state';
+import { netVoiceCallers, netVoiceCalls } from '@/game/netvoice/calls';
+import MenuBar from '@/components/shared/MenuBar/MenuBar';
+import StatusBar from '@/components/shared/StatusBar/StatusBar';
+import WindowContent from '@/components/shared/WindowContent/WindowContent';
+import Icon from '@/components/shared/Icon/Icon';
 import {
   playCallOverSfx,
   playHangupSfx,
   playIncomingCallSfxLoop,
   stopCallOverSfx,
-} from '../../../utils/audio/osSfx';
-import { registerManagedAudio } from '../../../utils/audio/masterVolume';
+} from '@/utils/audio/osSfx';
+import { registerManagedAudio } from '@/utils/audio/masterVolume';
 
 import style from './NetVoiceCallApp.module.css';
 

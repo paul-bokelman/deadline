@@ -1,8 +1,8 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { gameEventBus } from '../../../game/events';
-import { Z_INDEX_TIERS } from '../../../system/zIndex';
-import { playStartupSfx } from '../../../utils/audio/osSfx';
+import { gameEventBus } from '@/game/events';
+import { Z_INDEX_TIERS } from '@/system/zIndex';
+import { playStartupSfx } from '@/utils/audio/osSfx';
 
 const BOOT_DURATION_MS = 3000;
 const DEFAULT_PRE_FADE_MS = 0;

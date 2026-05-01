@@ -5,27 +5,27 @@ import DesktopContainer from '../DesktopContainer/DesktopContainer';
 import TaskbarContainer from '../TaskbarContainer/TaskbarContainer';
 import WindowsContainer from '../WindowsContainer/WindowsContainer';
 import OpenWindowsProvider from './OpenWindowsProvider';
-import { GameStateProvider, useGameState } from '../../../game/state';
-import GameScenarioController from '../../../game/scenario/GameScenarioController';
-import OpenWindowsContext from '../../../context/OpenWindowsContext';
-import DownloadStageLayer from '../../../stages/download/DownloadStageLayer';
-import IntrusivePopupManager from '../../../system/intrusivePopups/IntrusivePopupManager';
-import BluescreenSequence from '../../../stages/transition/BluescreenSequence';
-import WinStageLayer from '../../../stages/win/WinStageLayer';
-import WindowsUpdateNag from '../../../system/windowsUpdate/WindowsUpdateNag';
+import { GameStateProvider, useGameState } from '@/game/state';
+import GameScenarioController from '@/game/scenario/GameScenarioController';
+import OpenWindowsContext from '@/context/OpenWindowsContext';
+import DownloadStageLayer from '@/stages/download/DownloadStageLayer';
+import IntrusivePopupManager from '@/system/intrusivePopups/IntrusivePopupManager';
+import BluescreenSequence from '@/stages/transition/BluescreenSequence';
+import WinStageLayer from '@/stages/win/WinStageLayer';
+import WindowsUpdateNag from '@/system/windowsUpdate/WindowsUpdateNag';
 import BootLoaderScreen, {
   triggerBootLoaderScreen,
-} from '../../shared/BootLoaderScreen/BootLoaderScreen';
-import { playClickSfx } from '../../../utils/audio/sfx';
-import DeadPixelOverlay from '../../../system/deadPixels/DeadPixelOverlay';
-import BackgroundFlyOverlay from '../../../system/backgroundFly/BackgroundFlyOverlay';
-import { gameEventBus } from '../../../game/events';
-import ClippyAssistant from '../../../system/clippy/ClippyAssistant';
-import FullscreenRecommendation from '../../../system/fullscreen/FullscreenRecommendation';
-import InstantBsodTrap from '../../../system/traps/InstantBsodTrap';
+} from '@/components/shared/BootLoaderScreen/BootLoaderScreen';
+import { playClickSfx } from '@/utils/audio/sfx';
+import DeadPixelOverlay from '@/system/deadPixels/DeadPixelOverlay';
+import BackgroundFlyOverlay from '@/system/backgroundFly/BackgroundFlyOverlay';
+import { gameEventBus } from '@/game/events';
+import ClippyAssistant from '@/system/clippy/ClippyAssistant';
+import FullscreenRecommendation from '@/system/fullscreen/FullscreenRecommendation';
+import InstantBsodTrap from '@/system/traps/InstantBsodTrap';
 
 import style from './Win96Container.module.css';
-import { Z_INDEX_TIERS } from '../../../system/zIndex';
+import { Z_INDEX_TIERS } from '@/system/zIndex';
 
 const taskManagerBackdropStyle: JSX.CSSProperties = {
   position: 'fixed',

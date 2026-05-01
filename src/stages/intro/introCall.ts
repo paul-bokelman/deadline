@@ -1,7 +1,7 @@
 import { useEffect } from 'preact/hooks';
 
-import { gameEventBus } from '../../game/events';
-import { useGameState } from '../../game/state';
+import { gameEventBus } from '@/game/events';
+import { useGameState } from '@/game/state';
 
 const INTRO_CALL_TRIGGER_EVENT_ID = 'intro_call:triggered';
 const INTRO_CALL_COMPLETED_EVENT_ID = 'intro_call:completed';

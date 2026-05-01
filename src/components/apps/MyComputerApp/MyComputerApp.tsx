@@ -1,18 +1,18 @@
 import { h, FunctionComponent } from 'preact';
 
-import { AppProps } from '../../../types/App';
-import { ShellItem } from '../../../types/Shell';
-import { DirType } from '../../../types/FileSystem';
-import myComputerFs from '../../../data/fileSystem';
-import fileTypeList from '../../../data/fileTypeList';
-import useShellFilesState from '../../../hooks/useShellFilesState';
+import { AppProps } from '@/types/App';
+import { ShellItem } from '@/types/Shell';
+import { DirType } from '@/types/FileSystem';
+import myComputerFs from '@/data/fileSystem';
+import fileTypeList from '@/data/fileTypeList';
+import useShellFilesState from '@/hooks/useShellFilesState';
 
-import Countour from '../../shared/Countour/Countour';
-import FileGrid from '../../shared/FileGrid/FileGrid';
-import MenuBar from '../../shared/MenuBar/MenuBar';
-import Scrollable from '../../shared/Scrollable/Scrollable';
-import StatusBar from '../../shared/StatusBar/StatusBar';
-import WindowContent from '../../shared/WindowContent/WindowContent';
+import Countour from '@/components/shared/Countour/Countour';
+import FileGrid from '@/components/shared/FileGrid/FileGrid';
+import MenuBar from '@/components/shared/MenuBar/MenuBar';
+import Scrollable from '@/components/shared/Scrollable/Scrollable';
+import StatusBar from '@/components/shared/StatusBar/StatusBar';
+import WindowContent from '@/components/shared/WindowContent/WindowContent';
 
 const MENU_BAR = {
   BRIEFCASE: ['File', 'Edit', 'View', 'Briefcase', 'Help'],

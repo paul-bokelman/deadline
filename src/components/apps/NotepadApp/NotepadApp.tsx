@@ -1,9 +1,9 @@
 import { h, FunctionComponent } from 'preact';
 
-import { AppProps } from '../../../types/App';
-import Countour from '../../shared/Countour/Countour';
-import MenuBar from '../../shared/MenuBar/MenuBar';
-import WindowContent from '../../shared/WindowContent/WindowContent';
+import { AppProps } from '@/types/App';
+import Countour from '@/components/shared/Countour/Countour';
+import MenuBar from '@/components/shared/MenuBar/MenuBar';
+import WindowContent from '@/components/shared/WindowContent/WindowContent';
 
 import style from './NotepadApp.module.css';
 

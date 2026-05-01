@@ -1,12 +1,12 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 
-import { gameEventBus } from '../../game/events';
-import { useGameState } from '../../game/state';
-import { AppProps } from '../../types/App';
-import MenuBar from '../../components/shared/MenuBar/MenuBar';
-import StatusBar from '../../components/shared/StatusBar/StatusBar';
-import WindowContent from '../../components/shared/WindowContent/WindowContent';
+import { gameEventBus } from '@/game/events';
+import { useGameState } from '@/game/state';
+import { AppProps } from '@/types/App';
+import MenuBar from '@/components/shared/MenuBar/MenuBar';
+import StatusBar from '@/components/shared/StatusBar/StatusBar';
+import WindowContent from '@/components/shared/WindowContent/WindowContent';
 
 import style from './RemoteDesktopCableFixApp.module.css';
 

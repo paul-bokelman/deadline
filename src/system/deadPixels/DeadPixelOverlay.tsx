@@ -1,7 +1,7 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 
-import { gameEventBus } from '../../game/events';
+import { gameEventBus } from '@/game/events';
 import { Z_INDEX_TIERS } from '../zIndex';
 
 // Editable tuning values.

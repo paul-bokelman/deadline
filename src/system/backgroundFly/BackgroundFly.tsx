@@ -1,6 +1,6 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { registerManagedAudio } from '../../utils/audio/masterVolume';
+import { registerManagedAudio } from '@/utils/audio/masterVolume';
 
 /**
  * Scalable ambient critter overlay. Defaults to a fly that crawls between

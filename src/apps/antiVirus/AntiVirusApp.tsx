@@ -1,8 +1,8 @@
 import { h, FunctionComponent, JSX } from 'preact';
 
-import { gameEventBus } from '../../game/events';
-import { useGameState } from '../../game/state';
-import { AppProps } from '../../types/App';
+import { gameEventBus } from '@/game/events';
+import { useGameState } from '@/game/state';
+import { AppProps } from '@/types/App';
 
 const panelStyle: JSX.CSSProperties = {
   margin: '8px',

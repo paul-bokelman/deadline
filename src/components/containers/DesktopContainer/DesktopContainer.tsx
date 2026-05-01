@@ -1,9 +1,9 @@
 import { h, FunctionComponent } from 'preact';
 import { useContext, useEffect } from 'preact/hooks';
 
-import OpenWindowsContext from '../../../context/OpenWindowsContext';
-import { gameEventBus } from '../../../game/events';
-import Desktop from '../../shared/Desktop/Desktop';
+import OpenWindowsContext from '@/context/OpenWindowsContext';
+import { gameEventBus } from '@/game/events';
+import Desktop from '@/components/shared/Desktop/Desktop';
 
 const DesktopContainer: FunctionComponent = () => {
   const { openApp } = useContext(OpenWindowsContext);

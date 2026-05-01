@@ -1,4 +1,4 @@
-import { gameEventBus } from '../../game/events';
+import { gameEventBus } from '@/game/events';
 
 let baseRealMs = Date.now();
 let baseVirtualMs = 0;

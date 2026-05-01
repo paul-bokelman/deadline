@@ -1,9 +1,9 @@
 import { h, FunctionComponent } from 'preact';
 import { useMemo } from 'preact/hooks';
 
-import WindowContent from '../../components/shared/WindowContent/WindowContent';
-import { useGameState } from '../../game/state';
-import { AppProps } from '../../types/App';
+import WindowContent from '@/components/shared/WindowContent/WindowContent';
+import { useGameState } from '@/game/state';
+import { AppProps } from '@/types/App';
 
 const RecycleBinApp: FunctionComponent<AppProps> = () => {
   const { flags, setFlags } = useGameState();

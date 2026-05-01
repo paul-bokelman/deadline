@@ -3,9 +3,9 @@ import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
 import IntrusivePopupWindow from './IntrusivePopupWindow';
 import { ActiveIntrusivePopup, IntrusivePopupConfig } from './types';
-import { createRandomIntrusivePopupConfig } from '../../data/intrusivePopupConfigs';
-import { gameEventBus } from '../../game/events';
-import { useGameState } from '../../game/state';
+import { createRandomIntrusivePopupConfig } from '@/data/intrusivePopupConfigs';
+import { gameEventBus } from '@/game/events';
+import { useGameState } from '@/game/state';
 import { allocateNormalZIndex } from '../zIndex';
 import {
   createIntrusivePopupLoopSfx,

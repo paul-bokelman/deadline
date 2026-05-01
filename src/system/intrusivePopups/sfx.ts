@@ -1,5 +1,5 @@
-import { pickRandom } from '../../utils/random';
-import { registerManagedAudio } from '../../utils/audio/masterVolume';
+import { pickRandom } from '@/utils/random';
+import { registerManagedAudio } from '@/utils/audio/masterVolume';
 
 const SPAWN_SOURCES = ['/audio/popups/popup1.mp3', '/audio/popups/popup2.mp3'];
 const LOOP_SOURCES = [

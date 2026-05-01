@@ -1,10 +1,10 @@
 import { useEffect } from 'preact/hooks';
 
-import { systemConfig } from '../../data/systemConfig';
-import { NetVoiceCallId } from '../../game/netvoice/calls';
-import { gameEventBus } from '../../game/events';
-import { useGameState } from '../../game/state';
-import { pickRandom } from '../../utils/random';
+import { systemConfig } from '@/data/systemConfig';
+import { NetVoiceCallId } from '@/game/netvoice/calls';
+import { gameEventBus } from '@/game/events';
+import { useGameState } from '@/game/state';
+import { pickRandom } from '@/utils/random';
 
 const ALICE_HALFWAY_CALL_EVENT_ID = 'people:alice_halfway:triggered';
 const HAROLD_FIRST_CALL_EVENT_ID = 'people:harold_first_call:triggered';

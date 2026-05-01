@@ -5,7 +5,7 @@
 // reactive consumers, and tracks the local "you" entry that gets merged
 // into the cached board after a successful submit.
 
-import { gameEventBus } from '../../game/events';
+import { gameEventBus } from '@/game/events';
 import { apiFetchLeaderboard, apiSubmitRun } from '../api/leaderboard';
 import { isApiConfigured, ApiError } from '../api/client';
 import { getActiveRunToken } from '../runTimer/runTimer';

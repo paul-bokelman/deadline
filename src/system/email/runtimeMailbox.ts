@@ -1,5 +1,5 @@
-import { allEmails } from '../../data/emails';
-import { gameEventBus } from '../../game/events';
+import { allEmails } from '@/data/emails';
+import { gameEventBus } from '@/game/events';
 
 export interface DeliveredEmailInstance {
   instanceId: string;

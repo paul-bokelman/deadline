@@ -1,5 +1,5 @@
 import { h, FunctionComponent, ComponentChildren } from 'preact';
-import { IconId, IconSize } from '../../../types/Icon';
+import { IconId, IconSize } from '@/types/Icon';
 
 import Icon from '../Icon/Icon';
 

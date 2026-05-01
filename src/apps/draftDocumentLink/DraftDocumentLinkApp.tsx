@@ -1,7 +1,7 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect } from 'preact/hooks';
 
-import { AppProps } from '../../types/App';
+import { AppProps } from '@/types/App';
 
 const panelStyle: JSX.CSSProperties = {
   margin: '8px',

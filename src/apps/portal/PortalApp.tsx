@@ -1,23 +1,20 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
-import Dropdown from '../../components/shared/Dropdown/Dropdown';
-import { getDynamicDesktopItems } from '../../system/desktop/dynamicDesktopItems';
-import { gameEventBus } from '../../game/events';
-import { useGameState } from '../../game/state';
+import Dropdown from '@/components/shared/Dropdown/Dropdown';
+import { getDynamicDesktopItems } from '@/system/desktop/dynamicDesktopItems';
+import { gameEventBus } from '@/game/events';
+import { useGameState } from '@/game/state';
 import {
   getPortalLoginEmail,
   hasPortalPassword,
   requestPortalPasswordReset,
   validatePortalCredentials,
-} from '../../system/portalAuth/portalAuth';
-import {
-  markRunSubmitted,
-  recordCheckpoint,
-} from '../../system/runTimer/runTimer';
-import { playErrorSfx } from '../../utils/audio/osSfx';
-import { AppProps } from '../../types/App';
-import { ShellItem } from '../../types/Shell';
+} from '@/system/portalAuth/portalAuth';
+import { markRunSubmitted, recordCheckpoint } from '@/system/runTimer/runTimer';
+import { playErrorSfx } from '@/utils/audio/osSfx';
+import { AppProps } from '@/types/App';
+import { ShellItem } from '@/types/Shell';
 
 const panelStyle: JSX.CSSProperties = {
   margin: '8px',

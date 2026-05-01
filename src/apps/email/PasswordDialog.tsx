@@ -1,6 +1,6 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
-import { Z_INDEX_TIERS } from '../../system/zIndex';
+import { Z_INDEX_TIERS } from '@/system/zIndex';
 
 interface PasswordDialogProps {
   isOpen: boolean;

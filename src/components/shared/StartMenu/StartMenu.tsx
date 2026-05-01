@@ -1,8 +1,8 @@
 import { h, FunctionComponent } from 'preact';
 
-import { AppId } from '../../../types/App';
-import { FileSystemDir, FileSystemFile } from '../../../types/FileSystem';
-import { appList } from '../../../data/appList';
+import { AppId } from '@/types/App';
+import { FileSystemDir, FileSystemFile } from '@/types/FileSystem';
+import { appList } from '@/data/appList';
 import { OptionType } from '../MenuOption/MenuOption';
 import Menu from '../Menu/Menu';
 

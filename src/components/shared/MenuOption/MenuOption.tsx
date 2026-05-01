@@ -1,9 +1,9 @@
 import { h, FunctionComponent } from 'preact';
 import { useRef, useState } from 'preact/hooks';
 
-import { AppId } from '../../../types/App';
-import { FileSystemDir, FileSystemFile } from '../../../types/FileSystem';
-import { IconId } from '../../../types/Icon';
+import { AppId } from '@/types/App';
+import { FileSystemDir, FileSystemFile } from '@/types/FileSystem';
+import { IconId } from '@/types/Icon';
 import Icon from '../Icon/Icon';
 import Menu from '../Menu/Menu';
 

@@ -1,24 +1,24 @@
 import { h, FunctionComponent, ComponentChildren } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 
-import { App } from '../../../types/App';
-import { IconId } from '../../../types/Icon';
-import { FileSystemDir, FileSystemFile } from '../../../types/FileSystem';
-import { appList } from '../../../data/appList';
+import { App } from '@/types/App';
+import { IconId } from '@/types/Icon';
+import { FileSystemDir, FileSystemFile } from '@/types/FileSystem';
+import { appList } from '@/data/appList';
 import OpenWindowsContext, {
   OpenWindow,
   OpenWindowsContextType,
-} from '../../../context/OpenWindowsContext';
-import { gameEventBus } from '../../../game/events';
-import { useGameState } from '../../../game/state';
-import { getAppIconId } from '../../../utils/win96/AppIconUtils';
+} from '@/context/OpenWindowsContext';
+import { gameEventBus } from '@/game/events';
+import { useGameState } from '@/game/state';
+import { getAppIconId } from '@/utils/win96/AppIconUtils';
 import {
   Z_INDEX_TIERS,
   allocateLeaderboardZIndex,
   allocateNormalZIndex,
   allocateVoiceCallZIndex,
   resetZIndexAllocators,
-} from '../../../system/zIndex';
+} from '@/system/zIndex';
 
 interface Props {
   children: ComponentChildren;

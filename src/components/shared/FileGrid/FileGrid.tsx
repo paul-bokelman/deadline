@@ -1,6 +1,6 @@
 import { h, FunctionComponent } from 'preact';
 import { useState } from 'preact/hooks';
-import { ShellItem } from '../../../types/Shell';
+import { ShellItem } from '@/types/Shell';
 
 import Icon from '../Icon/Icon';
 

@@ -1,11 +1,11 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 
-import { AppProps } from '../../../types/App';
-import useInterval from '../../../hooks/useInterval';
-import WindowContent from '../../shared/WindowContent/WindowContent';
-import { gameEventBus } from '../../../game/events';
-import { getGameDate } from '../../../system/clock/gameClock';
+import { AppProps } from '@/types/App';
+import useInterval from '@/hooks/useInterval';
+import WindowContent from '@/components/shared/WindowContent/WindowContent';
+import { gameEventBus } from '@/game/events';
+import { getGameDate } from '@/system/clock/gameClock';
 
 import {
   COUNTDOWN_MS,

@@ -1,17 +1,17 @@
 import { h, FunctionComponent } from 'preact';
 
-import { FileSystemDir, FileSystemFile } from '../../../types/FileSystem';
+import { FileSystemDir, FileSystemFile } from '@/types/FileSystem';
 import {
   OpenWindow,
   OpenWindowsContextType,
-} from '../../../context/OpenWindowsContext';
-import useDocumentClickToggle from '../../../hooks/useDocumentClickToggle';
+} from '@/context/OpenWindowsContext';
+import useDocumentClickToggle from '@/hooks/useDocumentClickToggle';
 import Button from '../Button/Button';
 import NotificationArea from '../NotificationArea/NotificationArea';
 import StartMenu from '../StartMenu/StartMenu';
 
 import style from './Taskbar.module.css';
-import { AppId } from '../../../types/App';
+import { AppId } from '@/types/App';
 
 interface Props {
   focusOnWindow: OpenWindowsContextType['focusOnWindow'];
