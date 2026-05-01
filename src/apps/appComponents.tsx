@@ -20,12 +20,12 @@ import WinRarExtractor from './winrar/WinRarExtractor';
 import WorldWideWebApp from './worldWideWeb/WorldWideWebApp';
 import WinRarInstaller from '../stages/download/WinRarInstaller';
 import { AppId, AppProps } from '../types/App';
-import MyComputerApp from '../components/apps/MyComputerApp/MyComputerApp';
-import NotepadApp from '../components/apps/NotepadApp/NotepadApp';
-import QuickViewApp from '../components/apps/QuickViewApp/QuickViewApp';
-import NetVoiceCallApp from '../components/apps/NetVoiceCallApp/NetVoiceCallApp';
-import TimerApp from '../components/apps/TimerApp/TimerApp';
-import VoidApp from '../components/apps/VoidApp/VoidApp';
+import MyComputerApp from './MyComputerApp/MyComputerApp';
+import NotepadApp from './NotepadApp/NotepadApp';
+import QuickViewApp from './QuickViewApp/QuickViewApp';
+import NetVoiceCallApp from './NetVoiceCallApp/NetVoiceCallApp';
+import TimerApp from './TimerApp/TimerApp';
+import VoidApp from './VoidApp/VoidApp';
 
 const CorpMailApp: FunctionComponent<AppProps> = () => (
   <EmailClient accountId="corpMail" accountLabel="CorpMail" />
