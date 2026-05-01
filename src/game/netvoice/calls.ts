@@ -59,7 +59,7 @@ export const netVoiceCallers: Record<NetVoiceCallerId, NetVoiceCaller> = {
   boss: {
     id: 'boss',
     name: 'Boss',
-    avatar: '/assets/img/interface/msg_warning-0.png',
+    avatar: '/assets/images/interface/msg_warning-0.png',
     role: 'Manager',
     address: '10.0.0.1',
   },

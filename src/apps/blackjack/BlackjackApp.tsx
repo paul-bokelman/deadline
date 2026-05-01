@@ -19,9 +19,9 @@ import { AppProps } from '../../types/App';
 import { useGameState } from '../../game/state';
 import { gameEventBus } from '../../game/events';
 
-import chipRedUrl from '../../assets/img/blackjack/chip_red.png';
-import chipBlueUrl from '../../assets/img/blackjack/chip_blue.png';
-import chipGoldUrl from '../../assets/img/blackjack/chip_gold.png';
+import chipRedUrl from '../../assets/images/blackjack/chip_red.png';
+import chipBlueUrl from '../../assets/images/blackjack/chip_blue.png';
+import chipGoldUrl from '../../assets/images/blackjack/chip_gold.png';
 
 import style from './BlackjackApp.module.css';
 

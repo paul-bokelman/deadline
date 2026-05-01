@@ -4,7 +4,7 @@
   width: 100%;
   height: 100%;
   background: var(--desktop-green)
-    url('../../../assets/img/interface/bliss.png') center center / cover
+    url('../../../assets/images/interface/bliss.png') center center / cover
     no-repeat;
   overflow: hidden;
 }

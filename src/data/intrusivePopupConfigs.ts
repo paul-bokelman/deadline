@@ -1,7 +1,7 @@
 import { IntrusivePopupConfig } from '../system/intrusivePopups/types';
 
 const popupBackgroundImages = Object.values(
-  import.meta.glob('../assets/img/popupBackgrounds/*.png', {
+  import.meta.glob('../assets/images/popups/*.png', {
     eager: true,
     import: 'default',
   }) as Record<string, string>

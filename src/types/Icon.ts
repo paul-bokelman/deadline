@@ -36,6 +36,7 @@ export const iconIds = [
   'floppyDrive',
   'folderOpen',
   'folderClosed',
+  'fallback',
   'fonts',
   'fontsShortcut',
   'fontFile',

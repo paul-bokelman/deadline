@@ -184,7 +184,7 @@ code, code * {
 }
 
 ::-webkit-scrollbar-track {
-  background-image: url("./assets/img/ui/scrollbar-background.svg");
+  background-image: url("./assets/images/ui/scrollbar-background.svg");
 }
 
 ::-webkit-scrollbar-thumb {
@@ -198,22 +198,22 @@ code, code * {
 
 ::-webkit-scrollbar-button:vertical:start {
   height: 17px;
-  background-image: url("./assets/img/ui/button-up.svg");
+  background-image: url("./assets/images/ui/button-up.svg");
 }
 
 ::-webkit-scrollbar-button:vertical:end {
   height: 17px;
-  background-image: url("./assets/img/ui/button-down.svg");
+  background-image: url("./assets/images/ui/button-down.svg");
 }
 
 ::-webkit-scrollbar-button:horizontal:start {
   width: 16px;
-  background-image: url("./assets/img/ui/button-left.svg");
+  background-image: url("./assets/images/ui/button-left.svg");
 }
 
 ::-webkit-scrollbar-button:horizontal:end {
   width: 16px;
-  background-image: url("./assets/img/ui/button-right.svg");
+  background-image: url("./assets/images/ui/button-right.svg");
 }
 
 @keyframes malwareFlash {

@@ -2,7 +2,7 @@ import { h, FunctionComponent } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 
 import BackgroundFly from './BackgroundFly';
-import flyAssetUrl from '../../assets/img/ambient/fly_final.png';
+import flyAssetUrl from '../../assets/images/ambient/fly_final.png';
 import { useGameState } from '../../game/state';
 import { gameEventBus } from '../../game/events';
 import { Z_INDEX_TIERS } from '../zIndex';
