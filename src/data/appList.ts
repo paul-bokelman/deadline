@@ -43,13 +43,6 @@ export const appList: AppList = {
     name: 'Calculator',
     size: { width: 400, height: 177 },
   },
-  cdPlayer: {
-    id: 'cdPlayer',
-    iconId: 'cdPlayer',
-    isResizeable: false,
-    name: 'CD Player',
-    size: { width: 400, height: 177 },
-  },
   clickMeReset: {
     id: 'clickMeReset',
     iconId: 'gameSpider0',
@@ -90,13 +83,6 @@ export const appList: AppList = {
     iconId: 'hyperterminal',
     isResizeable: false,
     name: 'Hyper Terminal',
-    size: { width: 400, height: 177 },
-  },
-  mediaPlayer: {
-    id: 'mediaPlayer',
-    iconId: 'mediaPlayer',
-    isResizeable: false,
-    name: 'Media Player',
     size: { width: 400, height: 177 },
   },
   msn: {
@@ -157,13 +143,6 @@ export const appList: AppList = {
     name: 'ScanDisk',
     size: { width: 400, height: 177 },
   },
-  soundRecorder: {
-    id: 'soundRecorder',
-    iconId: 'sound',
-    isResizeable: false,
-    name: 'Sound Recorder',
-    size: { width: 400, height: 177 },
-  },
   shutdown: {
     id: 'shutdown',
     iconId: 'shutdown',
@@ -215,13 +194,6 @@ export const appList: AppList = {
     isResizeable: true,
     name: 'Archive.zip',
     size: { width: 640, height: 480 },
-  },
-  volumeControl: {
-    id: 'volumeControl',
-    iconId: 'volume',
-    isResizeable: false,
-    name: 'Volume Control',
-    size: { width: 400, height: 177 },
   },
   wordpad: {
     id: 'wordpad',
