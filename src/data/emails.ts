@@ -513,6 +513,29 @@ const CORP_PORTAL_PASSWORD_RESET_SPAM: EmailRecord = {
   deliveryRule: EMAIL_ACCESS_RULE,
 };
 
+const CORP_PORTAL_PASSWORD_RESET_SPAM_FAKE: EmailRecord = {
+  id: 'corp-password-reset-link-fake',
+  accountId: 'corpMail',
+  folder: 'spam',
+  sender: 'noreply@identlty.corp.internal',
+  subject: 'Password reset requested (verification mirror)',
+  timestamp: '13:58',
+  preview:
+    'Automated reset notification. Verify on mirror endpoint before proceeding.',
+  body: 'Reset your password: http://identity-corp.internal/reset-password',
+  bodyHtml: richBody(
+    [
+      'A password reset was requested for the CorpPortal account.',
+      'If this was you, verify on the mirror endpoint before completing reset.',
+    ],
+    [
+      '<a href="http://identity-corp.internal/reset-password">Reset portal password (mirror)</a>',
+      'Security note: mirrored identity infrastructure may have certificate lag.',
+    ]
+  ),
+  deliveryRule: EMAIL_ACCESS_RULE,
+};
+
 const CORP_PROMOTIONS: EmailRecord[] = [
   ...Array.from(
     { length: 24 },
@@ -583,6 +606,7 @@ export const allEmails: EmailRecord[] = [
   ...CORP_WINRAR_ADS,
   ...CORP_SPAM_FAKE_Q3,
   CORP_PORTAL_PASSWORD_RESET_SPAM,
+  CORP_PORTAL_PASSWORD_RESET_SPAM_FAKE,
   ...CORP_PROMOTIONS,
 ];
 

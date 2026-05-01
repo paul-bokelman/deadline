@@ -1,5 +1,5 @@
 import { FunctionComponent, h, JSX } from 'preact';
-import { useMemo, useState } from 'preact/hooks';
+import { useMemo } from 'preact/hooks';
 
 import Button from '@/components/shared/Button/Button';
 import Icon from '@/components/shared/Icon/Icon';
@@ -50,7 +50,8 @@ const WinRarArchive: FunctionComponent<AppProps> = ({
   openApp,
 }) => {
   const { flags, hasEventFired, markEventFired, setFlag } = useGameState();
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const hasCompletedRemoteFix = hasEventFired(REMOTE_FIX_COMPLETED_EVENT_ID);
+  const hasShownRemoteFix = hasEventFired(REMOTE_FIX_SHOWN_EVENT_ID);
 
   const zipName = useMemo(() => getZipNameForLevel(flags.zipExtractionLevel), [
     flags.zipExtractionLevel,
@@ -66,18 +67,16 @@ const WinRarArchive: FunctionComponent<AppProps> = ({
   };
 
   const handleExtract = () => {
-    if (!hasEventFired(REMOTE_FIX_COMPLETED_EVENT_ID)) {
-      if (!hasEventFired(REMOTE_FIX_SHOWN_EVENT_ID)) {
+    if (!hasCompletedRemoteFix) {
+      if (!hasShownRemoteFix) {
         markEventFired(REMOTE_FIX_SHOWN_EVENT_ID);
+        openApp({ appId: 'remoteDesktopCableFix' });
       }
-      openApp({ appId: 'remoteDesktopCableFix' });
-      setStatusMessage('Extraction paused: remote desktop cable disconnected.');
       return;
     }
 
     gameEventBus.emit('popup:test_spawn_random', { x: 180, y: 120 });
     gameEventBus.emit('popup:test_spawn_random', { x: 240, y: 180 });
-    setStatusMessage(null);
 
     if (flags.zipExtractionLevel <= 1) {
       setFlag('zipExtractionLevel', 2);
@@ -106,23 +105,10 @@ const WinRarArchive: FunctionComponent<AppProps> = ({
         </div>
       </div>
 
-      {statusMessage && (
-        <div
-          style={{
-            backgroundColor: 'var(--paper)',
-            boxShadow: 'var(--border-field)',
-            padding: '6px 8px',
-            fontFamily: 'monospace',
-            whiteSpace: 'pre-wrap',
-          }}
-        >
-          {statusMessage}
-        </div>
-      )}
-
       <div style={buttonRowStyle}>
         <Button label="Delete" onClick={handleDelete} />
         <Button
+          disabled={hasShownRemoteFix && !hasCompletedRemoteFix}
           label={`Extract (${extractionCount}/3)`}
           onClick={handleExtract}
         />

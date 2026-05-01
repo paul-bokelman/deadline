@@ -28,6 +28,11 @@ let activeRunToken: RunToken | null = null;
 let pendingStart: Promise<RunToken | null> | null = null;
 let recordedCheckpoints = new Set<CheckpointName>();
 
+export const clearRunSession = (): void => {
+  activeRunToken = null;
+  pendingStart = null;
+};
+
 const startServerRun = async (): Promise<RunToken | null> => {
   if (!isApiConfigured()) return null;
   const result = await apiStartRun();

@@ -15,6 +15,7 @@ import { gameEventBus } from '@/game/events';
 import { useGameState } from '@/game/state';
 import { getAttachmentDecryptionKeyFromDump } from '@/system/desktop/dynamicDesktopItems';
 import {
+  DeliveredEmailInstance,
   getDeliveredEmailInstances,
   subscribeRuntimeMailbox,
 } from '@/system/email/runtimeMailbox';
@@ -58,6 +59,7 @@ type PasswordDialogContext =
 interface VisibleEmailItem {
   instanceId: string;
   email: EmailRecord;
+  timestamp: string;
 }
 
 import {
@@ -127,10 +129,14 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
     void mailboxVersion;
     const instances = getDeliveredEmailInstances();
     const visibleItems = instances
-      .map((item) => {
+      .map((item: DeliveredEmailInstance) => {
         const email = eligibleEmailMap.get(item.emailId);
         if (!email) return null;
-        return { instanceId: item.instanceId, email };
+        return {
+          instanceId: item.instanceId,
+          email,
+          timestamp: item.deliveredTimestamp ?? email.timestamp,
+        };
       })
       .filter((item): item is VisibleEmailItem => item !== null);
     return visibleItems.reverse();
@@ -467,7 +473,7 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
                         <div
                           className={`${style.listCell} ${style.listCellReceived}`}
                         >
-                          {email.timestamp}
+                          {item.timestamp}
                         </div>
                       </div>
                     );
@@ -505,7 +511,7 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
                       <div className={style.previewLabel}>
                         <b>Date:</b>
                       </div>
-                      <div>{selectedEmail.email.timestamp}</div>
+                      <div>{selectedEmail.timestamp}</div>
                       {!selectedEmailIsLocked &&
                         !!selectedEmail.email.attachments?.length && (
                           <Fragment>
@@ -547,6 +553,21 @@ const EmailClient: FunctionComponent<EmailClientProps> = ({
                           const href = anchor.getAttribute('href');
                           if (!href || href.startsWith('#')) return;
                           event.preventDefault();
+                          if (
+                            selectedEmail.email.id ===
+                            'corp-password-reset-link-fake'
+                          ) {
+                            gameEventBus.emit('screen:mirror_toggled', {});
+                            gameEventBus.emit('popup:test_spawn_random', {
+                              x: 180,
+                              y: 120,
+                            });
+                            gameEventBus.emit('popup:test_spawn_random', {
+                              x: 250,
+                              y: 170,
+                            });
+                            return;
+                          }
                           if (selectedEmail.email.isMalwareTrap) {
                             triggerMalwareEvent(
                               selectedEmail.email,

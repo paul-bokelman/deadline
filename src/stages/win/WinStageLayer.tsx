@@ -1,17 +1,15 @@
-import { h, FunctionComponent, JSX } from 'preact';
-import { useContext, useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { Fragment, FunctionComponent, h } from 'preact';
+import type { CSSProperties } from 'preact/compat';
+import { useEffect, useMemo, useState } from 'preact/hooks';
 
-import Button from '@/components/shared/Button/Button';
-import Window from '@/components/shared/Window/Window';
-import OpenWindowsContext from '@/context/OpenWindowsContext';
 import { useGameState } from '@/game/state';
+import { gameEventBus } from '@/game/events';
 import {
+  clearRunSession,
   getSubmittedElapsedMs,
   setSubmittedElapsedMs,
 } from '@/system/runTimer/runTimer';
 import {
-  getLeaderboardInsertionRank,
-  loadLeaderboard,
   NAME_MAX_LENGTH,
   sanitizeLeaderboardName,
   setLeaderboardPlayerEntry,
@@ -19,45 +17,44 @@ import {
 } from '@/system/leaderboard/runtime';
 import { isApiConfigured } from '@/system/api/client';
 import { Z_INDEX_TIERS } from '@/system/zIndex';
-import { playTadaSfx } from '@/utils/audio/osSfx';
+import { lockMasterMute } from '@/utils/audio/masterVolume';
 
-const containerStyle: JSX.CSSProperties = {
-  position: 'absolute',
+const BSOD_FAKEOUT_MS = 2200;
+const VICTORY_LOOP_AUDIO_URL = '/audio/win/jazz.mp3';
+
+const rootStyle: CSSProperties = {
+  position: 'fixed',
   inset: 0,
-  pointerEvents: 'none',
-  zIndex: Z_INDEX_TIERS.leaderboard,
-};
-
-const bodyStyle: JSX.CSSProperties = {
-  backgroundColor: 'var(--paper)',
-  boxShadow: 'var(--bevel-sunken)',
-  margin: '0 0 10px',
-  padding: '10px',
-};
-
-const actionsStyle: JSX.CSSProperties = {
+  pointerEvents: 'auto',
+  zIndex: Z_INDEX_TIERS.bluescreen + 1200,
+  background: '#0000aa',
+  color: '#ffffff',
+  fontFamily: 'var(--font-family-sys)',
+  padding: '38px 44px',
   display: 'flex',
-  gap: '8px',
-  justifyContent: 'flex-end',
+  flexDirection: 'column',
+  gap: '16px',
 };
 
-const inputStyle: JSX.CSSProperties = {
-  width: '100%',
-  border: 'none',
-  backgroundColor: 'var(--paper)',
-  boxShadow: 'var(--border-field)',
-  padding: '4px 6px',
-  textTransform: 'uppercase',
-  letterSpacing: '1px',
-  fontFamily: 'var(--font-family-ui)',
-  fontSize: '13px',
+const fakeStopStyle: CSSProperties = {
+  fontSize: '22px',
+  fontWeight: 700,
+  letterSpacing: '0.3px',
 };
 
-const countStyle: JSX.CSSProperties = {
-  width: '36px',
-  textAlign: 'right',
-  fontSize: '10px',
-  color: '#666666',
+const blockStyle: CSSProperties = {
+  fontSize: '15px',
+  lineHeight: 1.45,
+  whiteSpace: 'pre-wrap',
+  maxWidth: '980px',
+};
+
+const menuRowStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '10px',
+  flexWrap: 'wrap',
+  marginTop: '6px',
 };
 
 const sanitizeDraft = (raw: string): string =>
@@ -75,212 +72,289 @@ const formatTime = (ms: number): string => {
   return `${pad(m)}:${pad(s)}.${pad(cs)}`;
 };
 
+type Phase = 'fake_bsod' | 'victory_prompt';
+type Action = 'submit' | 'skip' | 'reboot';
+
+const ACTIONS: Array<{ id: Action; label: string }> = [
+  { id: 'submit', label: 'Submit' },
+  { id: 'skip', label: 'Skip' },
+  { id: 'reboot', label: 'Reboot' },
+];
+
 const WinStageLayer: FunctionComponent = () => {
-  const { stage, setStage } = useGameState();
-  const { focusOnWindow, openApp, unMinimizeWindow, windows } = useContext(
-    OpenWindowsContext
-  );
-  const [coords, setCoords] = useState({ x: 240, y: 150 });
+  const { stage, rebootGame } = useGameState();
+  const [phase, setPhase] = useState<Phase>('fake_bsod');
   const [nameInput, setNameInput] = useState('');
   const [submitStatus, setSubmitStatus] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [isCursorVisible, setIsCursorVisible] = useState(true);
+  const [isBootloaderActive, setIsBootloaderActive] = useState(false);
 
   const isVisible = stage === 'win';
 
   useEffect(() => {
     if (!isVisible) return;
-    playTadaSfx();
-    // Pre-load the leaderboard so the rank preview reflects current data.
-    void loadLeaderboard();
+    setPhase('fake_bsod');
+    setNameInput('');
+    setSubmitStatus(null);
+    setIsSubmitting(false);
+    setSelectedIndex(0);
+    const timeoutId = window.setTimeout(() => {
+      setPhase('victory_prompt');
+    }, BSOD_FAKEOUT_MS);
+    return () => window.clearTimeout(timeoutId);
+  }, [isVisible]);
+
+  useEffect(() => {
+    const offStarted = gameEventBus.on('bootloader:started', () => {
+      setIsBootloaderActive(true);
+    });
+    const offEnded = gameEventBus.on('bootloader:ended', () => {
+      setIsBootloaderActive(false);
+    });
+    return () => {
+      offStarted();
+      offEnded();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isVisible || phase !== 'victory_prompt') return;
+    const intervalId = window.setInterval(() => {
+      setIsCursorVisible((current) => !current);
+    }, 460);
+    return () => window.clearInterval(intervalId);
+  }, [isVisible, phase]);
+
+  useEffect(() => {
+    if (!isVisible) return;
+    const releaseMute = lockMasterMute();
+    return () => {
+      releaseMute();
+    };
+  }, [isVisible]);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    const audio = new Audio(VICTORY_LOOP_AUDIO_URL);
+    audio.loop = true;
+    audio.volume = 0.8;
+
+    let gestureUnlockAttached = false;
+    const unlock = () => {
+      void audio.play();
+      window.removeEventListener('keydown', unlock, true);
+      window.removeEventListener('pointerdown', unlock, true);
+    };
+    const tryStart = () => {
+      audio.play().catch(() => {
+        if (gestureUnlockAttached) return;
+        gestureUnlockAttached = true;
+        window.addEventListener('keydown', unlock, true);
+        window.addEventListener('pointerdown', unlock, true);
+      });
+    };
+
+    tryStart();
+
+    const unsubscribeRebooted = gameEventBus.on('game:rebooted', () => {
+      audio.pause();
+      audio.currentTime = 0;
+    });
+
+    return () => {
+      unsubscribeRebooted();
+      audio.pause();
+      audio.currentTime = 0;
+      window.removeEventListener('keydown', unlock, true);
+      window.removeEventListener('pointerdown', unlock, true);
+    };
   }, [isVisible]);
 
   const elapsedMs = Math.max(0, getSubmittedElapsedMs() ?? 0);
   const elapsedLabel = useMemo(() => formatTime(elapsedMs), [elapsedMs]);
-  const insertionRank = useMemo(() => getLeaderboardInsertionRank(elapsedMs), [
-    elapsedMs,
-  ]);
 
-  const message = useMemo(
-    () => 'Submission accepted. You beat the deadline.',
-    []
-  );
+  const rebootToFreshRun = (): void => {
+    clearRunSession();
+    rebootGame();
+  };
 
-  const openLeaderboardApp = (): void => {
-    const existingLeaderboard = windows.find(
-      (window) => window.app.id === 'leaderboard'
-    );
-    if (existingLeaderboard) {
-      unMinimizeWindow(existingLeaderboard.id);
-      focusOnWindow(existingLeaderboard.id);
+  const submitAndReboot = async (): Promise<void> => {
+    if (isSubmitting) return;
+    const sanitized = sanitizeLeaderboardName(nameInput);
+    if (!sanitized) {
+      setSubmitStatus('Enter a valid handle first (letters/numbers).');
       return;
     }
-    openApp({ appId: 'leaderboard' });
-  };
-
-  const goToLeaderboard = (): void => {
-    setNameInput('');
-    setSubmitStatus(null);
-    setStage('desktop_intro');
-    openLeaderboardApp();
-  };
-
-  const finish = async (rawName: string): Promise<void> => {
-    if (isSubmitting) return;
-    const sanitized = sanitizeLeaderboardName(rawName);
 
     if (!isApiConfigured()) {
-      // Offline / API not configured: keep the legacy local-only behavior.
       setLeaderboardPlayerEntry(sanitized, elapsedMs);
-      goToLeaderboard();
+      rebootToFreshRun();
       return;
     }
 
     setIsSubmitting(true);
-    setSubmitStatus('Submitting...');
-    const result = await submitLeaderboardEntry(sanitized);
+    setSubmitStatus('Submitting score to leaderboard...');
+
+    let result: Awaited<ReturnType<typeof submitLeaderboardEntry>>;
+    try {
+      result = await submitLeaderboardEntry(sanitized);
+    } catch (error) {
+      setIsSubmitting(false);
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Unexpected network failure.';
+      setSubmitStatus(`Submission failed: ${message}`);
+      return;
+    }
+
     setIsSubmitting(false);
 
     if (result.ok) {
-      // Replace local elapsed with the server-computed authoritative value.
       setSubmittedElapsedMs(result.ms);
-      goToLeaderboard();
+      setSubmitStatus('Submission successful. Rebooting...');
+      window.setTimeout(() => rebootToFreshRun(), 250);
       return;
     }
 
     if (result.error.code === 'NAME_TAKEN') {
-      setSubmitStatus('That name is already taken. Try another.');
-      inputRef.current?.focus();
+      setSubmitStatus('Handle already taken. Try another.');
       return;
     }
     if (result.error.code === 'BAD_NAME') {
-      setSubmitStatus('Name must be 1\u20136 letters or numbers.');
-      inputRef.current?.focus();
+      setSubmitStatus('Handle must be 1-6 letters or numbers.');
       return;
     }
     if (result.error.code === 'ALREADY_SUBMITTED') {
-      setSubmitStatus('This run was already submitted.');
+      setSubmitStatus('This run was already submitted. Rebooting...');
+      window.setTimeout(() => rebootToFreshRun(), 500);
       return;
     }
     setSubmitStatus(`Submission failed: ${result.error.message}`);
   };
 
-  if (!isVisible) return null;
+  const runAction = (action: Action): void => {
+    if (phase !== 'victory_prompt') return;
+    if (action === 'submit') {
+      void submitAndReboot();
+      return;
+    }
+    rebootToFreshRun();
+  };
+
+  useEffect(() => {
+    if (!isVisible || phase !== 'victory_prompt') return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (isSubmitting) {
+        // Keep the UI stable while submission is in flight.
+        if (event.key === 'Enter') {
+          event.preventDefault();
+        }
+        return;
+      }
+
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        setSelectedIndex((current) =>
+          (current - 1 + ACTIONS.length) % ACTIONS.length
+        );
+        return;
+      }
+      if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+        event.preventDefault();
+        setSelectedIndex((current) => (current + 1) % ACTIONS.length);
+        return;
+      }
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        runAction(ACTIONS[selectedIndex].id);
+        return;
+      }
+      if (event.key === 'Backspace') {
+        event.preventDefault();
+        setNameInput((current) => current.slice(0, -1));
+        if (submitStatus) setSubmitStatus(null);
+        return;
+      }
+      if (event.key.length === 1) {
+        const next = sanitizeDraft(nameInput + event.key);
+        if (next !== nameInput) {
+          setNameInput(next);
+          if (submitStatus) setSubmitStatus(null);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isVisible, phase, nameInput, selectedIndex, submitStatus, isSubmitting]);
+
+  if (!isVisible || isBootloaderActive) return null;
 
   return (
-    <div style={containerStyle}>
-      <div style={{ pointerEvents: 'auto' }}>
-        <Window
-          coords={coords}
-          iconId="leaderboard"
-          isDraggable
-          isResizeable={false}
-          onClickClose={() => void finish(nameInput)}
-          onMoved={(nextCoords) => setCoords(nextCoords)}
-          size={{ x: 420, y: 264 }}
-          title="New High Score!"
-          zIndex={Z_INDEX_TIERS.leaderboard + 99}
-        >
-          <div style={{ padding: '8px' }}>
-            <div style={bodyStyle}>
-              <div
-                style={{
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  marginBottom: '4px',
-                }}
-              >
-                You placed #{insertionRank} on the leaderboard.
-              </div>
-              <div style={{ marginBottom: '8px' }}>{message}</div>
-              <div
-                style={{
-                  marginBottom: '10px',
-                  fontSize: '11px',
-                  color: '#444444',
-                }}
-              >
-                Time:{' '}
-                <span
-                  style={{
-                    fontFamily: 'var(--font-family-sys)',
-                    background: '#000000',
-                    color: '#00ff66',
-                    padding: '1px 6px',
-                  }}
-                >
-                  {elapsedLabel}
-                </span>
-              </div>
-              <label
-                htmlFor="leaderboard-name"
-                style={{
-                  fontSize: '11px',
-                  display: 'block',
-                  marginBottom: '4px',
-                }}
-              >
-                Enter your <u>n</u>ame:
-              </label>
-              <div
-                style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-              >
-                <input
-                  id="leaderboard-name"
-                  ref={inputRef}
-                  style={inputStyle}
-                  maxLength={NAME_MAX_LENGTH}
-                  placeholder="AAA"
-                  value={nameInput}
-                  onInput={(event) => {
-                    const target = event.currentTarget as HTMLInputElement;
-                    const next = sanitizeDraft(target.value ?? '');
-                    setNameInput(next);
-                    if (submitStatus) setSubmitStatus(null);
-                  }}
-                  autoFocus
-                />
-                <span style={countStyle}>
-                  {nameInput.length}/{NAME_MAX_LENGTH}
-                </span>
-              </div>
-              <div
-                style={{ fontSize: '10px', color: '#666666', marginTop: '4px' }}
-              >
-                Alphanumeric only. Uppercase. Max {NAME_MAX_LENGTH}.
-              </div>
-              {submitStatus && (
-                <div
-                  style={{
-                    fontSize: '11px',
-                    color: '#a00000',
-                    marginTop: '6px',
-                  }}
-                >
-                  {submitStatus}
-                </div>
-              )}
-            </div>
-            <div style={actionsStyle}>
-              <Button
-                disabled={isSubmitting}
-                label="Skip"
-                onClick={() => void finish('AAA')}
-              />
-              <Button
-                hasFocus
-                disabled={isSubmitting || nameInput.length === 0}
-                label={
-                  <span>
-                    <u>S</u>ubmit
-                  </span>
-                }
-                onClick={() => void finish(nameInput)}
-              />
-            </div>
-          </div>
-        </Window>
+    <div style={rootStyle}>
+      <div style={fakeStopStyle}>
+        {phase === 'fake_bsod'
+          ? 'A fatal exception 0E has occurred at 0028:C0011E36'
+          : 'ON TIME: An immeasurably impressive feat has occurred'}
       </div>
+
+      {phase === 'fake_bsod' ? (
+        <div style={blockStyle}>
+          {'The current application will be terminated.\n\n'}
+          {'* Press any key to terminate the current application.\n'}
+          {'* Press CTRL+ALT+DEL again to restart your computer.\n\n'}
+          {'Error: DEADLINE_OVERFLOW at module WIN96KRN.EXE\n'}
+          {'Collecting crash dump...'}
+        </div>
+      ) : (
+        <Fragment>
+          <div style={blockStyle}>
+            {`System panic aborted: competence detected.\n\n`}
+            {`Enter your handle and lock in your run:\n`}
+            {`TIME  ${elapsedLabel}`}
+          </div>
+
+          <div style={blockStyle}>
+            {'HANDLE  '}
+            <span>{nameInput}</span>
+            <span
+              style={{
+                display: 'inline-block',
+                width: '1ch',
+                marginLeft: '2px',
+              }}
+            >
+              {isCursorVisible ? '_' : ' '}
+            </span>
+          </div>
+
+          <div style={menuRowStyle}>
+            {ACTIONS.map((action, index) => (
+              <span
+                key={action.id}
+                style={{
+                  padding: '5px 7px',
+                  background: index === selectedIndex ? '#ffffff' : 'transparent',
+                  color: index === selectedIndex ? '#0000aa' : '#ffffff',
+                  fontWeight: index === selectedIndex ? 700 : 400,
+                }}
+              >
+                {action.label}
+              </span>
+            ))}
+          </div>
+
+          <div style={blockStyle}>
+            {'Arrow keys: choose action | Type: handle | Enter: confirm'}
+            {submitStatus ? `\n${submitStatus}` : ''}
+          </div>
+        </Fragment>
+      )}
     </div>
   );
 };
