@@ -319,7 +319,10 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
       return;
     }
     if (!isCorrectFileSelected) {
-      setStatus('Upload rejected: final document must be a PNG file.');
+      if (captchaPassed) resetCaptchas(Date.now());
+      setStatus(
+        'Upload rejected: final document must be a PNG file. Verification expired because Compliance enjoys repetition.'
+      );
       return;
     }
     if (!captchaPassed) {

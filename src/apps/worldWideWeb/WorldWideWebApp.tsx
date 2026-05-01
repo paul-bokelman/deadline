@@ -693,9 +693,8 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
                 }
                 setPortalPassword(resetPasswordInput);
                 recordCheckpoint('password_solved');
-                setResetStatus(
-                  'Password updated. Return to CorpPortal and sign in.'
-                );
+                setResetPasswordInput('');
+                setResetStatus('successfully pissed you off');
               }}
             >
               Set Password
@@ -734,9 +733,10 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
             <div
               style={{
                 marginTop: '8px',
-                backgroundColor: 'var(--plastic)',
-                boxShadow: 'var(--bevel-raised)',
-                padding: '8px 10px',
+                backgroundColor: '#e8ffe8',
+                boxShadow: 'var(--bevel-sunken)',
+                color: '#006800',
+                padding: '4px 8px',
               }}
             >
               {resetStatus}
