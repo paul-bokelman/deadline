@@ -1,5 +1,5 @@
 import { appList } from '@/data/appList';
-import { myComputerFs } from '@/data/fileSystem';
+import { rootFs } from '@/data/fileSystem';
 import { AppId } from '@/types/App';
 import { FileSystemDir } from '@/types/FileSystem';
 import { IconId } from '@/types/Icon';
@@ -26,7 +26,7 @@ export const registerDynamicDesktopAppIcon = (
 const findStaticDesktopAppIcon = (appId: AppId): IconId | undefined => {
   const desktopDir: FileSystemDir | undefined = (() => {
     try {
-      return getDirFromPath(DESKTOP_PATH, myComputerFs);
+      return getDirFromPath(DESKTOP_PATH, rootFs);
     } catch {
       return undefined;
     }

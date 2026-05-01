@@ -9,7 +9,7 @@ import {
 } from 'preact/hooks';
 
 import { OpenWindowsContextType } from '@/context/OpenWindowsContext';
-import { myComputerFs } from '@/data/fileSystem';
+import { rootFs } from '@/data/fileSystem';
 import fileTypeList from '@/data/fileTypeList';
 import { gameEventBus } from '@/game/events';
 import { useGameState } from '@/game/state';
@@ -54,7 +54,7 @@ const Desktop: FunctionComponent<Props> = ({
   openApp,
 }: Props) => {
   const { flags, setFlags, rebootGame } = useGameState();
-  const desktopWorkingDir = getDirFromPath('C:/Windows/Desktop', myComputerFs);
+  const desktopWorkingDir = getDirFromPath('C:/Windows/Desktop', rootFs);
   const { files, focusOnFile, removeFocus } = useShellFilesState(
     desktopWorkingDir,
     false

@@ -78,8 +78,8 @@ export const createFs = (
 ): FileSystemDir => {
   const fs: FileSystemDir = {
     dir: {},
-    name: 'My Computer',
-    iconId: 'myComputer',
+    name: 'Explorer',
+    iconId: 'explorer',
     type: 'dir',
   };
   Object.entries(files).forEach(([key, file]) => {

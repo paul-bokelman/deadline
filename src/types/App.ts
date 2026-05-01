@@ -24,7 +24,6 @@ export const appIds = [
   'msn',
   'msDos',
   'msPaint',
-  'myComputer',
   'notepad',
   'phoneDialer',
   'register',

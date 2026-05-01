@@ -117,7 +117,7 @@ const programsOption: OptionType = {
 };
 
 const internetOption = appOption('worldWideWeb', 'Internet');
-const mailOption = appOption('corpMail', 'Mail');
+const mailOption = appOption('corpMail', 'CorpMail');
 const performanceOption = appOption('systemPerformance');
 const antivirusOption = appOption('antiVirus');
 const shutdownOption = appOption('shutdown', 'Reboot...');

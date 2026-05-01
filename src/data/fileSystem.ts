@@ -182,8 +182,8 @@ export const startMenuFs = {
   },
 } as const;
 
-export const myComputerFs = {
-  name: 'My Computer',
+export const rootFs = {
+  name: 'Explorer',
   iconId: appList.explorer.iconId,
   type: 'dir',
   dir: {
@@ -191,6 +191,6 @@ export const myComputerFs = {
   },
 } as const;
 
-const typedMyComputerFs: FileSystemDir = myComputerFs as typeof myComputerFs;
+const typedRootFs: FileSystemDir = rootFs as typeof rootFs;
 
-export default typedMyComputerFs;
+export default typedRootFs;

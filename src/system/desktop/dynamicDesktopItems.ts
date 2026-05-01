@@ -1,5 +1,5 @@
 import fileTypeList from '@/data/fileTypeList';
-import { myComputerFs } from '@/data/fileSystem';
+import { rootFs } from '@/data/fileSystem';
 import { getZipNameForLevel } from '@/game/download/archive';
 import { GameFlags } from '@/game/state';
 import { registerOnReboot } from '@/system/lifecycle';
@@ -38,7 +38,7 @@ ${key}`;
 };
 
 const syncAttachmentKeyFileContent = (): void => {
-  const keyFile = getFileFromPath(ATTACHMENT_KEY_FILE_PATH, myComputerFs);
+  const keyFile = getFileFromPath(ATTACHMENT_KEY_FILE_PATH, rootFs);
   if (!keyFile) return;
   keyFile.content = renderAttachmentKeyFileContent(attachmentDecryptionKey);
 };

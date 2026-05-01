@@ -148,11 +148,6 @@ export const appList: AppList = {
     name: 'Paint',
     size: { width: 400, height: 177 },
   },
-  myComputer: {
-    id: 'myComputer',
-    iconId: 'myComputer',
-    name: 'My Computer',
-  },
   notepad: {
     id: 'notepad',
     iconId: 'notepad',

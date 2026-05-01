@@ -76,7 +76,6 @@ export const iconIds = [
   'microsoftMoney99',
   'multimedia',
   'music',
-  'myComputer',
   'network',
   'networkNeighborhood',
   'netVoiceHandset',

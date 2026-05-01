@@ -20,7 +20,7 @@ import WinRarExtractor from './winrar/WinRarExtractor';
 import WorldWideWebApp from './worldWideWeb/WorldWideWebApp';
 import WinRarInstaller from '../stages/download/WinRarInstaller';
 import { AppId, AppProps } from '../types/App';
-import MyComputerApp from './MyComputerApp/MyComputerApp';
+import ExplorerApp from './ExplorerApp/ExplorerApp';
 import NotepadApp from './NotepadApp/NotepadApp';
 import QuickViewApp from './QuickViewApp/QuickViewApp';
 import NetVoiceCallApp from './NetVoiceCallApp/NetVoiceCallApp';
@@ -55,7 +55,7 @@ export const appComponents: Record<AppId, FunctionComponent<AppProps>> = {
   clickMeReset: ClickMeApp,
   defrag: VoidApp,
   exchange: VoidApp,
-  explorer: MyComputerApp,
+  explorer: ExplorerApp,
   find: VoidApp,
   findComputer: VoidApp,
   findMsn: VoidApp,
@@ -65,7 +65,6 @@ export const appComponents: Record<AppId, FunctionComponent<AppProps>> = {
   msn: VoidApp,
   msDos: VoidApp,
   msPaint: VoidApp,
-  myComputer: VoidApp,
   notepad: NotepadApp,
   phoneDialer: VoidApp,
   register: VoidApp,

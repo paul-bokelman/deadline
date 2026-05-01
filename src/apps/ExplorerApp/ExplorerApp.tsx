@@ -3,7 +3,7 @@ import { h, FunctionComponent } from 'preact';
 import { AppProps } from '@/types/App';
 import { ShellItem } from '@/types/Shell';
 import { DirType } from '@/types/FileSystem';
-import myComputerFs from '@/data/fileSystem';
+import rootFs from '@/data/fileSystem';
 import fileTypeList from '@/data/fileTypeList';
 import useShellFilesState from '@/hooks/useShellFilesState';
 
@@ -41,12 +41,12 @@ const getMenuBarOption = (dirType: DirType): string[] => {
   return MENU_BAR.DEFAULT;
 };
 
-const MyComputerApp: FunctionComponent<AppProps> = ({
+const ExplorerApp: FunctionComponent<AppProps> = ({
   openApp,
   workingDir,
 }: AppProps) => {
   const { files, focusOnFile, removeFocus } = useShellFilesState(
-    workingDir ?? myComputerFs,
+    workingDir ?? rootFs,
     !!workingDir
   );
   const dirType: DirType = workingDir?.dirType ?? 'default';
@@ -93,4 +93,4 @@ const MyComputerApp: FunctionComponent<AppProps> = ({
   );
 };
 
-export default MyComputerApp;
+export default ExplorerApp;
