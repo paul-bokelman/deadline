@@ -41,7 +41,7 @@ import {
   portalHeaderSubStyle,
   portalHeaderTitleStyle,
   PORTAL_RESET_EMAIL_ID,
-  PORTAL_RESET_EVENT_ID,
+  PORTAL_RESET_FAKE_EMAIL_ID,
   REQUIRED_REPORT_FILE_ID,
   REQUIRED_REPORT_FILE_NAME,
   REQUIRED_REPORT_FILE_TYPE,
@@ -139,8 +139,6 @@ const PixelHeart: FunctionComponent<{ lost?: boolean }> = ({
 const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
   const {
     flags,
-    hasEventFired,
-    markEventFired,
     setFlags,
     setStage,
     rebootGame,
@@ -416,9 +414,10 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
     setLoginEmail(normalized);
     setResetStatus('Email reset sent.');
 
-    if (hasEventFired(PORTAL_RESET_EVENT_ID)) return;
-    markEventFired(PORTAL_RESET_EVENT_ID);
     gameEventBus.emit('email:delivered', { emailId: PORTAL_RESET_EMAIL_ID });
+    gameEventBus.emit('email:delivered', {
+      emailId: PORTAL_RESET_FAKE_EMAIL_ID,
+    });
   };
 
   return (

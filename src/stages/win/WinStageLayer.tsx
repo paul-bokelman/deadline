@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 import { useGameState } from '@/game/state';
 import { gameEventBus } from '@/game/events';
 import {
+  clearRunSession,
   getSubmittedElapsedMs,
   setSubmittedElapsedMs,
 } from '@/system/runTimer/runTimer';
@@ -88,6 +89,7 @@ const WinStageLayer: FunctionComponent = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isCursorVisible, setIsCursorVisible] = useState(true);
+  const [isBootloaderActive, setIsBootloaderActive] = useState(false);
 
   const isVisible = stage === 'win';
 
@@ -103,6 +105,19 @@ const WinStageLayer: FunctionComponent = () => {
     }, BSOD_FAKEOUT_MS);
     return () => window.clearTimeout(timeoutId);
   }, [isVisible]);
+
+  useEffect(() => {
+    const offStarted = gameEventBus.on('bootloader:started', () => {
+      setIsBootloaderActive(true);
+    });
+    const offEnded = gameEventBus.on('bootloader:ended', () => {
+      setIsBootloaderActive(false);
+    });
+    return () => {
+      offStarted();
+      offEnded();
+    };
+  }, []);
 
   useEffect(() => {
     if (!isVisible || phase !== 'victory_prompt') return;
@@ -161,6 +176,11 @@ const WinStageLayer: FunctionComponent = () => {
   const elapsedMs = Math.max(0, getSubmittedElapsedMs() ?? 0);
   const elapsedLabel = useMemo(() => formatTime(elapsedMs), [elapsedMs]);
 
+  const rebootToFreshRun = (): void => {
+    clearRunSession();
+    rebootGame();
+  };
+
   const submitAndReboot = async (): Promise<void> => {
     if (isSubmitting) return;
     const sanitized = sanitizeLeaderboardName(nameInput);
@@ -171,7 +191,7 @@ const WinStageLayer: FunctionComponent = () => {
 
     if (!isApiConfigured()) {
       setLeaderboardPlayerEntry(sanitized, elapsedMs);
-      rebootGame();
+      rebootToFreshRun();
       return;
     }
 
@@ -196,7 +216,7 @@ const WinStageLayer: FunctionComponent = () => {
     if (result.ok) {
       setSubmittedElapsedMs(result.ms);
       setSubmitStatus('Submission successful. Rebooting...');
-      window.setTimeout(() => rebootGame(), 250);
+      window.setTimeout(() => rebootToFreshRun(), 250);
       return;
     }
 
@@ -210,7 +230,7 @@ const WinStageLayer: FunctionComponent = () => {
     }
     if (result.error.code === 'ALREADY_SUBMITTED') {
       setSubmitStatus('This run was already submitted. Rebooting...');
-      window.setTimeout(() => rebootGame(), 500);
+      window.setTimeout(() => rebootToFreshRun(), 500);
       return;
     }
     setSubmitStatus(`Submission failed: ${result.error.message}`);
@@ -222,7 +242,7 @@ const WinStageLayer: FunctionComponent = () => {
       void submitAndReboot();
       return;
     }
-    rebootGame();
+    rebootToFreshRun();
   };
 
   useEffect(() => {
@@ -273,7 +293,7 @@ const WinStageLayer: FunctionComponent = () => {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isVisible, phase, nameInput, selectedIndex, submitStatus, isSubmitting]);
 
-  if (!isVisible) return null;
+  if (!isVisible || isBootloaderActive) return null;
 
   return (
     <div style={rootStyle}>

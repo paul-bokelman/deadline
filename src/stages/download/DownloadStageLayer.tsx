@@ -10,6 +10,7 @@ const IT_GUY_INTRO_TRIGGER_EVENT_ID = 'download:it_guy_intro:triggered';
 
 const DownloadStageLayer: FunctionComponent = () => {
   const {
+    activeNetVoiceCallId,
     flags,
     hasEventFired,
     markEventFired,
@@ -19,20 +20,35 @@ const DownloadStageLayer: FunctionComponent = () => {
     triggerNetVoiceCall,
   } = useGameState();
 
+  const deliverGregZip = () => {
+    setFlag('hasZipFile', true);
+    setFlag('zipExtractionLevel', 1);
+    setFlag('zipGarbageBatch', 0);
+    setFlag('hasQueuedGregDrop', false);
+  };
+
   useEffect(() => {
     const unsubscribeCallEnded = gameEventBus.on(
       'netvoice:call_ended',
       ({ callId }) => {
         if (callId === 'it_guy_intro') {
-          setFlag('hasZipFile', true);
-          setFlag('zipExtractionLevel', 1);
-          setFlag('zipGarbageBatch', 0);
+          deliverGregZip();
         }
       }
     );
 
     return unsubscribeCallEnded;
-  }, [hasEventFired, markEventFired, setFlag, triggerNetVoiceCall]);
+  }, [setFlag]);
+
+  useEffect(() => {
+    if (!flags.hasQueuedGregDrop) return;
+    if (flags.hasZipFile) {
+      setFlag('hasQueuedGregDrop', false);
+      return;
+    }
+    if (activeNetVoiceCallId !== null) return;
+    deliverGregZip();
+  }, [activeNetVoiceCallId, flags.hasQueuedGregDrop, flags.hasZipFile, setFlag]);
 
   const handleStartDownload = () => {
     setFlag('hasDownloadStarted', true);
@@ -42,6 +58,7 @@ const DownloadStageLayer: FunctionComponent = () => {
 
   const handleProgressFailure = () => {
     setFlag('hasDownloadFailed', true);
+    setFlag('hasQueuedGregDrop', true);
 
     if (!hasEventFired(IT_GUY_INTRO_TRIGGER_EVENT_ID)) {
       markEventFired(IT_GUY_INTRO_TRIGGER_EVENT_ID);

@@ -68,6 +68,7 @@ const createMockState = (
     hasDesktopScrambled: false,
     hasDownloadFailed: false,
     hasDownloadStarted: false,
+    hasQueuedGregDrop: false,
     hasEmailAccess: true,
     hasFinalReportFile: false,
     hasFoundCorrectEmail: false,

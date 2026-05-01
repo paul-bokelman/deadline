@@ -195,6 +195,6 @@ export const REQUIRED_REPORT_FILE_NAME =
   'FINAL_v2_FINAL_actuallyfinal_USE_THIS_ONE_REAL_v3.png';
 export const REQUIRED_REPORT_FILE_TYPE = 'pngFile';
 export const PORTAL_RESET_EMAIL_ID = 'corp-password-reset-link';
-export const PORTAL_RESET_EVENT_ID = 'portal:password-reset:sent';
+export const PORTAL_RESET_FAKE_EMAIL_ID = 'corp-password-reset-link-fake';
 
 export const CAPTCHA_LIVES_TOTAL = 3;

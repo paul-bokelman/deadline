@@ -1,5 +1,5 @@
 import { h, FunctionComponent, JSX } from 'preact';
-import { useContext, useEffect, useState } from 'preact/hooks';
+import { useCallback, useContext, useEffect, useState } from 'preact/hooks';
 
 import OpenWindowsContext from '@/context/OpenWindowsContext';
 import { gameEventBus } from '@/game/events';
@@ -67,6 +67,7 @@ const rebootStyle: JSX.CSSProperties = {
 const BluescreenSequence: FunctionComponent = () => {
   const { openApp } = useContext(OpenWindowsContext);
   const {
+    flags,
     hasEventFired,
     markEventFired,
     rebootGame,
@@ -79,15 +80,24 @@ const BluescreenSequence: FunctionComponent = () => {
   const [cursorPos, setCursorPos] = useState({ x: 120, y: 120 });
   const [isRemoteBannerVisible, setIsRemoteBannerVisible] = useState(false);
 
+  const triggerAssistantCallIfNeeded = useCallback(() => {
+    if (hasEventFired(ASSISTANT_CALL_EVENT_ID)) return;
+    markEventFired(ASSISTANT_CALL_EVENT_ID);
+    triggerNetVoiceCall('assistant_portal_intro');
+  }, [hasEventFired, markEventFired, triggerNetVoiceCall]);
+
+  useEffect(() => {
+    if (!flags.hasFinalReportFile) return;
+    triggerAssistantCallIfNeeded();
+  }, [flags.hasFinalReportFile, triggerAssistantCallIfNeeded]);
+
   useEffect(() => {
     let cleanupTimerId: number | null = null;
 
     const unsubscribeReportOpened = gameEventBus.on(
       'file:real_report_opened',
       () => {
-        if (hasEventFired(ASSISTANT_CALL_EVENT_ID)) return;
-        markEventFired(ASSISTANT_CALL_EVENT_ID);
-        triggerNetVoiceCall('assistant_portal_intro');
+        triggerAssistantCallIfNeeded();
       }
     );
 
@@ -120,7 +130,7 @@ const BluescreenSequence: FunctionComponent = () => {
       unsubscribeReportOpened();
       unsubscribeCallEnded();
     };
-  }, [hasEventFired, markEventFired, setFlag, triggerNetVoiceCall]);
+  }, [setFlag, hasEventFired, markEventFired, triggerNetVoiceCall, triggerAssistantCallIfNeeded]);
 
   useEffect(() => {
     if (phase !== 'remote') return;

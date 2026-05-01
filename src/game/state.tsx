@@ -33,6 +33,7 @@ export interface GameFlags {
   hasUnlockedAttachment: boolean;
   hasDownloadStarted: boolean;
   hasDownloadFailed: boolean;
+  hasQueuedGregDrop: boolean;
   hasZipFile: boolean;
   hasWinRarInstalled: boolean;
   hasFinalReportFile: boolean;
@@ -84,6 +85,7 @@ const initialFlags: GameFlags = {
   hasUnlockedAttachment: false,
   hasDownloadStarted: false,
   hasDownloadFailed: false,
+  hasQueuedGregDrop: false,
   hasZipFile: false,
   hasWinRarInstalled: false,
   hasFinalReportFile: false,
