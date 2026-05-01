@@ -51,60 +51,6 @@ export const hardDriveFs = createFs(
   ),
   '../assets/fs/content/c-drive'
 );
-export const controlPanelFs = createFs(
-  mergeGlobRecords(
-    import.meta.glob('../assets/fs/content/control-panel/**/*.ts', {
-      eager: true,
-    }),
-    import.meta.glob('../assets/fs/content/control-panel/**/*.{jpg,png}', {
-      eager: true,
-      import: 'default',
-    }),
-    import.meta.glob('../assets/fs/content/control-panel/**/*.txt', {
-      eager: true,
-      query: '?raw',
-      import: 'default',
-    })
-  ),
-  '../assets/fs/content/control-panel'
-);
-export const printersFs = createFs(
-  mergeGlobRecords(
-    import.meta.glob('../assets/fs/content/printers/**/*.ts', {
-      eager: true,
-    }),
-    import.meta.glob('../assets/fs/content/printers/**/*.{jpg,png}', {
-      eager: true,
-      import: 'default',
-    }),
-    import.meta.glob('../assets/fs/content/printers/**/*.txt', {
-      eager: true,
-      query: '?raw',
-      import: 'default',
-    })
-  ),
-  '../assets/fs/content/printers'
-);
-export const dialUpNetworkFs = createFs(
-  mergeGlobRecords(
-    import.meta.glob('../assets/fs/content/dial-up-networking/**/*.ts', {
-      eager: true,
-    }),
-    import.meta.glob(
-      '../assets/fs/content/dial-up-networking/**/*.{jpg,png}',
-      {
-        eager: true,
-        import: 'default',
-      }
-    ),
-    import.meta.glob('../assets/fs/content/dial-up-networking/**/*.txt', {
-      eager: true,
-      query: '?raw',
-      import: 'default',
-    })
-  ),
-  '../assets/fs/content/dial-up-networking'
-);
 export const startMenuFs = {
   name: 'Start Menu',
   type: 'dir',
@@ -129,13 +75,6 @@ export const startMenuFs = {
       iconId: 'settings',
       type: 'dir',
       dir: {
-        controlPanel: {
-          iconId: 'controlPanel',
-          dirPath: 'controlPanel',
-          name: 'Control Panel',
-          toAppId: 'explorer',
-          type: 'shortcut',
-        },
         printers: {
           name: 'Printers',
           iconId: 'printers',
