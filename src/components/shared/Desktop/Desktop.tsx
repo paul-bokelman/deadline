@@ -150,7 +150,10 @@ const Desktop: FunctionComponent<Props> = ({
   useEffect(() => {
     setIconPositions((current) => {
       const next: Record<string, IconPosition> = {};
-      const { maxLeft, maxTop } = getDesktopMaxBounds(desktopSize.w, desktopSize.h);
+      const { maxLeft, maxTop } = getDesktopMaxBounds(
+        desktopSize.w,
+        desktopSize.h
+      );
       const occupiedPositions = new Set<string>();
 
       const buildOrderedSlots = (): IconPosition[] => {
@@ -246,6 +249,16 @@ const Desktop: FunctionComponent<Props> = ({
 
     return () => unsubscribeScatter();
   }, [desktopItems, desktopSize.h, desktopSize.w, removeFocus]);
+
+  useEffect(() => {
+    const unsubscribeRebooted = gameEventBus.on('game:rebooted', () => {
+      setIconPositions({});
+      setFocusedDynamicItemId(null);
+      setSelectedIds(new Set());
+      removeFocus();
+    });
+    return () => unsubscribeRebooted();
+  }, [removeFocus]);
 
   useEffect(() => {
     return () => {
@@ -369,7 +382,10 @@ const Desktop: FunctionComponent<Props> = ({
 
   const clampToDesktop = useCallback(
     (left: number, top: number): { left: number; top: number } => {
-      const { maxLeft, maxTop } = getDesktopMaxBounds(desktopSize.w, desktopSize.h);
+      const { maxLeft, maxTop } = getDesktopMaxBounds(
+        desktopSize.w,
+        desktopSize.h
+      );
       return {
         left: clamp(left, ICON_PADDING_X, maxLeft),
         top: clamp(top, ICON_PADDING_Y, maxTop),
@@ -428,7 +444,10 @@ const Desktop: FunctionComponent<Props> = ({
       Math.abs(rawDy) > DRAG_THRESHOLD_PX;
     if (!hasMoved) return;
 
-    const { maxLeft, maxTop } = getDesktopMaxBounds(desktopSize.w, desktopSize.h);
+    const { maxLeft, maxTop } = getDesktopMaxBounds(
+      desktopSize.w,
+      desktopSize.h
+    );
 
     let groupMinLeft = Infinity;
     let groupMinTop = Infinity;

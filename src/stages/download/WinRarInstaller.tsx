@@ -11,8 +11,6 @@ type InstallerPhase =
   | 'installing'
   | 'purchase'
   | 'updatePrompt'
-  | 'updating'
-  | 'complete'
   | 'done';
 
 const trackStyle: JSX.CSSProperties = {
@@ -90,17 +88,10 @@ const INSTALL_PROGRESS_BEHAVIOR = scaleProgressBehavior(
   }
 );
 
-// "70% quicker" => ~30% of original duration.
-const UPDATE_PROGRESS_BEHAVIOR = scaleProgressBehavior(BASE_PROGRESS_BEHAVIOR, {
-  delayScale: 0.3,
-  incrementScale: 1 / 0.3,
-  pauseScale: 0.3,
-});
-
 const WinRarInstaller: FunctionComponent<AppProps> = ({
   closeWindow,
 }: AppProps) => {
-  const { flags, setFlag, setFlags } = useGameState();
+  const { flags, rebootGame, setFlag, setFlags } = useGameState();
   const [phase, setPhase] = useState<InstallerPhase>(
     flags.hasPurchasedWinRar ? 'installing' : 'purchase'
   );
@@ -114,7 +105,7 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
   }, [flags.hasPurchasedWinRar, phase]);
 
   useEffect(() => {
-    if (phase === 'installing' || phase === 'updating') {
+    if (phase === 'installing') {
       loadingSfxRef.current.start();
       return;
     }
@@ -153,37 +144,6 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
 
       if (nextProgress >= 100) {
         setPhase('updatePrompt');
-        return;
-      }
-
-      timeoutId = window.setTimeout(tick, step.delayMs);
-    };
-
-    timeoutId = window.setTimeout(tick, 300);
-    return () => {
-      if (timeoutId !== null) window.clearTimeout(timeoutId);
-    };
-  }, [phase]);
-
-  useEffect(() => {
-    if (phase !== 'updating') return;
-
-    setProgress(0);
-
-    let timeoutId: number | null = null;
-    let nextProgress = 0;
-
-    const tick = () => {
-      const step = getErraticProgressStep(
-        nextProgress,
-        100,
-        UPDATE_PROGRESS_BEHAVIOR
-      );
-      nextProgress = step.nextProgress;
-      setProgress(nextProgress);
-
-      if (nextProgress >= 100) {
-        setPhase('complete');
         setFlag('hasWinRarInstalled', true);
         gameEventBus.emit('popup:test_spawn_random', { x: 220, y: 140 });
         return;
@@ -196,7 +156,7 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
     return () => {
       if (timeoutId !== null) window.clearTimeout(timeoutId);
     };
-  }, [phase, setFlag]);
+  }, [phase]);
 
   if (phase === 'done') {
     return (
@@ -266,37 +226,14 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
       {phase === 'updatePrompt' && (
         <div>
           <div>
-            WinRAR requires a software update before it can be used. Update now?
+            WinRAR is installed, but a suspicious "critical update" is being
+            pushed. Clicking update will immediately reboot your machine.
           </div>
-          <button onClick={() => setPhase('updating')} style={buttonStyle}>
-            Update Now
-          </button>
-        </div>
-      )}
-
-      {phase === 'updating' && (
-        <div>
-          <div>Updating...</div>
-          <div style={trackStyle}>
-            <div
-              style={{
-                width: `${progress}%`,
-                height: '100%',
-                backgroundColor: '#000080',
-              }}
-            />
+          <div style={{ marginTop: '8px' }}>
+            Close this window with the titlebar <b>X</b> to continue safely.
           </div>
-        </div>
-      )}
-
-      {phase === 'complete' && (
-        <div>
-          <div>
-            Update complete. WinRAR is ready and your ZIP archive can now be
-            extracted from Program Select.
-          </div>
-          <button onClick={closeWindow} style={buttonStyle}>
-            OK
+          <button onClick={rebootGame} style={buttonStyle} type="button">
+            Update Now (Reboot)
           </button>
         </div>
       )}
