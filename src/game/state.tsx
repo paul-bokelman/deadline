@@ -56,6 +56,7 @@ export interface GameFlags {
   hasReceivedWinRarLinkEmail: boolean;
   dynamicFileTypeOverrides: Partial<Record<string, FileTypeId>>;
   dynamicFileNameOverrides: Partial<Record<string, string>>;
+  hasConverterOutputBatch?: boolean;
   recycledDesktopApps: Partial<Record<string, string>>;
 }
 
@@ -106,6 +107,7 @@ const initialFlags: GameFlags = {
   hasReceivedWinRarLinkEmail: false,
   dynamicFileTypeOverrides: {},
   dynamicFileNameOverrides: {},
+  hasConverterOutputBatch: false,
   recycledDesktopApps: {},
 };
 

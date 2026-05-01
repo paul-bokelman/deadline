@@ -355,7 +355,7 @@ const WireGlyph: FunctionComponent<{
 const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({
   closeWindow,
 }) => {
-  const { flags, hasEventFired, markEventFired, setFlag } = useGameState();
+  const { hasEventFired, markEventFired } = useGameState();
 
   const [tiles, setTiles] = useState<TileDef[]>(() =>
     buildChallengingScramble()
@@ -373,15 +373,6 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({
     if (hasEventFired(COMPLETED_EVENT_ID)) return;
 
     markEventFired(COMPLETED_EVENT_ID);
-    if (!flags.hasReceivedWinRarLinkEmail) {
-      setFlag('hasReceivedWinRarLinkEmail', true);
-      gameEventBus.emit('email:delivered', {
-        emailId: 'corp-winrar-download-link',
-      });
-      gameEventBus.emit('email:delivered', {
-        emailId: 'corp-winrar-download-link-fake',
-      });
-    }
     gameEventBus.emit('email:delivered', {
       emailId: 'corp-password-reset-link',
     });
@@ -390,14 +381,7 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({
       closeWindow();
     }, 850);
     return () => window.clearTimeout(timer);
-  }, [
-    closeWindow,
-    flags.hasReceivedWinRarLinkEmail,
-    hasEventFired,
-    isSolved,
-    markEventFired,
-    setFlag,
-  ]);
+  }, [closeWindow, hasEventFired, isSolved, markEventFired]);
 
   const boardStyle: JSX.CSSProperties = {
     gridTemplateColumns: `repeat(${BOARD_W}, ${TILE_SIZE}px)`,

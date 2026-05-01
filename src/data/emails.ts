@@ -384,51 +384,54 @@ const CORP_INBOX_NOISE: EmailRecord[] = [
       };
     }
   ),
+];
+
+const CORP_WINRAR_ADS: EmailRecord[] = [
   {
     id: 'corp-winrar-download-link',
     accountId: 'corpMail',
     folder: 'inbox',
-    sender: 'it-helpdesk@corp.internal',
-    subject: 'WinRAR download link',
-    timestamp: '12:11',
-    preview: 'Use this link to download WinRAR for the zip.',
+    sender: 'downloads@win-rar.com',
+    subject: 'Sponsored: WinRAR download link',
+    timestamp: '08:43',
+    preview: 'Official WinRAR download for opening compressed archives.',
     body: 'Use this URL to download WinRAR: https://www.win-rar.com/',
     bodyHtml: richBody(
       [
-        'Download WinRAR from the link below so this zip stops bullying everyone:',
+        '<strong>Advertisement</strong>: Open compressed archives with the classic tiny-books utility.',
         '<a href="https://www.win-rar.com/">https://www.win-rar.com/</a>',
       ],
       [
-        'Use browser download page, then launch WinRAR installer.',
-        'Do not use random third-party mirrors unless you enjoy mystery malware.',
+        'Official download page.',
+        'Free trial, emotionally permanent.',
+        'Launch WinRAR_installer.exe after downloading.',
       ]
     ),
-    requiresGameFlag: 'hasReceivedWinRarLinkEmail',
     deliveryRule: EMAIL_ACCESS_RULE,
   },
   {
     id: 'corp-winrar-download-link-fake',
     accountId: 'corpMail',
     folder: 'inbox',
-    sender: 'it-helpdesk-security@corp.internal',
-    subject: 'WinRAR mirror (urgent fallback link)',
-    timestamp: '12:12',
-    preview: 'Fallback WinRAR link if the main site is slow.',
+    sender: 'winrar-deals@secure-download-support.com',
+    subject: 'Sponsored: WinRAR mirror - faster urgent download',
+    timestamp: '08:44',
+    preview: 'Totally safe fallback mirror with urgent download energy.',
     body:
       'Use fallback WinRAR mirror: https://winrar-secure-download-support.com/',
     bodyHtml: richBody(
       [
-        'If the official site is slow, use this backup mirror immediately:',
+        '<strong>Advertisement</strong>: Official-looking download mirror for busy professionals who click first.',
         '<a href="https://winrar-secure-download-support.com/">https://winrar-secure-download-support.com/</a>',
       ],
       [
-        'Mirror verified by "security relay".',
-        'Install quickly so extraction can continue.',
+        'Mirror verified by security-looking badges.',
+        'Faster than reading the URL carefully.',
+        'Install quickly before common sense loads.',
       ]
     ),
     isMalwareTrap: true,
     malwarePopupBurstCountOnEmailOpen: 5,
-    requiresGameFlag: 'hasReceivedWinRarLinkEmail',
     deliveryRule: EMAIL_ACCESS_RULE,
   },
 ];
@@ -577,6 +580,7 @@ export const allEmails: EmailRecord[] = [
   ...buildPersonalEmails(),
   ...LEGACY_CORP_MAIL,
   ...CORP_INBOX_NOISE,
+  ...CORP_WINRAR_ADS,
   ...CORP_SPAM_FAKE_Q3,
   CORP_PORTAL_PASSWORD_RESET_SPAM,
   ...CORP_PROMOTIONS,

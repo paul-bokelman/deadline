@@ -10,7 +10,7 @@ export type OpenWindow = {
   canMinimize?: boolean;
   coords: { x: number; y: number };
   hasFocus: boolean;
-  iconId: IconId;
+  iconId?: IconId;
   id: string;
   isDraggable: boolean;
   isMaximized: boolean;
@@ -18,6 +18,7 @@ export type OpenWindow = {
   isResizeable: boolean;
   showCloseButton?: boolean;
   showMaximizeButton?: boolean;
+  showInTaskbar?: boolean;
   sizeMode?: 'fixed' | 'content';
   size: { x: number; y: number };
   title: string;

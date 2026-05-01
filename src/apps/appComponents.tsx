@@ -14,7 +14,8 @@ import MinesweeperApp from './minesweeper/MinesweeperApp';
 import PortalApp from './portal/PortalApp';
 import RecycleBinApp from './recycleBin/RecycleBinApp';
 import RemoteDesktopCableFixApp from './remoteDesktopCableFix/RemoteDesktopCableFixApp';
-import WinRarExtractor from './winrar/WinRarExtractor';
+import OpenWith from './openWith/OpenWith';
+import WinRarArchive from './openWith/WinRarArchive';
 import WorldWideWebApp from './worldWideWeb/WorldWideWebApp';
 import WinRarInstaller from '../stages/download/WinRarInstaller';
 import { AppId, AppProps } from '../types/App';
@@ -56,7 +57,8 @@ export const appComponents: Record<AppId, FunctionComponent<AppProps>> = {
   corpMailLegacy: CorpMailLegacyApp,
   netVoiceCall: NetVoiceCallApp,
   winRarInstaller: WinRarInstaller,
-  zipArchive: WinRarExtractor,
+  winRarArchive: WinRarArchive,
+  zipArchive: OpenWith,
   portal: PortalApp,
   blackjack: BlackjackApp,
   leaderboard: LeaderboardApp,

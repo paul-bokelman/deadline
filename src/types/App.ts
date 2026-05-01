@@ -21,6 +21,7 @@ export const appIds = [
   'corpMailLegacy',
   'netVoiceCall',
   'winRarInstaller',
+  'winRarArchive',
   'zipArchive',
   'portal',
   'blackjack',

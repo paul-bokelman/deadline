@@ -116,7 +116,7 @@ export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
       'draftDocumentLink',
       'MyProgram.fun'
     ),
-    createAppShellItem('file-converter', 'fileConverter', 'File Converter'),
+    createAppShellItem('file-converter', 'fileConverter', 'Conversion Wizard'),
     createAppShellItem(
       'system-performance',
       'systemPerformance',
@@ -231,6 +231,35 @@ export const getDynamicDesktopItems = (flags: GameFlags): ShellItem[] => {
         'Q3 REPORT\n\nRevenue was stable across core product lines while support costs rose due to legacy migration work. Gross margin held within expected range after temporary hosting spikes in July.\n\nCustomer retention improved in enterprise accounts, but expansion revenue lagged forecast in the mid-market segment. Sales cycle length increased by roughly two weeks as procurement review tightened.\n\nOperationally, incident count fell quarter-over-quarter, though mean time to recovery remains above target in off-hours windows. Recommended action for Q4: prioritize deployment automation and account handoff playbooks.',
         fileTypeOverrides['q3-real-report'],
         fileNameOverrides['q3-real-report']
+      )
+    );
+  }
+
+  if (flags.hasConverterOutputBatch) {
+    dynamicItems.push(
+      createFileShellItem(
+        'q3-report-decoy-backup',
+        'pngFile',
+        'FINAL_v2_FINAL_actuallyfinal_USE_THIS_ONE_REAL_v3_backup.png',
+        'A backup image that looks official until it starts making eye contact.'
+      ),
+      createFileShellItem(
+        'q3-report-decoy-do-not-use',
+        'pngFile',
+        'FINAL_v2_FINAL_actuallyfinal_USE_THIS_ONE_REAL_v3_DO_NOT_USE.png',
+        'The filename is legally binding, probably.'
+      ),
+      createFileShellItem(
+        'q3-report-decoy-preview',
+        'pngFile',
+        'FINAL_v2_FINAL_actuallyfinal_USE_THIS_ONE_REAL_v3_print_preview.png',
+        'Preview-only executive pixels. Do not submit unless you enjoy loops.'
+      ),
+      createFileShellItem(
+        'q3-report-decoy-old',
+        'jpegFile',
+        'FINAL_v2_FINAL_actuallyfinal_USE_THIS_ONE_REAL_v3_old.jpeg',
+        'A wrong-format fossil from a darker sprint.'
       )
     );
   }

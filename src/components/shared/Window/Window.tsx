@@ -119,20 +119,23 @@ const Window: FunctionComponent<Props> = ({
       return;
     }
 
-    const frameWidth = windowElement.offsetWidth - windowElement.clientWidth;
-    const chromeWidth = Math.max(
-      0,
-      windowElement.offsetWidth - fitElement.offsetWidth
-    );
+    const windowStyle = getComputedStyle(windowElement);
+    const windowPaddingX =
+      Number.parseFloat(windowStyle.paddingLeft) +
+      Number.parseFloat(windowStyle.paddingRight);
+    const windowPaddingY =
+      Number.parseFloat(windowStyle.paddingTop) +
+      Number.parseFloat(windowStyle.paddingBottom);
+    const windowMainElement = fitElement.parentElement;
+    const windowMainStyle = windowMainElement
+      ? getComputedStyle(windowMainElement)
+      : null;
+    const windowMainMarginTop = windowMainStyle
+      ? Number.parseFloat(windowMainStyle.marginTop)
+      : 0;
+    const chromeWidth = windowPaddingX;
     const chromeHeight =
-      titleBarElement.offsetHeight +
-      Math.max(
-        0,
-        windowElement.offsetHeight -
-          titleBarElement.offsetHeight -
-          fitElement.offsetHeight
-      ) +
-      frameWidth;
+      titleBarElement.offsetHeight + windowPaddingY + windowMainMarginTop;
     const nextSize = {
       x: Math.ceil(fitElement.scrollWidth + chromeWidth),
       y: Math.ceil(fitElement.scrollHeight + chromeHeight),

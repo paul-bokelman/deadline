@@ -5,6 +5,7 @@ export const iconIds = [
   'briefcase',
   'cdTrack',
   'controlPanel',
+  'conversionWizard',
   'clock1',
   'cleanDrive1',
   'dialUpNetwork',

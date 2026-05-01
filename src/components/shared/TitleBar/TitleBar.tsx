@@ -53,9 +53,11 @@ const TitleBar: FunctionComponent<Props> = ({
       onDblClick={onDblClickTitleBar}
       ref={innerRef}
     >
-      <div className={style.titleBarIcon}>
-        {!!iconId && <Icon iconId={iconId} />}
-      </div>
+      {!!iconId && (
+        <div className={style.titleBarIcon}>
+          <Icon iconId={iconId} />
+        </div>
+      )}
       <div className={style.titleBarText}>{title}</div>
       <div className={style.titleBarControls}>
         {onClickMinimize && (

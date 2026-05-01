@@ -76,6 +76,11 @@ const createInitialOpenWindows = (): OpenWindow[] => {
     x: timerApp.size ? timerApp.size.width : 300,
     y: timerApp.size ? timerApp.size.height : 300,
   });
+  const archiveApp = appList.zipArchive;
+  const archiveSize = clampWindowSizeToViewport({
+    x: archiveApp.size ? archiveApp.size.width : DEFAULT_WINDOW_WIDTH,
+    y: archiveApp.size ? archiveApp.size.height : DEFAULT_WINDOW_HEIGHT,
+  });
   return [
     {
       app: timerApp,
@@ -95,6 +100,26 @@ const createInitialOpenWindows = (): OpenWindow[] => {
       sizeMode: timerApp.sizeMode,
       title: timerApp.name,
       zIndex: Z_INDEX_TIERS.normalBase,
+    },
+    {
+      app: archiveApp,
+      canMaximize: false,
+      canMinimize: false,
+      coords: clampWindowCoordsToViewport({ x: 86, y: 96 }, archiveSize),
+      hasFocus: false,
+      iconId: undefined,
+      id: crypto.randomUUID(),
+      isDraggable: archiveApp.isDraggable ?? true,
+      isMaximized: false,
+      isMinimized: false,
+      isResizeable: archiveApp.isResizeable ?? true,
+      showCloseButton: true,
+      showMaximizeButton: false,
+      showInTaskbar: false,
+      size: archiveSize,
+      sizeMode: archiveApp.sizeMode,
+      title: archiveApp.name,
+      zIndex: Z_INDEX_TIERS.normalBase + 1,
     },
   ];
 };
@@ -126,7 +151,13 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
 
   // Window + taskbar icons should match the app's desktop icon when one
   // exists; otherwise fall back to whatever icon the app declares.
-  const getWindowIconId = (app: App, workingDir?: FileSystemDir): IconId => {
+  const getWindowIconId = (
+    app: App,
+    workingDir?: FileSystemDir
+  ): IconId | undefined => {
+    if (app.id === 'zipArchive') {
+      return undefined;
+    }
     if (app.id === 'explorer') {
       if (workingDir && workingDir.iconId) return workingDir.iconId;
       if (workingDir) return 'folderOpen';
@@ -161,6 +192,9 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
     const isProjectDeadlineWindow = appId === 'timer';
     const isEulaWindow = appId === 'eula';
     const isNetVoiceCallWindow = appId === 'netVoiceCall';
+    const isOpenWithWindow = appId === 'zipArchive';
+    const isWinRarArchiveWindow = appId === 'winRarArchive';
+    const isCloseOnlyWindow = isOpenWithWindow || isWinRarArchiveWindow;
 
     setOpenWindows((windows) => {
       const app = appList[appId];
@@ -195,8 +229,8 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
         ...existingWindows,
         {
           app,
-          canMaximize: !isNetVoiceCallWindow,
-          canMinimize: !isEulaWindow,
+          canMaximize: !isNetVoiceCallWindow && !isCloseOnlyWindow,
+          canMinimize: !isEulaWindow && !isCloseOnlyWindow,
           iconId,
           id: crypto.randomUUID(),
           coords: isEulaWindow
@@ -212,7 +246,8 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
             ? true
             : app.isResizeable ?? true,
           showCloseButton: isEulaWindow ? false : !isProjectDeadlineWindow,
-          showMaximizeButton: !isNetVoiceCallWindow,
+          showMaximizeButton: !isNetVoiceCallWindow && !isCloseOnlyWindow,
+          showInTaskbar: !isOpenWithWindow,
           size: isEulaWindow ? eulaSize : defaultSize,
           sizeMode: app.sizeMode,
           title,

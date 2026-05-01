@@ -73,18 +73,20 @@ const Taskbar: FunctionComponent<Props> = ({
         />
       </div>
       <div className={style.taskButtonsWrapper}>
-        {windows.map((window) => (
-          <Button
-            iconId={window.iconId}
-            key={window.id}
-            label={window.title}
-            inTaskbar
-            isActive={window.hasFocus}
-            noOutline
-            onClick={() => handleTaskButtonClick(window)}
-            textAlign="left"
-          />
-        ))}
+        {windows
+          .filter((window) => window.showInTaskbar ?? true)
+          .map((window) => (
+            <Button
+              iconId={window.iconId}
+              key={window.id}
+              label={window.title}
+              inTaskbar
+              isActive={window.hasFocus}
+              noOutline
+              onClick={() => handleTaskButtonClick(window)}
+              textAlign="left"
+            />
+          ))}
       </div>
       <div className={style.notificationAreaWrapper}>
         <NotificationArea />
