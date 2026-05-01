@@ -92,7 +92,6 @@ const WinRarExtractor: FunctionComponent<AppProps> = ({
       { id: 'paint-98', label: 'Paint 98' },
       { id: 'hex-viewer', label: 'Hex Viewer' },
       { id: 'minesweeper', label: 'Minesweeper' },
-      { id: 'wordpad', label: 'WordPad' },
       {
         id: 'winrar',
         label: flags.hasWinRarInstalled ? 'WinRAR' : 'WinRAR (not installed)',
