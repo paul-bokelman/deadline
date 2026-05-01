@@ -1,5 +1,5 @@
 import { h, FunctionComponent } from 'preact';
-import { useEffect, useMemo, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
 import Button from '../../components/shared/Button/Button';
 import Window from '../../components/shared/Window/Window';
@@ -11,6 +11,7 @@ const TOP_MARGIN = 14;
 const RIGHT_MARGIN = 14;
 
 const WindowsUpdateNag: FunctionComponent = () => {
+  const boundsRef = useRef<HTMLDivElement>(null);
   const {
     isNagVisible,
     onDismissNag,
@@ -40,6 +41,7 @@ const WindowsUpdateNag: FunctionComponent = () => {
 
   return (
     <div
+      ref={boundsRef}
       style={{
         position: 'absolute',
         inset: 0,
@@ -49,7 +51,7 @@ const WindowsUpdateNag: FunctionComponent = () => {
     >
       <Window
         coords={coords}
-        getBoundingElement={() => document.body}
+        getBoundingElement={() => boundsRef.current}
         iconId="warning"
         isResizeable
         onClickClose={onDismissNag}

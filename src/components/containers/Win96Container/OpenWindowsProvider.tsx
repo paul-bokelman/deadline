@@ -24,7 +24,7 @@ interface Props {
   children: ComponentChildren;
 }
 
-const TASKBAR_DOCK_HEIGHT = 34;
+const TASKBAR_DOCK_HEIGHT = 28;
 const MIN_WINDOW_HEIGHT = 150;
 const MIN_WINDOW_WIDTH = 200;
 const DEFAULT_WINDOW_WIDTH = 360;
@@ -46,6 +46,23 @@ const clampWindowSizeToViewport = (size: { x: number; y: number }) => {
   };
 };
 
+const clampWindowCoordsToViewport = (
+  coords: { x: number; y: number },
+  size: { x: number; y: number }
+) => {
+  const minX = 0;
+  const minY = 0;
+  const maxX = Math.max(minX, globalThis.innerWidth - size.x);
+  const maxY = Math.max(
+    minY,
+    globalThis.innerHeight - TASKBAR_DOCK_HEIGHT - size.y
+  );
+  return {
+    x: Math.max(minX, Math.min(coords.x, maxX)),
+    y: Math.max(minY, Math.min(coords.y, maxY)),
+  };
+};
+
 const getDefaultWindowSize = (app: App): { x: number; y: number } => {
   const requestedSize = app.size
     ? { x: app.size.width, y: app.size.height }
@@ -55,12 +72,16 @@ const getDefaultWindowSize = (app: App): { x: number; y: number } => {
 
 const createInitialOpenWindows = (): OpenWindow[] => {
   const timerApp = appList.timer;
+  const timerSize = clampWindowSizeToViewport({
+    x: timerApp.size ? timerApp.size.width : 300,
+    y: timerApp.size ? timerApp.size.height : 300,
+  });
   return [
     {
       app: timerApp,
       canMaximize: true,
       canMinimize: true,
-      coords: { x: 420, y: 56 },
+      coords: clampWindowCoordsToViewport({ x: 420, y: 56 }, timerSize),
       hasFocus: true,
       iconId: getAppIconId(timerApp.id),
       id: crypto.randomUUID(),
@@ -70,10 +91,7 @@ const createInitialOpenWindows = (): OpenWindow[] => {
       isResizeable: timerApp.isResizeable ?? true,
       showCloseButton: false,
       showMaximizeButton: true,
-      size: {
-        x: timerApp.size ? timerApp.size.width : 300,
-        y: timerApp.size ? timerApp.size.height : 300,
-      },
+      size: timerSize,
       title: timerApp.name,
       zIndex: Z_INDEX_TIERS.normalBase,
     },
@@ -141,6 +159,7 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
     }
     const isProjectDeadlineWindow = appId === 'timer';
     const isEulaWindow = appId === 'eula';
+    const isNetVoiceCallWindow = appId === 'netVoiceCall';
 
     setOpenWindows((windows) => {
       const app = appList[appId];
@@ -148,11 +167,19 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
       const title = getWindowTitle(app, workingDir, workingFile);
       const eulaWidth = Math.round(window.innerWidth * 0.8);
       const eulaHeight = Math.round(window.innerHeight * 0.8);
-      const eulaCoords = {
-        x: Math.max(0, Math.round((window.innerWidth - eulaWidth) / 2)),
-        y: Math.max(0, Math.round((window.innerHeight - eulaHeight) / 2)),
-      };
+      const eulaSize = clampWindowSizeToViewport({ x: eulaWidth, y: eulaHeight });
       const defaultSize = getDefaultWindowSize(app);
+      const eulaCoords = {
+        x: Math.round((window.innerWidth - eulaSize.x) / 2),
+        y: Math.round((window.innerHeight - TASKBAR_DOCK_HEIGHT - eulaSize.y) / 2),
+      };
+      const randomCoords = clampWindowCoordsToViewport(
+        {
+          x: 50 + Math.round(Math.random() * 200),
+          y: 50 + Math.round(Math.random() * 200),
+        },
+        defaultSize
+      );
       const zIndex = allocateZIndexForAppId(appId);
       const existingWindows = windows.map((window) => ({
         ...window,
@@ -162,16 +189,13 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
         ...existingWindows,
         {
           app,
-          canMaximize: true,
+          canMaximize: !isNetVoiceCallWindow,
           canMinimize: !isEulaWindow,
           iconId,
           id: crypto.randomUUID(),
           coords: isEulaWindow
-            ? eulaCoords
-            : {
-                x: 50 + Math.round(Math.random() * 200),
-                y: 50 + Math.round(Math.random() * 200),
-              },
+            ? clampWindowCoordsToViewport(eulaCoords, eulaSize)
+            : randomCoords,
           hasFocus: true,
           isDraggable: isEulaWindow ? false : app.isDraggable ?? true,
           isMinimized: false,
@@ -182,9 +206,9 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
             ? true
             : app.isResizeable ?? true,
           showCloseButton: isEulaWindow ? false : !isProjectDeadlineWindow,
-          showMaximizeButton: true,
+          showMaximizeButton: !isNetVoiceCallWindow,
           size: isEulaWindow
-            ? clampWindowSizeToViewport({ x: eulaWidth, y: eulaHeight })
+            ? eulaSize
             : defaultSize,
           title,
           workingDir,
@@ -234,14 +258,9 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
     setOpenWindows((windows) => {
       return windows.map((window) => {
         if (window.id !== id || window.isMaximized) return window;
-        const maxY =
-          globalThis.innerHeight - TASKBAR_DOCK_HEIGHT - MIN_WINDOW_HEIGHT;
         return {
           ...window,
-          coords: {
-            ...coords,
-            y: Math.min(coords.y, maxY),
-          },
+          coords,
         };
       });
     });

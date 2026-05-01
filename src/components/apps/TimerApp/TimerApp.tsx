@@ -5,6 +5,7 @@ import { AppProps } from '../../../types/App';
 import useInterval from '../../../hooks/useInterval';
 import WindowContent from '../../shared/WindowContent/WindowContent';
 import { gameEventBus } from '../../../game/events';
+import { getGameDate } from '../../../system/clock/gameClock';
 
 const DEADLINE_TEXT = '5:00 PM';
 const COUNTDOWN_MS = 15 * 60 * 1000;
@@ -70,17 +71,36 @@ const formatCountdown = (remainingMs: number): string => {
   )}`;
 };
 
+const getRemainingMsToDeadline = (): number => {
+  const now = getGameDate();
+  const deadline = new Date(now);
+  deadline.setHours(17, 0, 0, 0);
+  return Math.max(0, deadline.getTime() - now.getTime());
+};
+
 const TimerApp: FunctionComponent<AppProps> = () => {
-  const [deadlineAt] = useState(() => Date.now() + COUNTDOWN_MS);
-  const [remainingMs, setRemainingMs] = useState(COUNTDOWN_MS);
+  const [remainingMs, setRemainingMs] = useState(getRemainingMsToDeadline);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const [layoutScale, setLayoutScale] = useState(1);
   const progressRatio = Math.max(0, Math.min(1, remainingMs / COUNTDOWN_MS));
   const progressPercent = Math.round(progressRatio * 100);
 
   useInterval(() => {
-    setRemainingMs(Math.max(0, deadlineAt - Date.now()));
+    setRemainingMs(getRemainingMsToDeadline());
   }, 1000);
+
+  useEffect(() => {
+    const unsubscribeClockAdvanced = gameEventBus.on('clock:advanced', () => {
+      setRemainingMs(getRemainingMsToDeadline());
+    });
+    const unsubscribeRebooted = gameEventBus.on('game:rebooted', () => {
+      setRemainingMs(getRemainingMsToDeadline());
+    });
+    return () => {
+      unsubscribeClockAdvanced();
+      unsubscribeRebooted();
+    };
+  }, []);
 
   useEffect(() => {
     const seconds = Math.max(0, Math.ceil(remainingMs / 1000));

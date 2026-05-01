@@ -23,3 +23,14 @@ export const getGameDate = (): Date => {
   const elapsed = Date.now() - baseRealMs;
   return new Date(baseVirtualMs + elapsed);
 };
+
+export const advanceGameClockByMs = (byMs: number): void => {
+  if (!isInitialized) initializeGameClock();
+  baseVirtualMs += byMs;
+  gameEventBus.emit('clock:advanced', { byMs });
+};
+
+export const advanceGameClockByMinutes = (minutes: number): void => {
+  if (!Number.isFinite(minutes) || minutes <= 0) return;
+  advanceGameClockByMs(minutes * 60 * 1000);
+};

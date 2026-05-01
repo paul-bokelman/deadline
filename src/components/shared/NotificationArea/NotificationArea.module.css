@@ -214,6 +214,24 @@
   margin: 0 8px;
 }
 
+.clockButton {
+  margin: 0 8px;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.clockButton:disabled {
+  opacity: 1;
+  color: inherit;
+  -webkit-text-fill-color: currentColor;
+  text-shadow: none;
+  cursor: not-allowed;
+}
+
 .ramCrashOverlay {
   position: fixed;
   inset: 0;

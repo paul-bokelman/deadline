@@ -8,7 +8,7 @@
 }
 
 .startMenuWrapper {
-    z-index: 1;
+    z-index: 6000000;
     position: absolute;
     left: 2px;
     bottom: 24px;

@@ -1,4 +1,5 @@
 import { h, FunctionComponent } from 'preact';
+import { useRef, useState } from 'preact/hooks';
 
 import { AppId } from '../../../types/App';
 import { FileSystemDir, FileSystemFile } from '../../../types/FileSystem';
@@ -32,16 +33,35 @@ const MenuOption: FunctionComponent<Props> = ({
   subMenu,
   value,
 }: Props) => {
+  const menuOptionRef = useRef<HTMLDivElement>(null);
+  const subMenuRef = useRef<HTMLDivElement>(null);
+  const [openLeft, setOpenLeft] = useState(false);
+
   const handleOnClick = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     onSelect(value, e);
   };
 
+  const updateSubMenuPlacement = () => {
+    if (!subMenu) return;
+    window.requestAnimationFrame(() => {
+      const optionRect = menuOptionRef.current?.getBoundingClientRect();
+      const subMenuWidth = subMenuRef.current?.offsetWidth;
+      if (!optionRect || !subMenuWidth) return;
+
+      const projectedRightEdge = optionRect.right + subMenuWidth - 3;
+      const overflowRight = projectedRightEdge > window.innerWidth;
+      setOpenLeft(overflowRight);
+    });
+  };
+
   return (
     <div
+      ref={menuOptionRef}
       className={`${style.menuOption} ${isLarge ? style.large : ''}`}
       onClick={handleOnClick}
+      onMouseEnter={updateSubMenuPlacement}
     >
       <div className={style.menuOptionIcon}>
         {!!iconId && <Icon iconId={iconId} size={isLarge ? 24 : 16} />}
@@ -51,7 +71,12 @@ const MenuOption: FunctionComponent<Props> = ({
         {!!subMenu && <Icon iconId="menuArrow" size={8} />}
       </div>
       {!!subMenu && (
-        <div className={style.menuOptionSubMenu}>
+        <div
+          ref={subMenuRef}
+          className={`${style.menuOptionSubMenu} ${
+            openLeft ? style.menuOptionSubMenuLeft : ''
+          }`}
+        >
           <Menu
             isLarge={subMenu.isLarge}
             onSelect={onSelect}

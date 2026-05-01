@@ -27,46 +27,88 @@ const programsOption: OptionType = {
   iconId: 'programs',
   value: '',
   subMenu: {
-    isLarge: true,
+    isLarge: false,
     options: [
       [
-        appOption('worldWideWeb'),
-        appOption('corpMail', 'CorpMail'),
-        appOption('personalMail', 'PersonalMail'),
-        appOption('myComputer'),
-        appOption('notepad'),
-      ],
-      [
-        appOption('systemPerformance'),
-        appOption('antiVirus'),
-        appOption('fileConverter'),
-        appOption('portal', 'CorpPortal'),
-        appOption('timer', 'Project Deadline'),
-      ],
-      [
         {
-          label: 'Games',
-          iconId: 'gameSpider0',
+          label: 'Internet',
+          iconId: 'folderClosed',
           value: '',
           subMenu: {
+            isLarge: false,
             options: [
               [
-                appOption('minesweeper'),
-                appOption('blackjack', 'BlackJack 96'),
-                appOption('leaderboard'),
-                appOption('clickMeReset', 'FunWare'),
-                appOption('clickMeReset', 'Click Me'),
+                appOption('worldWideWeb'),
+                appOption('corpMail', 'CorpMail'),
+                appOption('personalMail', 'PersonalMail'),
               ],
             ],
           },
         },
         {
-          label: 'Utilities',
-          iconId: 'settings',
+          label: 'Accessories',
+          iconId: 'folderClosed',
           value: '',
           subMenu: {
+            isLarge: false,
             options: [
-              [appOption('draftDocumentLink'), appOption('winRarInstaller')],
+              [
+                appOption('myComputer'),
+                appOption('notepad'),
+                appOption('timer', 'Project Deadline'),
+              ],
+            ],
+          },
+        },
+        {
+          label: 'System Tools',
+          iconId: 'folderClosed',
+          value: '',
+          subMenu: {
+            isLarge: false,
+            options: [
+              [
+                appOption('systemPerformance'),
+                appOption('antiVirus'),
+                appOption('fileConverter'),
+                appOption('portal', 'CorpPortal'),
+              ],
+            ],
+          },
+        },
+        {
+          label: 'Games',
+          iconId: 'folderClosed',
+          value: '',
+          subMenu: {
+            isLarge: false,
+            options: [
+              [
+                appOption('minesweeper'),
+                appOption('blackjack', 'BlackJack 96'),
+                appOption('leaderboard'),
+              ],
+            ],
+          },
+        },
+        {
+          label: 'WTF',
+          iconId: 'folderClosed',
+          value: '',
+          subMenu: {
+            isLarge: false,
+            options: [
+              [
+                appOption('draftDocumentLink'),
+                {
+                  ...appOption('clickMeReset', 'FunWare'),
+                  iconId: 'gameSpider0',
+                },
+                {
+                  ...appOption('clickMeReset', 'Click Me'),
+                  iconId: 'smiley',
+                },
+              ],
             ],
           },
         },

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect } from 'preact/hooks';
 
 import { systemConfig } from '../../data/systemConfig';
 import { NetVoiceCallId } from '../../game/netvoice/calls';
@@ -10,6 +10,9 @@ const ALICE_HALFWAY_CALL_EVENT_ID = 'people:alice_halfway:triggered';
 const HAROLD_FIRST_CALL_EVENT_ID = 'people:harold_first_call:triggered';
 const HAROLD_SECOND_CALL_EVENT_ID = 'people:harold_second_call:triggered';
 const HAROLD_FIRST_CALL_TARGET_SECONDS = 2 * 60;
+const HALF_WAY_TARGET_SECONDS = Math.floor(
+  systemConfig.windowsUpdate.countdownMs / 1000 / 2
+);
 const RANDOM_CALL_POOL: NetVoiceCallId[] = [
   'alice_greg_warning',
   'mom_www_issues',
@@ -25,7 +28,6 @@ export const usePeopleCallScheduler = (): void => {
     stage,
     triggerNetVoiceCall,
   } = useGameState();
-  const introStartedAtRef = useRef<number | null>(null);
 
   useEffect(() => {
     const unsubscribe = gameEventBus.on(
@@ -35,7 +37,16 @@ export const usePeopleCallScheduler = (): void => {
         if (stage === 'win') return;
 
         if (
-          seconds === HAROLD_FIRST_CALL_TARGET_SECONDS &&
+          seconds <= HALF_WAY_TARGET_SECONDS &&
+          !hasEventFired(ALICE_HALFWAY_CALL_EVENT_ID)
+        ) {
+          markEventFired(ALICE_HALFWAY_CALL_EVENT_ID);
+          triggerNetVoiceCall('alice_halfway');
+          return;
+        }
+
+        if (
+          seconds <= HAROLD_FIRST_CALL_TARGET_SECONDS &&
           !hasEventFired(HAROLD_FIRST_CALL_EVENT_ID)
         ) {
           markEventFired(HAROLD_FIRST_CALL_EVENT_ID);
@@ -43,7 +54,7 @@ export const usePeopleCallScheduler = (): void => {
           return;
         }
 
-        if (seconds === 0 && !hasEventFired(HAROLD_SECOND_CALL_EVENT_ID)) {
+        if (seconds <= 0 && !hasEventFired(HAROLD_SECOND_CALL_EVENT_ID)) {
           markEventFired(HAROLD_SECOND_CALL_EVENT_ID);
           triggerNetVoiceCall('harold_second_call');
         }
@@ -59,31 +70,10 @@ export const usePeopleCallScheduler = (): void => {
   ]);
 
   useEffect(() => {
-    if (!flags.hasReceivedIntroCall) {
-      introStartedAtRef.current = null;
-      return;
-    }
-    if (introStartedAtRef.current === null) {
-      introStartedAtRef.current = Date.now();
-    }
-  }, [flags.hasReceivedIntroCall]);
-
-  useEffect(() => {
     const intervalId = window.setInterval(() => {
       if (!flags.hasReceivedIntroCall) return;
       if (stage === 'win') return;
       if (activeNetVoiceCallId !== null) return;
-      const introStartedAt = introStartedAtRef.current;
-      if (introStartedAt === null) return;
-      const elapsedMs = Date.now() - introStartedAt;
-
-      const halfWayMs = Math.floor(systemConfig.windowsUpdate.countdownMs / 2);
-      const hasReachedHalfWay = elapsedMs >= halfWayMs;
-      if (hasReachedHalfWay && !hasEventFired(ALICE_HALFWAY_CALL_EVENT_ID)) {
-        markEventFired(ALICE_HALFWAY_CALL_EVENT_ID);
-        triggerNetVoiceCall('alice_halfway');
-        return;
-      }
 
       const availableRandomCalls = RANDOM_CALL_POOL.filter(
         (callId) => !hasEventFired(`people:random:${callId}:triggered`)

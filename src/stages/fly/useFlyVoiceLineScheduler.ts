@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 
 import { useGameState } from '../../game/state';
+import { getGameDate } from '../../system/clock/gameClock';
 
 const FLY_VOICE_LINE_EVENT_ID = 'fly:voice_line:triggered';
 const TICK_INTERVAL_MS = 60_000; // 1 minute
@@ -24,7 +25,7 @@ export const useFlyVoiceLineScheduler = (): void => {
       return;
     }
     if (introStartedAtRef.current === null) {
-      introStartedAtRef.current = Date.now();
+      introStartedAtRef.current = getGameDate().getTime();
     }
   }, [flags.hasReceivedIntroCall]);
 
@@ -37,7 +38,7 @@ export const useFlyVoiceLineScheduler = (): void => {
 
       const introStartedAt = introStartedAtRef.current;
       if (introStartedAt === null) return;
-      if (Date.now() - introStartedAt < START_DELAY_MS) return;
+      if (getGameDate().getTime() - introStartedAt < START_DELAY_MS) return;
 
       if (Math.random() >= TRIGGER_CHANCE) return;
 

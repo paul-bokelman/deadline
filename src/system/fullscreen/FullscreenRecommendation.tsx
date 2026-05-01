@@ -1,5 +1,5 @@
 import { h, FunctionComponent } from 'preact';
-import { useEffect, useMemo, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
 import Window from '../../components/shared/Window/Window';
 import Button from '../../components/shared/Button/Button';
@@ -10,6 +10,7 @@ const WIDTH = 340;
 const HEIGHT = 172;
 
 const FullscreenRecommendation: FunctionComponent = () => {
+  const boundsRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(
     document.fullscreenElement === null
   );
@@ -61,6 +62,7 @@ const FullscreenRecommendation: FunctionComponent = () => {
 
   return (
     <div
+      ref={boundsRef}
       style={{
         position: 'absolute',
         inset: 0,
@@ -70,10 +72,10 @@ const FullscreenRecommendation: FunctionComponent = () => {
     >
       <Window
         coords={coords}
-        getBoundingElement={() => document.body}
+        getBoundingElement={() => boundsRef.current}
         iconId="warning"
         isDraggable
-        isResizeable
+        isResizeable={false}
         onClickClose={() => setIsVisible(false)}
         showMaximizeButton={false}
         size={{ x: WIDTH, y: HEIGHT }}

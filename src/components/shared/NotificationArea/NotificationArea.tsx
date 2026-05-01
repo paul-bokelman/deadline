@@ -24,7 +24,10 @@ import {
 } from '../../../utils/audio/bsodAudioMode';
 
 import style from './NotificationArea.module.css';
-import { getGameDate } from '../../../system/clock/gameClock';
+import {
+  advanceGameClockByMinutes,
+  getGameDate,
+} from '../../../system/clock/gameClock';
 
 const AUDIO_SOURCE_WEBM =
   'https://www.cameronsworld.net/sound/cameronsworld.webm';
@@ -54,6 +57,7 @@ const NotificationArea: FunctionComponent = () => {
   const isBluescreenActiveRef = useRef(flags.isBluescreenSequenceActive);
   const soundButtonRef = useRef<HTMLButtonElement | null>(null);
   const volumeFlyoutRef = useRef<HTMLDivElement | null>(null);
+  const clockAdvanceCooldownRef = useRef<number | null>(null);
   const lastNonZeroVolumeRef = useRef(Math.max(5, getMasterVolumePercent()));
   const [isPlaying, setIsPlaying] = useState(true);
   const [volumePercent, setVolumePercent] = useState(getMasterVolumePercent());
@@ -65,6 +69,8 @@ const NotificationArea: FunctionComponent = () => {
   ] = useState(false);
   const [isRamCrashActive, setIsRamCrashActive] = useState(false);
   const [clockText, setClockText] = useState(formatTrayTime(getGameDate()));
+  const [isClockAdvanceCoolingDown, setIsClockAdvanceCoolingDown] =
+    useState(false);
   const extraRamLoadCount =
     (activeNetVoiceCallId ? 1 : 0) +
     (isFullscreenRecommendationVisible ? 1 : 0);
@@ -186,6 +192,9 @@ const NotificationArea: FunctionComponent = () => {
       }
       if (ramCrashTimeoutRef.current !== null) {
         window.clearTimeout(ramCrashTimeoutRef.current);
+      }
+      if (clockAdvanceCooldownRef.current !== null) {
+        window.clearTimeout(clockAdvanceCooldownRef.current);
       }
     };
   }, []);
@@ -522,7 +531,29 @@ const NotificationArea: FunctionComponent = () => {
           src={isFullscreen ? fullscreenExitIcon : fullscreenEnterIcon}
         />
       </button>
-      <div className={style.clock}>{clockText}</div>
+      <button
+        className={style.clockButton}
+        disabled={activeNetVoiceCallId !== null || isClockAdvanceCoolingDown}
+        onClick={() => {
+          if (activeNetVoiceCallId !== null || isClockAdvanceCoolingDown) {
+            return;
+          }
+          advanceGameClockByMinutes(1);
+          setClockText(formatTrayTime(getGameDate()));
+          setIsClockAdvanceCoolingDown(true);
+          if (clockAdvanceCooldownRef.current !== null) {
+            window.clearTimeout(clockAdvanceCooldownRef.current);
+          }
+          clockAdvanceCooldownRef.current = window.setTimeout(() => {
+            setIsClockAdvanceCoolingDown(false);
+            clockAdvanceCooldownRef.current = null;
+          }, 10_000);
+        }}
+        title={activeNetVoiceCallId !== null ? 'Time (call active)' : 'Time'}
+        type="button"
+      >
+        {clockText}
+      </button>
     </div>
   );
 };
