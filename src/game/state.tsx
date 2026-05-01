@@ -152,11 +152,11 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
   );
   const queuedNetVoiceCallIdsRef = useRef<NetVoiceCallId[]>([]);
 
-  const emitGameRebooted = () => {
+  const emitGameRebooted = useCallback(() => {
     gameEventBus.emit('game:rebooted', { at: Date.now() });
-  };
+  }, []);
 
-  const applyInitialGameState = () => {
+  const applyInitialGameState = useCallback(() => {
     setStageState('desktop_intro');
     setFlagsState(initialFlags);
     setHasSeenInitialBiosState(true);
@@ -165,7 +165,21 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
     setIsNetVoiceCallAcceptedState(false);
     queuedNetVoiceCallIdsRef.current = [];
     resetRunTimer();
-  };
+  }, []);
+
+  const triggerNetVoiceCall: GameStateContextValue['triggerNetVoiceCall'] = useCallback(
+    (callId) => {
+      setActiveNetVoiceCallIdState((currentCallId) => {
+        if (currentCallId === null) {
+          setIsNetVoiceCallAcceptedState(false);
+          return callId;
+        }
+        queuedNetVoiceCallIdsRef.current.push(callId);
+        return currentCallId;
+      });
+    },
+    []
+  );
 
   useEffect(() => {
     // Kick off the leaderboard run on first mount (parallels resetRunTimer
@@ -246,8 +260,7 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
           : bailoutCount === 1
           ? 'mom_bailout_2'
           : 'greg_3rd_0';
-      setActiveNetVoiceCallIdState(nextCallId);
-      setIsNetVoiceCallAcceptedState(false);
+      triggerNetVoiceCall(nextCallId);
     }, BAILOUT_DEBOUNCE_MS);
 
     return () => window.clearTimeout(timer);
@@ -259,6 +272,7 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
     flags.blackjackHandsInProgress,
     flags.blackjackBailoutCount,
     flags.hasPurchasedWinRar,
+    triggerNetVoiceCall,
   ]);
 
   useEffect(() => {
@@ -292,7 +306,7 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
     void triggerBootLoaderScreen({
       preFadeMs: 500,
     }).then(() => applyInitialGameState());
-  }, []);
+  }, [applyInitialGameState, emitGameRebooted]);
 
   useEffect(() => {
     return gameEventBus.on('email:delivered', () => {
@@ -336,19 +350,6 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
 
   const hasEventFired: GameStateContextValue['hasEventFired'] = (eventId) => {
     return firedEvents[eventId] === true;
-  };
-
-  const triggerNetVoiceCall: GameStateContextValue['triggerNetVoiceCall'] = (
-    callId
-  ) => {
-    setActiveNetVoiceCallIdState((currentCallId) => {
-      if (currentCallId === null) {
-        setIsNetVoiceCallAcceptedState(false);
-        return callId;
-      }
-      queuedNetVoiceCallIdsRef.current.push(callId);
-      return currentCallId;
-    });
   };
 
   const completeInitialBios: GameStateContextValue['completeInitialBios'] = () => {
