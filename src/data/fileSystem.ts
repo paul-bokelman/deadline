@@ -8,102 +8,102 @@ const mergeGlobRecords = (
 
 export const floppyDriveFs = createFs(
   mergeGlobRecords(
-    import.meta.glob('../assets/fileSystems/A/**/*.ts', { eager: true }),
-    import.meta.glob('../assets/fileSystems/A/**/*.{jpg,png}', {
+    import.meta.glob('../assets/fs/content/a-drive/**/*.ts', { eager: true }),
+    import.meta.glob('../assets/fs/content/a-drive/**/*.{jpg,png}', {
       eager: true,
       import: 'default',
     }),
-    import.meta.glob('../assets/fileSystems/A/**/*.txt', {
+    import.meta.glob('../assets/fs/content/a-drive/**/*.txt', {
       eager: true,
       query: '?raw',
       import: 'default',
     })
   ),
-  '../assets/fileSystems/A'
+  '../assets/fs/content/a-drive'
 );
 export const cdDriveFs = createFs(
   mergeGlobRecords(
-    import.meta.glob('../assets/fileSystems/D/**/*.ts', { eager: true }),
-    import.meta.glob('../assets/fileSystems/D/**/*.{jpg,png}', {
+    import.meta.glob('../assets/fs/content/d-drive/**/*.ts', { eager: true }),
+    import.meta.glob('../assets/fs/content/d-drive/**/*.{jpg,png}', {
       eager: true,
       import: 'default',
     }),
-    import.meta.glob('../assets/fileSystems/D/**/*.txt', {
+    import.meta.glob('../assets/fs/content/d-drive/**/*.txt', {
       eager: true,
       query: '?raw',
       import: 'default',
     })
   ),
-  '../assets/fileSystems/D'
+  '../assets/fs/content/d-drive'
 );
 export const hardDriveFs = createFs(
   mergeGlobRecords(
-    import.meta.glob('../assets/fileSystems/C/**/*.ts', { eager: true }),
-    import.meta.glob('../assets/fileSystems/C/**/*.{jpg,png}', {
+    import.meta.glob('../assets/fs/content/c-drive/**/*.ts', { eager: true }),
+    import.meta.glob('../assets/fs/content/c-drive/**/*.{jpg,png}', {
       eager: true,
       import: 'default',
     }),
-    import.meta.glob('../assets/fileSystems/C/**/*.txt', {
+    import.meta.glob('../assets/fs/content/c-drive/**/*.txt', {
       eager: true,
       query: '?raw',
       import: 'default',
     })
   ),
-  '../assets/fileSystems/C'
+  '../assets/fs/content/c-drive'
 );
 export const controlPanelFs = createFs(
   mergeGlobRecords(
-    import.meta.glob('../assets/fileSystems/Control Panel/**/*.ts', {
+    import.meta.glob('../assets/fs/content/control-panel/**/*.ts', {
       eager: true,
     }),
-    import.meta.glob('../assets/fileSystems/Control Panel/**/*.{jpg,png}', {
+    import.meta.glob('../assets/fs/content/control-panel/**/*.{jpg,png}', {
       eager: true,
       import: 'default',
     }),
-    import.meta.glob('../assets/fileSystems/Control Panel/**/*.txt', {
+    import.meta.glob('../assets/fs/content/control-panel/**/*.txt', {
       eager: true,
       query: '?raw',
       import: 'default',
     })
   ),
-  '../assets/fileSystems/Control Panel'
+  '../assets/fs/content/control-panel'
 );
 export const printersFs = createFs(
   mergeGlobRecords(
-    import.meta.glob('../assets/fileSystems/Printers/**/*.ts', {
+    import.meta.glob('../assets/fs/content/printers/**/*.ts', {
       eager: true,
     }),
-    import.meta.glob('../assets/fileSystems/Printers/**/*.{jpg,png}', {
+    import.meta.glob('../assets/fs/content/printers/**/*.{jpg,png}', {
       eager: true,
       import: 'default',
     }),
-    import.meta.glob('../assets/fileSystems/Printers/**/*.txt', {
+    import.meta.glob('../assets/fs/content/printers/**/*.txt', {
       eager: true,
       query: '?raw',
       import: 'default',
     })
   ),
-  '../assets/fileSystems/Printers'
+  '../assets/fs/content/printers'
 );
 export const dialUpNetworkFs = createFs(
   mergeGlobRecords(
-    import.meta.glob('../assets/fileSystems/Dial-Up Networking/**/*.ts', {
+    import.meta.glob('../assets/fs/content/dial-up-networking/**/*.ts', {
       eager: true,
     }),
     import.meta.glob(
-      '../assets/fileSystems/Dial-Up Networking/**/*.{jpg,png}',
+      '../assets/fs/content/dial-up-networking/**/*.{jpg,png}',
       {
         eager: true,
         import: 'default',
       }
     ),
-    import.meta.glob('../assets/fileSystems/Dial-Up Networking/**/*.txt', {
+    import.meta.glob('../assets/fs/content/dial-up-networking/**/*.txt', {
       eager: true,
       query: '?raw',
       import: 'default',
     })
   ),
-  '../assets/fileSystems/Dial-Up Networking'
+  '../assets/fs/content/dial-up-networking'
 );
 export const startMenuFs = {
   name: 'Start Menu',
