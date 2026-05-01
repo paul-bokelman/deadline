@@ -7,8 +7,8 @@ import { AppProps } from '@/types/App';
 const panelStyle: JSX.CSSProperties = {
   margin: '8px',
   padding: '10px',
-  backgroundColor: 'var(--button-highlight)',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+  backgroundColor: 'var(--paper)',
+  boxShadow: 'var(--bevel-sunken)',
   height: 'calc(100% - 16px)',
   display: 'flex',
   flexDirection: 'column',
@@ -16,7 +16,7 @@ const panelStyle: JSX.CSSProperties = {
 };
 
 const scrollFrameStyle: JSX.CSSProperties = {
-  backgroundColor: '#ffffff',
+  backgroundColor: 'var(--paper)',
   boxShadow: 'var(--border-field)',
   padding: '10px',
   height: '100%',
@@ -34,8 +34,8 @@ const scrollWrapStyle: JSX.CSSProperties = {
 
 const buttonStyle: JSX.CSSProperties = {
   border: 'none',
-  backgroundColor: 'var(--surface)',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+  backgroundColor: 'var(--plastic)',
+  boxShadow: 'var(--bevel-raised)',
   padding: '4px 10px',
 };
 

@@ -63,6 +63,7 @@ export const iconIds = [
   'windowsLogo',
   'webFileSet0',
   'winRar3',
+  'zipFile',
   'lotusWordPro97',
   'wordpadDoc',
 ] as const;

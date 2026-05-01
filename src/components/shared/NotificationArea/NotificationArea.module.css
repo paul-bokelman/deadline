@@ -9,7 +9,8 @@
   font-family: var(--font-family-ui), sans-serif;
   font-size: 11px;
   line-height: 1;
-  box-shadow: var(--box-shadow-notification);
+  background: var(--plastic);
+  box-shadow: var(--bevel-status-well);
 }
 
 .statusIcon {
@@ -43,8 +44,8 @@
   width: 148px;
   padding: 4px;
   overflow: visible;
-  background: var(--surface);
-  box-shadow: var(--border-window-outer), var(--border-window-inner);
+  background: var(--plastic);
+  box-shadow: var(--bevel-raised);
   z-index: 110;
 }
 
@@ -63,8 +64,8 @@
   gap: 4px;
   padding: 5px;
   overflow: visible;
-  background: var(--button-highlight);
-  box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+  background: var(--paper);
+  box-shadow: var(--bevel-sunken);
 }
 
 .volumeSlider {
@@ -137,14 +138,14 @@
 
 .volumeButton {
   border: none;
-  background: var(--surface);
-  box-shadow: var(--border-raised-outer), var(--border-raised-inner);
+  background: var(--plastic);
+  box-shadow: var(--bevel-raised);
   padding: 2px 6px;
   font-size: 10px;
 }
 
 .volumeButton:active {
-  box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+  box-shadow: var(--bevel-sunken);
 }
 
 .zoomIcon {
@@ -155,8 +156,8 @@
 .ramUsage {
   margin: 0 6px 0 1px;
   border: none;
-  background: var(--surface);
-  box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+  background: var(--plastic);
+  box-shadow: var(--bevel-status-well);
   height: 18px;
   padding: 0 6px;
   font-family: var(--font-family-sys);

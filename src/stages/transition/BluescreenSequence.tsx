@@ -24,7 +24,7 @@ const bannerStyle: JSX.CSSProperties = {
   padding: '5px 10px',
   color: '#ffffff',
   backgroundColor: '#7b0000',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+  boxShadow: 'var(--bevel-raised)',
   zIndex: Z_INDEX_TIERS.bluescreen + 60,
   fontWeight: 'bold',
 };
@@ -33,7 +33,7 @@ const fakeCursorStyle: JSX.CSSProperties = {
   position: 'absolute',
   width: '14px',
   height: '14px',
-  backgroundColor: '#ffffff',
+  backgroundColor: 'var(--paper)',
   border: '1px solid #000000',
   transform: 'rotate(45deg)',
   zIndex: Z_INDEX_TIERS.bluescreen + 70,
@@ -135,7 +135,10 @@ const BluescreenSequence: FunctionComponent = () => {
       setCursorPos({ x, y });
     }, 90);
 
-    const openTimerA = window.setTimeout(() => openApp({ appId: 'explorer' }), 600);
+    const openTimerA = window.setTimeout(
+      () => openApp({ appId: 'explorer' }),
+      600
+    );
     const openTimerB = window.setTimeout(
       () => openApp({ appId: 'corpMail' }),
       1550

@@ -3,9 +3,8 @@
   flex-direction: column;
   flex: 1;
   margin: 1px;
-  padding: 12px;
-  background-color: var(--surface);
-  box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+  padding: 10px;
+  background-color: var(--plastic);
   overflow: hidden;
 }
 
@@ -22,7 +21,7 @@
   width: 128px;
   height: 144px;
   padding: 2px;
-  background: var(--button-highlight);
+  background: var(--paper);
   box-shadow: var(--border-field);
   display: flex;
   align-items: stretch;
@@ -68,7 +67,7 @@
 }
 
 .description {
-  background-color: var(--button-highlight);
+  background-color: var(--paper);
   box-shadow: var(--border-field);
   padding: 6px 8px;
   min-height: 56px;
@@ -129,13 +128,17 @@
   min-height: 28px;
   padding: 4px 12px;
   border: none;
-  background-color: var(--surface);
-  box-shadow: var(--border-raised-outer), var(--border-raised-inner);
+  background-color: var(--plastic);
+  box-shadow: var(--bevel-raised);
   font-size: 12px;
 }
 
 .actionButton:not(:disabled):active {
-  box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+  box-shadow: var(--bevel-sunken);
+}
+
+.actionButton:not(:disabled):active > * {
+  transform: translate3d(1px, 1px, 0);
 }
 
 .actionButtonPrimary {
@@ -166,6 +169,6 @@
 .empty {
   margin: 10px;
   padding: 8px;
-  background-color: var(--button-highlight);
-  box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+  background-color: var(--paper);
+  box-shadow: var(--bevel-sunken);
 }

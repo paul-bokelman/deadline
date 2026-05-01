@@ -40,6 +40,7 @@ export type App = {
   isResizeable?: boolean;
   name: string;
   size?: { width: number; height: number };
+  sizeMode?: 'fixed' | 'content';
 };
 
 export type AppList = { [key in AppId]: App };

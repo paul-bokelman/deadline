@@ -3,18 +3,18 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
 import Window from '@/components/shared/Window/Window';
 import Button from '@/components/shared/Button/Button';
-import Icon from '@/components/shared/Icon/Icon';
 import { Z_INDEX_TIERS } from '../zIndex';
 import { gameEventBus } from '@/game/events';
 
-const WIDTH = 340;
-const HEIGHT = 172;
+const WIDTH = 312;
+const HEIGHT = 156;
 
 const FullscreenRecommendation: FunctionComponent = () => {
   const boundsRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(
     document.fullscreenElement === null
   );
+  const [size, setSize] = useState({ x: WIDTH, y: HEIGHT });
 
   useEffect(() => {
     return gameEventBus.on('game:rebooted', () => {
@@ -79,25 +79,28 @@ const FullscreenRecommendation: FunctionComponent = () => {
         isResizeable={false}
         onClickClose={() => setIsVisible(false)}
         showMaximizeButton={false}
-        size={{ x: WIDTH, y: HEIGHT }}
+        size={size}
+        sizeMode="content"
         style={{ pointerEvents: 'auto' }}
         title="Fullscreen recommended"
         zIndex={Z_INDEX_TIERS.systemOverlay + 501}
+        onAutoSized={setSize}
       >
         <div
+          data-window-fit
           style={{
-            padding: '10px',
+            padding: '8px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '10px',
+            gap: '8px',
           }}
         >
           <div
             style={{
-              padding: '10px',
-              backgroundColor: 'var(--button-highlight)',
-              boxShadow:
-                'var(--border-sunken-outer), var(--border-sunken-inner)',
+              width: '282px',
+              padding: '8px',
+              backgroundColor: 'var(--paper)',
+              boxShadow: 'var(--bevel-sunken)',
             }}
           >
             <div style={{ fontWeight: 700 }}>Heads up</div>
@@ -110,25 +113,13 @@ const FullscreenRecommendation: FunctionComponent = () => {
           </div>
           <div
             style={{
-              marginTop: '10px',
               display: 'flex',
               gap: '8px',
               justifyContent: 'flex-end',
             }}
           >
             <Button
-              label={
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                  }}
-                >
-                  <Icon iconId="windowsLogo" size={16} />
-                  <span>OK</span>
-                </span>
-              }
+              label="OK"
               onClick={() => {
                 handleOk();
               }}

@@ -11,8 +11,8 @@ interface DownloadDialogProps {
 }
 
 const bodyStyle: JSX.CSSProperties = {
-  backgroundColor: 'var(--button-highlight)',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+  backgroundColor: 'var(--paper)',
+  boxShadow: 'var(--bevel-sunken)',
   margin: '0 0 6px',
   padding: '10px',
 };

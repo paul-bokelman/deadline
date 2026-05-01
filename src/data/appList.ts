@@ -1,12 +1,20 @@
 import { AppList } from '../types/App';
 
+const appWindowSize = {
+  compactDialog: { width: 440, height: 300 },
+  utilityDialog: { width: 500, height: 340 },
+  pickerDialog: { width: 480, height: 410 },
+  portalWorkspace: { width: 760, height: 520 },
+} as const;
+
 export const appList: AppList = {
   antiVirus: {
     id: 'antiVirus',
     iconId: 'cleanDrive1',
     isResizeable: false,
     name: 'Antivirus',
-    size: { width: 420, height: 260 },
+    size: appWindowSize.compactDialog,
+    sizeMode: 'content',
   },
   draftDocumentLink: {
     id: 'draftDocumentLink',
@@ -27,7 +35,8 @@ export const appList: AppList = {
     iconId: 'quickView',
     isResizeable: false,
     name: 'File Converter',
-    size: { width: 620, height: 460 },
+    size: appWindowSize.utilityDialog,
+    sizeMode: 'content',
   },
   systemPerformance: {
     id: 'systemPerformance',
@@ -120,16 +129,17 @@ export const appList: AppList = {
   },
   zipArchive: {
     id: 'zipArchive',
-    iconId: 'winRar3',
+    iconId: 'zipFile',
     isResizeable: true,
     name: 'Archive.zip',
-    size: { width: 640, height: 480 },
+    size: appWindowSize.pickerDialog,
+    sizeMode: 'content',
   },
   portal: {
     id: 'portal',
     iconId: 'lotusWordPro97',
     name: 'CorpPortal',
-    size: { width: 560, height: 360 },
+    size: appWindowSize.portalWorkspace,
   },
   blackjack: {
     id: 'blackjack',
@@ -147,7 +157,8 @@ export const appList: AppList = {
     id: 'bank',
     iconId: 'microsoftMoney99',
     name: 'America #1 Bank',
-    size: { width: 420, height: 260 },
+    size: appWindowSize.utilityDialog,
+    sizeMode: 'content',
   },
   worldWideWeb: {
     id: 'worldWideWeb',

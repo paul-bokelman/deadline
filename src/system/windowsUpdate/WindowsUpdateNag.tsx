@@ -71,9 +71,8 @@ const WindowsUpdateNag: FunctionComponent = () => {
           <div
             style={{
               padding: '10px',
-              backgroundColor: 'var(--button-highlight)',
-              boxShadow:
-                'var(--border-sunken-outer), var(--border-sunken-inner)',
+              backgroundColor: 'var(--paper)',
+              boxShadow: 'var(--bevel-sunken)',
             }}
           >
             Required Windows update.

@@ -3,7 +3,7 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
-  background: var(--surface);
+  background: var(--plastic);
 }
 
 /* Toolbar */
@@ -13,6 +13,7 @@
   align-items: stretch;
   gap: 2px;
   padding: 4px 6px;
+  background: var(--plastic);
   border-bottom: 1px solid var(--button-shadow);
   box-shadow: inset 0 -1px 0 var(--button-highlight);
 }
@@ -34,11 +35,15 @@
 
 .toolbarButton:hover {
   border: 1px solid var(--button-shadow);
-  box-shadow: var(--border-raised-outer), var(--border-raised-inner);
+  box-shadow: var(--bevel-raised);
 }
 
 .toolbarButton:active {
-  box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+  box-shadow: var(--bevel-sunken);
+}
+
+.toolbarButton:active > * {
+  transform: translate3d(1px, 1px, 0);
 }
 
 .toolbarButton:disabled {
@@ -81,7 +86,7 @@
   flex: 0 0 170px;
   border-right: 1px solid var(--button-shadow);
   box-shadow: inset -1px 0 0 var(--button-highlight);
-  background: var(--surface);
+  background: var(--plastic);
   padding: 6px 4px;
   overflow: auto;
 }
@@ -143,7 +148,7 @@
   flex-direction: column;
   flex: 1 1 auto;
   min-width: 0;
-  background: var(--surface);
+  background: var(--plastic);
 }
 
 /* Message list */
@@ -155,16 +160,16 @@
   min-height: 0;
   border-bottom: 1px solid var(--button-shadow);
   box-shadow: inset 0 -1px 0 var(--button-highlight);
-  background: #ffffff;
+  background: var(--paper);
   margin: 4px 4px 0 4px;
-  box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+  box-shadow: var(--bevel-sunken);
 }
 
 .listHeaderRow {
   display: grid;
   grid-template-columns: 24px 24px 1fr 1.4fr 130px;
   align-items: center;
-  background: var(--surface);
+  background: var(--plastic);
   border-bottom: 1px solid var(--button-shadow);
   box-shadow: inset 0 -1px 0 var(--button-highlight);
   font-weight: bold;
@@ -187,7 +192,7 @@
 .listBody {
   flex: 1 1 auto;
   overflow: auto;
-  background: #ffffff;
+  background: var(--paper);
 }
 
 .listRow {
@@ -255,8 +260,8 @@
   display: flex;
   flex-direction: column;
   margin: 4px;
-  background: #ffffff;
-  box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+  background: var(--paper);
+  box-shadow: var(--bevel-sunken);
   overflow: hidden;
 }
 
@@ -264,7 +269,7 @@
   flex: 0 0 auto;
   padding: 6px 10px;
   border-bottom: 1px solid #c8c8c8;
-  background: #ffffff;
+  background: var(--paper);
   display: grid;
   grid-template-columns: 60px 1fr;
   row-gap: 2px;
@@ -346,8 +351,8 @@
 .unlockButton {
   margin-top: 8px;
   border: none;
-  background: var(--surface);
-  box-shadow: var(--border-raised-outer), var(--border-raised-inner);
+  background: var(--plastic);
+  box-shadow: var(--bevel-raised);
   padding: 4px 10px;
   cursor: pointer;
 }
@@ -358,6 +363,7 @@
   display: flex;
   height: 21px;
   padding: 1px;
+  background: var(--plastic);
   flex: 0 0 auto;
 }
 
@@ -367,7 +373,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  box-shadow: var(--box-shadow-notification);
+  box-shadow: var(--bevel-status-well);
   margin-right: 2px;
 }
 

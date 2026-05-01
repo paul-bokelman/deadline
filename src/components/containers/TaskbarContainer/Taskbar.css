@@ -4,7 +4,7 @@
     height: 28px;
     padding: 4px 0 2px 0;
     box-shadow: inset 0 1px var(--button-face), inset 0 2px var(--button-highlight);
-    background: var(--surface);
+    background: var(--plastic);
 }
 
 .startMenuWrapper {

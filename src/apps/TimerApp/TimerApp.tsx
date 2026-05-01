@@ -20,7 +20,7 @@ const BASE_HEIGHT = 200;
 const panelStyle: JSX.CSSProperties = {
   margin: 0,
   padding: '10px',
-  backgroundColor: 'var(--surface)',
+  backgroundColor: 'var(--plastic)',
   height: '100%',
   width: '100%',
   boxSizing: 'border-box',
@@ -32,8 +32,8 @@ const panelStyle: JSX.CSSProperties = {
 };
 
 const cardStyle: JSX.CSSProperties = {
-  backgroundColor: 'var(--button-highlight)',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+  backgroundColor: 'var(--paper)',
+  boxShadow: 'var(--bevel-sunken)',
   padding: '8px',
 };
 

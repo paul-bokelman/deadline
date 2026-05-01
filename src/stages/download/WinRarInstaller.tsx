@@ -19,21 +19,21 @@ const trackStyle: JSX.CSSProperties = {
   width: '100%',
   height: '18px',
   boxShadow: 'var(--border-field)',
-  backgroundColor: '#ffffff',
+  backgroundColor: 'var(--paper)',
   marginTop: '8px',
 };
 
 const panelStyle: JSX.CSSProperties = {
   margin: '8px',
   padding: '10px',
-  backgroundColor: 'var(--button-highlight)',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+  backgroundColor: 'var(--paper)',
+  boxShadow: 'var(--bevel-sunken)',
 };
 
 const buttonStyle: JSX.CSSProperties = {
   border: 'none',
-  backgroundColor: 'var(--surface)',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+  backgroundColor: 'var(--plastic)',
+  boxShadow: 'var(--bevel-raised)',
   padding: '4px 8px',
   marginTop: '10px',
 };

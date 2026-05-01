@@ -92,6 +92,7 @@ const createInitialOpenWindows = (): OpenWindow[] => {
       showCloseButton: false,
       showMaximizeButton: true,
       size: timerSize,
+      sizeMode: timerApp.sizeMode,
       title: timerApp.name,
       zIndex: Z_INDEX_TIERS.normalBase,
     },
@@ -213,6 +214,7 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
           showCloseButton: isEulaWindow ? false : !isProjectDeadlineWindow,
           showMaximizeButton: !isNetVoiceCallWindow,
           size: isEulaWindow ? eulaSize : defaultSize,
+          sizeMode: app.sizeMode,
           title,
           workingDir,
           workingFile,
@@ -301,6 +303,20 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
     });
   };
 
+  const autoFitWindow = (id: string, size: { x: number; y: number }) => {
+    setOpenWindows((windows) => {
+      return windows.map((window) => {
+        if (window.id !== id || window.isMaximized) return window;
+        const nextSize = clampWindowSizeToViewport(size);
+        return {
+          ...window,
+          coords: clampWindowCoordsToViewport(window.coords, nextSize),
+          size: nextSize,
+        };
+      });
+    });
+  };
+
   const unMaximizeWindow = (id: string) => {
     setOpenWindows((windows) => {
       return windows.map((window) =>
@@ -334,6 +350,7 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
       value={{
         openApp,
         closeWindow,
+        autoFitWindow,
         focusOnWindow,
         maximizeWindow,
         minimizeWindow,

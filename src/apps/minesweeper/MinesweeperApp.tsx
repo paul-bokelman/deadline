@@ -21,16 +21,16 @@ const CELL_SIZE_PX = 26;
 const appStyle: JSX.CSSProperties = {
   height: '100%',
   padding: '10px',
-  backgroundColor: '#c0c0c0',
+  backgroundColor: 'var(--plastic)',
   boxSizing: 'border-box',
   display: 'flex',
   flexDirection: 'column',
 };
 
 const frameStyle: JSX.CSSProperties = {
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+  boxShadow: 'var(--bevel-raised)',
   padding: '8px',
-  backgroundColor: '#c0c0c0',
+  backgroundColor: 'var(--plastic)',
   display: 'flex',
   flexDirection: 'column',
   gap: '8px',
@@ -40,8 +40,8 @@ const statusRowStyle: JSX.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
-  backgroundColor: '#c0c0c0',
+  boxShadow: 'var(--bevel-group)',
+  backgroundColor: 'var(--plastic)',
   padding: '6px',
 };
 
@@ -55,7 +55,7 @@ const digitStyle: JSX.CSSProperties = {
   lineHeight: '34px',
   textAlign: 'center',
   letterSpacing: '1px',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+  boxShadow: 'var(--bevel-sunken)',
   userSelect: 'none',
 };
 
@@ -63,8 +63,8 @@ const smileyButtonStyle: JSX.CSSProperties = {
   width: '34px',
   height: '34px',
   border: 'none',
-  backgroundColor: '#c0c0c0',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+  backgroundColor: 'var(--plastic)',
+  boxShadow: 'var(--bevel-raised)',
   display: 'grid',
   placeItems: 'center',
   cursor: 'pointer',
@@ -79,7 +79,7 @@ const boardStyle: JSX.CSSProperties = {
   alignContent: 'start',
   backgroundColor: '#bdbdbd',
   padding: '4px',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+  boxShadow: 'var(--bevel-sunken)',
 };
 
 const createEmptyBoard = (): Cell[][] =>
@@ -357,10 +357,8 @@ const MinesweeperApp: FunctionComponent<AppProps> = () => {
       fontSize: '18px',
       lineHeight: 1,
       cursor: isRevealed ? 'default' : 'pointer',
-      backgroundColor: isRevealed ? '#c0c0c0' : '#c0c0c0',
-      boxShadow: isRevealed
-        ? 'inset 1px 1px 0 #8d8d8d'
-        : 'var(--border-raised-outer), var(--border-raised-inner)',
+      backgroundColor: 'var(--plastic)',
+      boxShadow: isRevealed ? 'inset 1px 1px 0 #8d8d8d' : 'var(--bevel-raised)',
       color: getCellNumberColor(cell.adjacentMines),
       padding: 0,
       display: 'grid',

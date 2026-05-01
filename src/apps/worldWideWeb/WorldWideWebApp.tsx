@@ -1,6 +1,7 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 
+import Icon from '@/components/shared/Icon/Icon';
 import { AppProps } from '@/types/App';
 import { gameEventBus } from '@/game/events';
 import { setPortalPassword } from '@/system/portalAuth/portalAuth';
@@ -58,10 +59,10 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
     navigateTo(targetPage);
   };
 
-  const pageAddress = useMemo(
-    () => getPageAddress(page, searchQuery),
-    [page, searchQuery]
-  );
+  const pageAddress = useMemo(() => getPageAddress(page, searchQuery), [
+    page,
+    searchQuery,
+  ]);
 
   useEffect(() => {
     setTypedAddress(pageAddress);
@@ -374,9 +375,8 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
             style={{
               fontFamily: 'monospace',
               fontSize: '12px',
-              boxShadow:
-                'var(--border-sunken-outer), var(--border-sunken-inner)',
-              backgroundColor: '#fff',
+              boxShadow: 'var(--bevel-sunken)',
+              backgroundColor: 'var(--paper)',
               padding: '10px',
             }}
           >
@@ -481,30 +481,105 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
         <div
           style={{
             lineHeight: 1.6,
-            background:
-              'linear-gradient(180deg, #f4f4ff 0%, #fcfcff 40%, #ffffff 100%)',
+            background: '#f4f1ff',
             padding: '10px',
-            border: '1px solid #d8d8ee',
+            boxShadow: 'var(--bevel-sunken)',
           }}
         >
-          <h2 style={{ marginTop: 0 }}>WinRAR Online Download</h2>
-          <div style={bannerStyle}>
-            Trusted by 9 out of 10 people who have no idea where zip files go.
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '10px',
+              color: '#ffffff',
+              background:
+                'linear-gradient(90deg, #28106b 0%, #5b2aa8 48%, #11733a 100%)',
+              boxShadow: 'var(--bevel-raised)',
+            }}
+          >
+            <Icon iconId="winRar3" size={32} />
+            <div>
+              <div style={{ fontSize: '22px', fontWeight: 700 }}>
+                WinRAR Download Center
+              </div>
+              <div style={{ fontSize: '12px' }}>
+                Compressing files, expectations, and trial periods since
+                forever.
+              </div>
+            </div>
           </div>
-          <div style={{ ...sectionCardStyle, marginBottom: '10px' }}>
-            <b>Version:</b> 6.66 trial edition <br />
-            <b>File:</b> WinRAR_installer.exe <br />
-            <b>Size:</b> 2.4 MB
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '2fr 1fr',
+              gap: '10px',
+              marginTop: '10px',
+            }}
+          >
+            <div
+              style={{
+                backgroundColor: 'var(--paper)',
+                boxShadow: 'var(--bevel-sunken)',
+                padding: '10px',
+              }}
+            >
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '18px 1fr',
+                  gap: '3px 8px',
+                  alignItems: 'center',
+                }}
+              >
+                <div style={{ height: '12px', background: '#7b2ca8' }} />
+                <b>Version:</b>
+                <div style={{ height: '12px', background: '#1b63b7' }} />
+                <span>6.66 trial edition</span>
+                <div style={{ height: '12px', background: '#1f9a48' }} />
+                <span>File: WinRAR_installer.exe</span>
+                <div style={{ height: '12px', background: '#c09020' }} />
+                <span>Size: 2.4 MB of pure archive confidence</span>
+              </div>
+              <div style={{ marginTop: '10px' }}>
+                Need to open compressed files? Download WinRAR here, then spend
+                the rest of your life clicking &quot;Use Evaluation
+                Version.&quot;
+              </div>
+            </div>
+            <div
+              style={{
+                backgroundColor: '#fff7d1',
+                boxShadow: 'var(--bevel-raised)',
+                padding: '10px',
+                textAlign: 'center',
+              }}
+            >
+              <Icon iconId="winRar3" size={32} />
+              <div style={{ marginTop: '6px', fontWeight: 700 }}>
+                Official-ish Mirror
+              </div>
+              <div style={{ fontSize: '12px' }}>
+                Certified by a banner ad we found in 2001.
+              </div>
+            </div>
           </div>
-          <div style={{ ...sectionCardStyle, marginBottom: '10px' }}>
-            Need to open compressed files? Download WinRAR here.
-          </div>
-          <div style={{ ...sectionCardStyle, marginBottom: '10px' }}>
-            <b>What you get</b>
+
+          <div
+            style={{
+              ...sectionCardStyle,
+              marginTop: '10px',
+              marginBottom: '10px',
+              backgroundColor: '#dfefff',
+            }}
+          >
+            <b>What you get in the box</b>
             <ul style={{ margin: '8px 0 0 18px', padding: 0 }}>
-              <li>Opens `.zip` and `.rar` archives</li>
+              <li>Opens `.zip` and `.rar` archives with book energy</li>
               <li>Progress bars that feel meaningful</li>
               <li>A trial period that achieves legendary immortality</li>
+              <li>A desktop icon that says, yes, I know computers</li>
             </ul>
           </div>
           <div style={cardGridStyle}>
@@ -513,12 +588,18 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
               family."
             </div>
             <div style={sectionCardStyle}>
-              <b>System requirements:</b> 486 CPU, 16MB RAM, and belief.
+              <b>System requirements:</b> 486 CPU, 16MB RAM, and belief in
+              stacked books.
             </div>
           </div>
           <button
             type="button"
-            style={{ ...browserButtonStyle, fontWeight: 700 }}
+            style={{
+              ...browserButtonStyle,
+              marginTop: '12px',
+              fontWeight: 700,
+              minWidth: '190px',
+            }}
             onClick={() => openApp({ appId: 'winRarInstaller' })}
           >
             Download WinRAR Installer
@@ -540,9 +621,9 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
           style={{
             lineHeight: 1.55,
             background:
-              'linear-gradient(180deg, #eceff8 0%, var(--surface) 55%, #f8f9fc 100%)',
+              'linear-gradient(180deg, #eceff8 0%, var(--plastic) 55%, #f8f9fc 100%)',
             padding: '8px',
-            boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+            boxShadow: 'var(--bevel-sunken)',
           }}
         >
           <div
@@ -552,8 +633,7 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
               color: '#ffffff',
               fontWeight: 700,
               padding: '4px 8px',
-              boxShadow:
-                'var(--border-raised-outer), var(--border-raised-inner)',
+              boxShadow: 'var(--bevel-raised)',
             }}
           >
             Identity Services - Password Reset Wizard
@@ -561,9 +641,8 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
           <div
             style={{
               marginTop: '8px',
-              backgroundColor: 'var(--button-highlight)',
-              boxShadow:
-                'var(--border-sunken-outer), var(--border-sunken-inner)',
+              backgroundColor: 'var(--paper)',
+              boxShadow: 'var(--bevel-sunken)',
               padding: '10px',
             }}
           >
@@ -578,7 +657,7 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
           <div
             style={{
               marginTop: '8px',
-              backgroundColor: '#ffffff',
+              backgroundColor: 'var(--paper)',
               boxShadow: 'var(--border-field)',
               padding: '10px',
               display: 'flex',
@@ -625,7 +704,7 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
           <div
             style={{
               marginTop: '8px',
-              backgroundColor: '#ffffff',
+              backgroundColor: 'var(--paper)',
               boxShadow: 'var(--border-field)',
               padding: '10px',
             }}
@@ -655,9 +734,8 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
             <div
               style={{
                 marginTop: '8px',
-                backgroundColor: 'var(--button-highlight)',
-                boxShadow:
-                  'var(--border-raised-outer), var(--border-raised-inner)',
+                backgroundColor: 'var(--plastic)',
+                boxShadow: 'var(--bevel-raised)',
                 padding: '8px 10px',
               }}
             >

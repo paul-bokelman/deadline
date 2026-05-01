@@ -4,14 +4,12 @@ import { useGameState } from '@/game/state';
 import { AppProps } from '@/types/App';
 
 const panelStyle: JSX.CSSProperties = {
-  margin: '8px',
-  padding: '10px',
-  backgroundColor: 'var(--button-highlight)',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
-  height: 'calc(100% - 16px)',
+  padding: '8px',
+  backgroundColor: 'var(--plastic)',
+  boxSizing: 'border-box',
   display: 'flex',
   flexDirection: 'column',
-  gap: '10px',
+  gap: '8px',
 };
 
 const rowStyle: JSX.CSSProperties = {
@@ -22,9 +20,16 @@ const rowStyle: JSX.CSSProperties = {
 };
 
 const boxStyle: JSX.CSSProperties = {
-  backgroundColor: '#ffffff',
-  boxShadow: 'var(--border-field)',
+  backgroundColor: 'var(--plastic)',
+  boxShadow: 'var(--bevel-group)',
   padding: '8px',
+  fontFamily: 'monospace',
+};
+
+const ledgerStyle: JSX.CSSProperties = {
+  backgroundColor: 'var(--paper)',
+  boxShadow: 'var(--bevel-sunken)',
+  padding: '6px',
   fontFamily: 'monospace',
 };
 
@@ -46,7 +51,8 @@ const WalletApp: FunctionComponent<AppProps> = () => {
   const bank = flags.bankBalance;
 
   return (
-    <div style={panelStyle}>
+    <div data-window-fit style={panelStyle}>
+      <div style={{ fontWeight: 700 }}>America #1 Bank Online</div>
       <div style={gridStyle}>
         <div style={boxStyle}>
           <div style={{ fontWeight: 700, marginBottom: '6px' }}>Checking</div>
@@ -60,14 +66,15 @@ const WalletApp: FunctionComponent<AppProps> = () => {
         <div style={boxStyle}>
           <div style={{ fontWeight: 700, marginBottom: '6px' }}>Status</div>
           <div>Online Banking: ENABLED</div>
-          <div>Fraud Monitor: PARANOID</div>
+          <div>Fraud Monitor: JUDGMENTAL</div>
           <div style={{ marginTop: '6px' }}>
-            <span style={smallMutedStyle}>Message:</span> Please stop gambling.
+            <span style={smallMutedStyle}>Message:</span> Your spending has been
+            described internally as &quot;creative.&quot;
           </div>
         </div>
       </div>
 
-      <div style={boxStyle}>
+      <div style={ledgerStyle}>
         <div style={{ fontWeight: 700, marginBottom: '6px' }}>
           Recent Activity
         </div>
@@ -82,13 +89,13 @@ const WalletApp: FunctionComponent<AppProps> = () => {
           <div>-$20</div>
           <div>Blackjack Table Transfer</div>
           <div>-$10</div>
-          <div>“Totally Safe Patch” Subscription</div>
+          <div>&quot;Totally Safe Patch&quot; Subscription</div>
           <div>-$0</div>
-          <div>Mom’s Emergency Transfer</div>
+          <div>Mom&apos;s Emergency Transfer</div>
           <div>+$100</div>
         </div>
         <div style={{ marginTop: '8px', ...smallMutedStyle }}>
-          Rates subject to change. Feelings subject to judgment.
+          Rates subject to change. Self-respect not FDIC insured.
         </div>
       </div>
 
@@ -100,6 +107,8 @@ const WalletApp: FunctionComponent<AppProps> = () => {
           <div>
             Do not store 1000 passwords in a file named{' '}
             <b>IMPORTANT_PASSWORDS_DON&apos;T_LOSE.txt</b>.
+            <br />
+            Use something discreet, like <b>passwords_final_REAL.xls</b>.
           </div>
         </div>
       </div>

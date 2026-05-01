@@ -25,8 +25,8 @@ const overlayStyle: JSX.CSSProperties = {
 
 const dialogStyle: JSX.CSSProperties = {
   width: '420px',
-  backgroundColor: 'var(--surface)',
-  boxShadow: 'var(--border-window-outer), var(--border-window-inner)',
+  backgroundColor: 'var(--plastic)',
+  boxShadow: 'var(--bevel-raised)',
   padding: '3px',
 };
 
@@ -40,8 +40,8 @@ const titleStyle: JSX.CSSProperties = {
 };
 
 const bodyStyle: JSX.CSSProperties = {
-  backgroundColor: 'var(--button-highlight)',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+  backgroundColor: 'var(--paper)',
+  boxShadow: 'var(--bevel-sunken)',
   padding: '12px',
   display: 'flex',
   flexDirection: 'column',
@@ -50,8 +50,8 @@ const bodyStyle: JSX.CSSProperties = {
 
 const buttonStyle: JSX.CSSProperties = {
   border: 'none',
-  backgroundColor: 'var(--surface)',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+  backgroundColor: 'var(--plastic)',
+  boxShadow: 'var(--bevel-raised)',
   padding: '4px 10px',
 };
 

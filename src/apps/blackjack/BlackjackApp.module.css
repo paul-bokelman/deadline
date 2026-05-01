@@ -9,7 +9,7 @@
     flex-direction: column;
     width: 100%;
     height: 100%;
-    background: var(--surface);
+    background: var(--plastic);
     color: #000;
     font-family: var(--font-family-ui);
     font-size: 11px;
@@ -92,10 +92,7 @@
         radial-gradient(ellipse 90% 70% at 50% 50%,
             #0e8a3a 0%, #0a6b2c 50%, #073d18 100%);
     box-shadow:
-        inset 1px 1px 0 0 var(--button-shadow),
-        inset -1px -1px 0 0 var(--button-highlight),
-        inset 2px 2px 0 0 var(--window-frame),
-        inset -2px -2px 0 0 var(--button-face);
+        var(--bevel-sunken);
 }
 
 .felt::before {
@@ -200,7 +197,7 @@
 .card {
     width: 54px;
     height: 76px;
-    background: #fff;
+    background: var(--paper);
     border: 1px solid #000;
     border-radius: 4px;
     box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.4);
@@ -304,13 +301,8 @@
     left: 50%;
     top: 38%;
     transform: translate(-50%, -50%) rotate(-4deg);
-    background: var(--surface);
-    box-shadow:
-        inset 1px 1px 0 0 var(--button-highlight),
-        inset -1px -1px 0 0 var(--window-frame),
-        inset 2px 2px 0 0 var(--button-face),
-        inset -2px -2px 0 0 var(--button-shadow),
-        4px 6px 0 rgba(0, 0, 0, 0.4);
+    background: var(--plastic);
+    box-shadow: var(--bevel-raised), 4px 6px 0 rgba(0, 0, 0, 0.4);
     padding: 8px 22px;
     font-family: 'Times New Roman', Georgia, serif;
     font-weight: 700;
@@ -447,7 +439,7 @@
 }
 
 .chipBtn:not(:disabled):active .chipBtnImg {
-    transform: translateY(1px);
+    transform: translate3d(1px, 1px, 0);
 }
 
 .chipLabel {
@@ -469,8 +461,8 @@
 
 /* ─── Win98 button (Hit / Stand / Deal / Next Round) ─────────── */
 .btn {
-    background: var(--surface);
-    box-shadow: var(--border-raised-outer), var(--border-raised-inner);
+    background: var(--plastic);
+    box-shadow: var(--bevel-raised);
     padding: 6px 10px;
     font-family: inherit;
     font-size: 11px;
@@ -486,7 +478,7 @@
 }
 
 .btn:not(:disabled):active {
-    box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+    box-shadow: var(--bevel-sunken);
     padding: 7px 9px 5px 11px;
 }
 

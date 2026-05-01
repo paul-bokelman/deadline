@@ -24,7 +24,7 @@ const shellStyle: JSX.CSSProperties = {
   height: '100%',
   display: 'flex',
   flexDirection: 'column',
-  backgroundColor: 'var(--surface)',
+  backgroundColor: 'var(--plastic)',
   position: 'relative',
   overflow: 'hidden',
 };

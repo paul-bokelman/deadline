@@ -1,0 +1,9 @@
+.portalButton:not(:disabled):active {
+  box-shadow: var(--bevel-sunken) !important;
+}
+
+.portalButton:not(:disabled):active > span,
+.portalButton:not(:disabled):active > svg {
+  display: inline-block;
+  transform: translate3d(1px, 1px, 0);
+}

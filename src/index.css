@@ -69,7 +69,6 @@ body, button, label, input, textarea, select, option, ul {
   font-size: 11px;
   color: #222222;
   font-family: var(--font-family-ui), sans-serif;
-  /* -webkit-font-smoothing: none; */
 }
 
 
@@ -93,13 +92,6 @@ u {
   text-decoration: none;
   border-bottom: 0.5px solid #222222;
 }
-
-/* .vertical-bar {
-  width: 4px;
-  height: 20px;
-  background: #c0c0c0;
-  box-shadow: var(--border-raised-outer), var(--border-raised-inner);
-} */
 
 label {
   display: inline-flex;
@@ -134,7 +126,7 @@ input[type="text"], input[type="password"], input[type="email"], select, textare
   padding: 3px 4px;
   border: none;
   box-shadow: var(--border-field);
-  background-color: var(--button-highlight);
+  background-color: var(--paper);
   box-sizing: border-box;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -161,7 +153,7 @@ a:focus {
 
 pre {
   display: block;
-  background: var(--button-highlight);
+  background: var(--paper);
   box-shadow: var(--border-field);
   padding: 12px 8px;
   margin: 0;
@@ -180,7 +172,7 @@ code, code * {
 }
 
 ::-webkit-scrollbar-corner {
-  background-color: var(--surface);
+  background-color: var(--plastic);
 }
 
 ::-webkit-scrollbar-track {
@@ -188,8 +180,8 @@ code, code * {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: var(--surface);
-  box-shadow: var(--border-raised-outer), var(--border-raised-inner);
+  background-color: var(--plastic);
+  box-shadow: var(--bevel-raised);
 }
 
 ::-webkit-scrollbar-button:horizontal:start:decrement, ::-webkit-scrollbar-button:horizontal:end:increment, ::-webkit-scrollbar-button:vertical:start:decrement, ::-webkit-scrollbar-button:vertical:end:increment {

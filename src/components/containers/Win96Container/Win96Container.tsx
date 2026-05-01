@@ -21,7 +21,6 @@ import DeadPixelOverlay from '@/system/deadPixels/DeadPixelOverlay';
 import BackgroundFlyOverlay from '@/system/backgroundFly/BackgroundFlyOverlay';
 import { gameEventBus } from '@/game/events';
 import ClippyAssistant from '@/system/clippy/ClippyAssistant';
-import FullscreenRecommendation from '@/system/fullscreen/FullscreenRecommendation';
 import InstantBsodTrap from '@/system/traps/InstantBsodTrap';
 
 import style from './Win96Container.module.css';
@@ -39,8 +38,8 @@ const taskManagerBackdropStyle: JSX.CSSProperties = {
 
 const taskManagerWindowStyle: JSX.CSSProperties = {
   width: '420px',
-  backgroundColor: 'var(--surface)',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+  backgroundColor: 'var(--plastic)',
+  boxShadow: 'var(--bevel-raised)',
   padding: '10px',
   fontFamily: 'var(--font-family-ui)',
 };
@@ -187,7 +186,7 @@ const CtrlAltDelTaskManagerTrap: FunctionComponent = () => {
         </div>
         <div
           style={{
-            backgroundColor: '#ffffff',
+            backgroundColor: 'var(--paper)',
             boxShadow: 'var(--border-field)',
             padding: '8px',
             marginBottom: '10px',
@@ -203,9 +202,8 @@ const CtrlAltDelTaskManagerTrap: FunctionComponent = () => {
             type="button"
             style={{
               border: 'none',
-              backgroundColor: 'var(--surface)',
-              boxShadow:
-                'var(--border-raised-outer), var(--border-raised-inner)',
+              backgroundColor: 'var(--plastic)',
+              boxShadow: 'var(--bevel-raised)',
               padding: '4px 8px',
             }}
             onClick={() => setIsDialogOpen(false)}
@@ -216,9 +214,8 @@ const CtrlAltDelTaskManagerTrap: FunctionComponent = () => {
             type="button"
             style={{
               border: 'none',
-              backgroundColor: 'var(--surface)',
-              boxShadow:
-                'var(--border-raised-outer), var(--border-raised-inner)',
+              backgroundColor: 'var(--plastic)',
+              boxShadow: 'var(--bevel-raised)',
               padding: '4px 8px',
             }}
             onClick={() => {
@@ -325,7 +322,6 @@ const Win96Container: FunctionComponent = () => {
               <WinStageLayer />
               <IntrusivePopupManager />
               <WindowsUpdateNag />
-              <FullscreenRecommendation />
               <InstantBsodTrap />
               <ClippyAssistant />
               <SaveHotkeyTrap />

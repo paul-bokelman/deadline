@@ -18,6 +18,7 @@ export type OpenWindow = {
   isResizeable: boolean;
   showCloseButton?: boolean;
   showMaximizeButton?: boolean;
+  sizeMode?: 'fixed' | 'content';
   size: { x: number; y: number };
   title: string;
   workingDir?: FileSystemDir;
@@ -37,6 +38,7 @@ export interface OpenWindowsContextType {
   minimizeWindow: (id: string) => void;
   moveWindow: (id: string, coords: { x: number; y: number }) => void;
   resizeWindow: (id: string, coords: { x: number; y: number }) => void;
+  autoFitWindow: (id: string, coords: { x: number; y: number }) => void;
   unMaximizeWindow: (id: string) => void;
   unMinimizeWindow: (id: string) => void;
   windows: OpenWindow[];
@@ -44,6 +46,7 @@ export interface OpenWindowsContextType {
 
 const initialValue: OpenWindowsContextType = {
   closeWindow: () => null,
+  autoFitWindow: () => null,
   focusOnWindow: () => null,
   maximizeWindow: () => null,
   minimizeWindow: () => null,

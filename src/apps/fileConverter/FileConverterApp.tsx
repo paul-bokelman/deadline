@@ -1,7 +1,9 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 
+import Button from '@/components/shared/Button/Button';
 import Dropdown from '@/components/shared/Dropdown/Dropdown';
+import Icon from '@/components/shared/Icon/Icon';
 import { getDynamicDesktopItems } from '@/system/desktop/dynamicDesktopItems';
 import { useGameState } from '@/game/state';
 import { FileTypeId } from '@/types/FileType';
@@ -9,33 +11,65 @@ import { AppProps } from '@/types/App';
 import { ShellItem } from '@/types/Shell';
 
 const panelStyle: JSX.CSSProperties = {
-  margin: '8px',
-  padding: '10px',
-  backgroundColor: 'var(--button-highlight)',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
-  height: 'calc(100% - 16px)',
+  padding: '8px',
+  backgroundColor: 'var(--plastic)',
+  boxSizing: 'border-box',
   display: 'flex',
   flexDirection: 'column',
-  gap: '10px',
+  gap: '8px',
 };
 
 const boxStyle: JSX.CSSProperties = {
-  backgroundColor: '#ffffff',
-  boxShadow: 'var(--border-field)',
-  padding: '10px',
+  backgroundColor: 'var(--plastic)',
+  boxShadow: 'var(--bevel-group)',
+  padding: '8px',
 };
 
-const buttonStyle: JSX.CSSProperties = {
-  border: 'none',
-  backgroundColor: 'var(--surface)',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
-  padding: '4px 8px',
+const headerStyle: JSX.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  padding: '7px 8px',
+  color: '#ffffff',
+  background:
+    'linear-gradient(90deg, var(--dialog-blue) 0%, #0050a8 68%, var(--dialog-gray) 100%)',
+  boxShadow: 'var(--bevel-raised)',
 };
 
-const disabledButtonStyle: JSX.CSSProperties = {
-  ...buttonStyle,
-  color: 'var(--button-shadow)',
-  textShadow: '1px 1px 0 var(--button-highlight)',
+const paperPanelStyle: JSX.CSSProperties = {
+  backgroundColor: 'var(--paper)',
+  boxShadow: 'var(--bevel-sunken)',
+  padding: '8px',
+};
+
+const conversionFlowStyle: JSX.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: '1fr 42px 1fr',
+  gap: '8px',
+  alignItems: 'stretch',
+  marginTop: '8px',
+};
+
+const fileCardStyle: JSX.CSSProperties = {
+  ...paperPanelStyle,
+  minWidth: 0,
+};
+
+const arrowStyle: JSX.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontFamily: 'var(--font-family-sys)',
+  fontSize: '24px',
+  fontWeight: 700,
+  color: 'var(--dialog-blue)',
+};
+
+const statusStyle: JSX.CSSProperties = {
+  marginTop: '8px',
+  padding: '6px 8px',
+  backgroundColor: '#ffffe1',
+  boxShadow: 'var(--bevel-sunken)',
 };
 
 const conversionOptions: Array<{ id: FileTypeId; label: string }> = [
@@ -106,47 +140,92 @@ const FileConverterApp: FunctionComponent<AppProps> = ({
     selectedFile.type === 'file' &&
     selectedFile.fileTypeId !== targetType;
 
+  const targetOptionLabel =
+    conversionOptions.find((option) => option.id === targetType)?.label ??
+    targetType;
+
   return (
-    <div style={panelStyle}>
-      <div style={{ fontWeight: 700 }}>File Converter</div>
-      <div style={boxStyle}>
-        <div>Select any file and convert its file type.</div>
-        <div style={{ marginTop: '8px' }}>
-          Files found: <b>{desktopFiles.length}</b>
+    <div data-window-fit style={panelStyle}>
+      <div style={headerStyle}>
+        <Icon iconId="quickView" size={24} />
+        <div>
+          <div style={{ fontWeight: 700 }}>File Converter</div>
+          <div style={{ fontSize: '11px' }}>
+            Enterprise-grade filename optimism module
+          </div>
         </div>
       </div>
+
       <div style={boxStyle}>
-        <div style={{ marginBottom: '6px' }}>Choose file:</div>
-        <Dropdown
-          id="file-converter-file-select"
-          emptyLabel="No files available"
-          selected={selectedFileId}
-          onChange={(value) => setSelectedFileId(value)}
-          options={desktopFiles.map((entry) => ({
-            value: entry.id,
-            label: entry.name,
-          }))}
-        />
-        <div style={{ marginTop: '8px', marginBottom: '6px' }}>Convert to:</div>
-        <Dropdown
-          id="file-converter-target-select"
-          selected={targetType}
-          onChange={(value) => setTargetType(value as FileTypeId)}
-          options={conversionOptions.map((option) => ({
-            value: option.id,
-            label: option.label,
-          }))}
-        />
-        {selectedFile && selectedFile.type === 'file' && (
-          <div style={{ marginTop: '8px', fontSize: '12px' }}>
-            Current type: <b>{selectedFile.fileTypeId}</b>
+        <div style={{ fontWeight: 700 }}>Conversion Wizard</div>
+        <div style={{ marginTop: '4px' }}>
+          Change a file extension and hope reality follows along. Files found:{' '}
+          <b>{desktopFiles.length}</b>
+        </div>
+
+        <div style={conversionFlowStyle}>
+          <div style={fileCardStyle}>
+            <div style={{ fontWeight: 700, marginBottom: '5px' }}>Source</div>
+            <div style={{ marginBottom: '4px' }}>File:</div>
+            <Dropdown
+              id="file-converter-file-select"
+              emptyLabel="No files available"
+              selected={selectedFileId}
+              onChange={(value) => setSelectedFileId(value)}
+              options={desktopFiles.map((entry) => ({
+                value: entry.id,
+                label: entry.name,
+              }))}
+            />
+            <div style={{ marginTop: '8px', fontSize: '12px' }}>
+              Current costume:{' '}
+              <b>
+                {selectedFile && selectedFile.type === 'file'
+                  ? selectedFile.fileTypeId
+                  : 'none'}
+              </b>
+            </div>
           </div>
-        )}
-        <div style={{ marginTop: '10px', display: 'flex', gap: '8px' }}>
-          <button
-            type="button"
+
+          <div style={arrowStyle}>-&gt;</div>
+
+          <div style={fileCardStyle}>
+            <div style={{ fontWeight: 700, marginBottom: '5px' }}>Target</div>
+            <div style={{ marginBottom: '4px' }}>Pretend it is now:</div>
+            <Dropdown
+              id="file-converter-target-select"
+              selected={targetType}
+              onChange={(value) => setTargetType(value as FileTypeId)}
+              options={conversionOptions.map((option) => ({
+                value: option.id,
+                label: option.label,
+              }))}
+            />
+            <div style={{ marginTop: '8px', fontSize: '12px' }}>
+              New label: <b>{targetOptionLabel}</b>
+            </div>
+          </div>
+        </div>
+
+        <div style={statusStyle}>
+          {selectedFile
+            ? canConvert
+              ? 'Ready. The file has no idea what is about to happen.'
+              : 'Source and target already match. Even this app has limits.'
+            : 'Select a file to begin the ceremonial renaming.'}
+        </div>
+
+        <div
+          style={{
+            marginTop: '10px',
+            display: 'flex',
+            gap: '8px',
+            justifyContent: 'flex-end',
+          }}
+        >
+          <Button
             disabled={!canConvert}
-            style={canConvert ? buttonStyle : disabledButtonStyle}
+            label="Convert"
             onClick={() => {
               if (!selectedFile || selectedFile.type !== 'file') return;
               const nextExtension = fileTypeToExtension[targetType];
@@ -165,21 +244,13 @@ const FileConverterApp: FunctionComponent<AppProps> = ({
                 },
               });
               setStatusMessage(
-                `Converted ${selectedFile.name} to ${nextName}.`
+                `Converted ${selectedFile.name} to ${nextName}. Computers believe what filenames tell them.`
               );
             }}
-          >
-            Convert
-          </button>
-          <button type="button" style={buttonStyle} onClick={closeWindow}>
-            Close
-          </button>
+          />
+          <Button label="Close" onClick={closeWindow} />
         </div>
-        {!!statusMessage && (
-          <div style={{ marginTop: '8px', color: '#006400' }}>
-            {statusMessage}
-          </div>
-        )}
+        {!!statusMessage && <div style={statusStyle}>{statusMessage}</div>}
       </div>
     </div>
   );

@@ -1,19 +1,131 @@
 import { JSX } from 'preact';
 
 export const panelStyle: JSX.CSSProperties = {
-  margin: '8px',
-  padding: '10px',
-  backgroundColor: 'var(--button-highlight)',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
-  height: 'calc(100% - 16px)',
+  display: 'flex',
+  flexDirection: 'column',
+  height: '100%',
   boxSizing: 'border-box',
+  backgroundColor: 'var(--plastic)',
+  overflow: 'hidden',
+};
+
+export const portalHeaderStyle: JSX.CSSProperties = {
+  margin: '1px 1px 0',
+  padding: '5px 8px',
+  color: '#ffffff',
+  background:
+    'linear-gradient(90deg, var(--dialog-blue) 0%, #004a9f 62%, var(--dialog-gray) 100%)',
+  boxShadow: 'var(--bevel-raised)',
+};
+
+export const portalHeaderTitleStyle: JSX.CSSProperties = {
+  fontSize: '18px',
+  fontWeight: 700,
+  lineHeight: 1,
+};
+
+export const portalHeaderSubStyle: JSX.CSSProperties = {
+  marginTop: '2px',
+  fontSize: '11px',
+};
+
+export const toolbarStyle: JSX.CSSProperties = {
+  display: 'flex',
+  gap: '2px',
+  alignItems: 'center',
+  padding: '4px 6px',
+  backgroundColor: 'var(--plastic)',
+  borderBottom: '1px solid var(--button-shadow)',
+  boxShadow: 'inset 0 -1px 0 var(--paper)',
+};
+
+export const toolbarItemStyle: JSX.CSSProperties = {
+  padding: '2px 7px',
+  boxShadow: 'var(--bevel-raised)',
+  backgroundColor: 'var(--plastic)',
+};
+
+export const portalBodyStyle: JSX.CSSProperties = {
+  display: 'flex',
+  flex: 1,
+  minHeight: 0,
+  padding: '6px',
+  gap: '6px',
+};
+
+export const navPaneStyle: JSX.CSSProperties = {
+  flex: '0 0 145px',
+  backgroundColor: 'var(--plastic)',
+  boxShadow: 'var(--bevel-group)',
+  padding: '6px',
+  overflow: 'hidden',
+};
+
+export const navTitleStyle: JSX.CSSProperties = {
+  marginBottom: '6px',
+  fontWeight: 700,
+};
+
+export const navItemStyle: JSX.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '5px',
+  padding: '3px 4px',
+  marginBottom: '2px',
+};
+
+export const navItemActiveStyle: JSX.CSSProperties = {
+  ...navItemStyle,
+  color: '#ffffff',
+  backgroundColor: 'var(--dialog-blue)',
+};
+
+export const workspaceStyle: JSX.CSSProperties = {
+  flex: 1,
+  minWidth: 0,
+  minHeight: 0,
+  padding: '8px',
+  backgroundColor: 'var(--paper)',
+  boxShadow: 'var(--bevel-sunken)',
   overflowY: 'auto',
+};
+
+export const groupBoxStyle: JSX.CSSProperties = {
+  marginTop: '8px',
+  padding: '8px',
+  backgroundColor: 'var(--plastic)',
+  boxShadow: 'var(--bevel-group)',
+};
+
+export const groupTitleStyle: JSX.CSSProperties = {
+  marginBottom: '6px',
+  fontWeight: 700,
+};
+
+export const noticeStyle: JSX.CSSProperties = {
+  padding: '6px 8px',
+  backgroundColor: '#ffffe1',
+  boxShadow: 'var(--bevel-sunken)',
+};
+
+export const statusBarStyle: JSX.CSSProperties = {
+  display: 'flex',
+  gap: '2px',
+  padding: '2px',
+  backgroundColor: 'var(--plastic)',
+};
+
+export const statusCellStyle: JSX.CSSProperties = {
+  flex: 1,
+  padding: '2px 6px',
+  minHeight: '18px',
+  boxShadow: 'var(--bevel-status-well)',
 };
 
 export const buttonStyle: JSX.CSSProperties = {
   border: 'none',
-  backgroundColor: 'var(--surface)',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+  backgroundColor: 'var(--plastic)',
+  boxShadow: 'var(--bevel-raised)',
   padding: '4px 10px',
   marginRight: '8px',
 };
@@ -26,7 +138,7 @@ export const disabledButtonStyle: JSX.CSSProperties = {
 
 export const textInputStyle: JSX.CSSProperties = {
   border: 'none',
-  backgroundColor: '#ffffff',
+  backgroundColor: 'var(--paper)',
   boxShadow: 'var(--border-field)',
   padding: '3px 6px',
   fontFamily: 'monospace',
@@ -35,10 +147,7 @@ export const textInputStyle: JSX.CSSProperties = {
 };
 
 export const captchaPanelStyle: JSX.CSSProperties = {
-  marginTop: '10px',
-  padding: '10px',
-  backgroundColor: 'var(--button-highlight)',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+  ...groupBoxStyle,
 };
 
 export const MICRO_GRID_DIMENSION = 16;

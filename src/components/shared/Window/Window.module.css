@@ -4,8 +4,8 @@
     position: relative;
     box-sizing: border-box;
     padding: 3px;
-    background: var(--surface);
-    box-shadow: var(--border-window-outer), var(--border-window-inner);
+    background: var(--plastic);
+    box-shadow: var(--bevel-raised);
   }
 
 .windowMain {
@@ -13,6 +13,7 @@
     min-height: 0;
     min-width: 0;
     overflow: hidden;
+    margin-top: 2px;
 }
 
 .handle {

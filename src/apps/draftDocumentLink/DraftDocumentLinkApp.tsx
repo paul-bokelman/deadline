@@ -6,8 +6,8 @@ import { AppProps } from '@/types/App';
 const panelStyle: JSX.CSSProperties = {
   margin: '8px',
   padding: '10px',
-  backgroundColor: 'var(--button-highlight)',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+  backgroundColor: 'var(--paper)',
+  boxShadow: 'var(--bevel-sunken)',
   height: 'calc(100% - 16px)',
 };
 

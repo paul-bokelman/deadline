@@ -1,6 +1,7 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useMemo, useState } from 'preact/hooks';
 
+import Button from '@/components/shared/Button/Button';
 import { AppProps } from '@/types/App';
 import { gameEventBus } from '@/game/events';
 import { getZipNameForLevel } from '@/game/download/archive';
@@ -10,11 +11,8 @@ const REMOTE_FIX_SHOWN_EVENT_ID = 'winrar:remote_fix:shown';
 const REMOTE_FIX_COMPLETED_EVENT_ID = 'remote_cable_fix:completed';
 
 const panelStyle: JSX.CSSProperties = {
-  margin: '8px',
-  padding: '10px',
-  backgroundColor: 'var(--button-highlight)',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
-  height: 'calc(100% - 16px)',
+  padding: '8px',
+  backgroundColor: 'var(--plastic)',
   boxSizing: 'border-box',
   display: 'flex',
   flexDirection: 'column',
@@ -24,37 +22,18 @@ const panelStyle: JSX.CSSProperties = {
 };
 
 const groupStyle: JSX.CSSProperties = {
-  backgroundColor: 'var(--surface)',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+  backgroundColor: 'var(--plastic)',
+  boxShadow: 'var(--bevel-group)',
   padding: '8px',
   minHeight: 0,
-};
-
-const buttonStyle: JSX.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  maxWidth: '100%',
-  boxSizing: 'border-box',
-  border: 'none',
-  backgroundColor: 'var(--surface)',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
-  padding: '4px 8px',
-  margin: 0,
-};
-
-const disabledStyle: JSX.CSSProperties = {
-  ...buttonStyle,
-  color: 'var(--button-shadow)',
-  textShadow: '1px 1px 0 var(--button-highlight)',
 };
 
 const pickerListStyle: JSX.CSSProperties = {
   marginTop: '6px',
   flex: 1,
-  minHeight: 80,
+  minHeight: 112,
   overflowY: 'auto',
-  backgroundColor: '#ffffff',
+  backgroundColor: 'var(--paper)',
   boxShadow: 'var(--border-field)',
   padding: '4px',
 };
@@ -67,6 +46,7 @@ const pickerRowStyle = (isSelected: boolean): JSX.CSSProperties => ({
   marginBottom: '2px',
   backgroundColor: isSelected ? 'var(--dialog-blue)' : 'transparent',
   color: isSelected ? '#ffffff' : 'inherit',
+  fontFamily: 'var(--font-family-ui)',
 });
 
 type ProgramOption = {
@@ -110,7 +90,7 @@ const WinRarExtractor: FunctionComponent<AppProps> = ({
 
   const handleFakeProgram = (program: string) => {
     setUiStatusMessage(
-      `${program} cannot open this archive. Install WinRAR to continue.`
+      `${program} stared at the archive and blinked. Install WinRAR to continue.`
     );
   };
 
@@ -118,8 +98,8 @@ const WinRarExtractor: FunctionComponent<AppProps> = ({
     if (!flags.hasWinRarInstalled) {
       setUiStatusMessage(
         flags.hasReceivedWinRarLinkEmail
-          ? 'WinRAR is not installed yet.\nA download link has been emailed to you.'
-          : 'WinRAR is not installed yet.'
+          ? 'WinRAR is not installed yet.\nA download link has been emailed to you, which is how software worked before joy.'
+          : 'WinRAR is not installed yet. This archive is wearing a tiny locked hat.'
       );
       return;
     }
@@ -130,7 +110,7 @@ const WinRarExtractor: FunctionComponent<AppProps> = ({
       }
       openApp({ appId: 'remoteDesktopCableFix' });
       setUiStatusMessage(
-        'Extraction paused: Remote desktop cable disconnected.\nComplete the repair utility window to continue.'
+        'Extraction paused: Remote desktop cable disconnected.\nThe cable is remote, but the problem is local to your day.'
       );
       return;
     }
@@ -174,21 +154,21 @@ const WinRarExtractor: FunctionComponent<AppProps> = ({
       }
       setUiStatusMessage(
         flags.hasReceivedWinRarLinkEmail
-          ? 'WinRAR selected.\nClick Extract to Desktop to continue setup.'
-          : 'WinRAR selected.\nDownload link sent to your email.'
+          ? 'WinRAR selected.\nClick Extract to Desktop and pretend this is normal.'
+          : 'WinRAR selected.\nDownload link sent to your email. The real installer is probably the second one. Probably.'
       );
       setHasConfirmedProgram(true);
       return;
     }
-    setUiStatusMessage('WinRAR selected. Ready to extract.');
+    setUiStatusMessage('WinRAR selected. Tiny books successfully recognized.');
     setHasConfirmedProgram(true);
   };
 
   return (
-    <div style={panelStyle}>
+    <div data-window-fit style={panelStyle}>
       <div style={{ fontWeight: 700 }}>Open With</div>
-      <div style={{ marginTop: '6px' }}>
-        Choose the program to open:
+      <div>
+        Choose the program that should panic at:
         <span style={{ fontFamily: 'monospace', marginLeft: '6px' }}>
           {getZipNameForLevel(flags.zipExtractionLevel)}
         </span>
@@ -201,6 +181,7 @@ const WinRarExtractor: FunctionComponent<AppProps> = ({
           flex: '1 1 180px',
         }}
       >
+        <div style={{ fontWeight: 700 }}>Registered Programs</div>
         <div style={pickerListStyle}>
           {programOptions.map((option) => (
             <button
@@ -225,58 +206,51 @@ const WinRarExtractor: FunctionComponent<AppProps> = ({
             gap: '4px',
           }}
         >
-          <button
-            type="button"
-            style={selectedProgram ? buttonStyle : disabledStyle}
+          <Button
             disabled={!selectedProgram}
+            label="Use selected program"
             onClick={confirmProgramSelection}
-          >
-            Use selected program
-          </button>
+          />
         </div>
       </div>
       <div style={groupStyle}>
         {hasConfirmedProgram && selectedProgram?.isExtractor ? (
           <div>
             <div style={{ marginBottom: '8px' }}>
-              WinRAR selected for extraction.
+              WinRAR selected. Archive morale is low.
             </div>
             {flags.hasZipFile ? (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                <button
-                  onClick={handleExtract}
-                  style={buttonStyle}
-                  type="button"
-                >
-                  Extract to Desktop
-                </button>
+                <Button label="Extract to Desktop" onClick={handleExtract} />
               </div>
             ) : (
-              <div>No archive is currently available.</div>
+              <div>No archive is currently available. It escaped.</div>
             )}
           </div>
         ) : (
           <div style={{ color: 'var(--button-shadow)' }}>
-            Select and confirm WinRAR to enable extraction.
+            Select and confirm WinRAR to unlock the compressed nonsense.
           </div>
         )}
       </div>
       {flags.hasFinalReportFile && (
         <div style={{ marginTop: '10px' }}>
-          Extraction complete. Final report files are now on the desktop.
+          Extraction complete. Final report files are now on the desktop, where
+          important business belongs.
         </div>
       )}
       {!flags.hasWinRarInstalled && (
         <div style={{ marginTop: '8px', color: 'maroon' }}>
-          WinRAR must be installed first.
+          WinRAR must be installed first. The archive refuses to speak to
+          amateurs.
         </div>
       )}
       {uiStatusMessage && (
         <div
           style={{
             marginTop: '8px',
-            backgroundColor: 'var(--surface)',
-            boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+            backgroundColor: 'var(--plastic)',
+            boxShadow: 'var(--bevel-group)',
             padding: '6px 8px',
             fontFamily: 'monospace',
             whiteSpace: 'pre-wrap',

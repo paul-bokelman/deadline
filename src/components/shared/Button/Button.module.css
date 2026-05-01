@@ -3,8 +3,8 @@
     align-items: center;
     box-sizing: border-box;
     border: none;
-    background-color: var(--surface);
-    box-shadow: var(--border-raised-outer), var(--border-raised-inner);
+    background-color: var(--plastic);
+    box-shadow: var(--bevel-raised);
     border-radius: 0;
   
     min-width: 75px;
@@ -14,7 +14,7 @@
   
   .button:not(:disabled):active,
   .button.active {
-    box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+    box-shadow: var(--bevel-sunken);
   }
 
   .button:not(:disabled):active > *,
@@ -24,7 +24,7 @@
   
   @media (hover: none) {
     .button:not(:disabled):hover {
-      box-shadow: var(--border-sunken-outer), var(--border-sunken-inner);
+      box-shadow: var(--bevel-sunken);
     }
   }
   

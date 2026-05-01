@@ -10,22 +10,22 @@ const appStyle = {
   flexDirection: 'column' as const,
   gap: '8px',
   padding: '10px',
-  background: 'linear-gradient(180deg, #fffde8 0%, #fff 100%)',
+  background: 'var(--plastic)',
   boxSizing: 'border-box' as const,
   fontFamily: 'var(--font-family-ui)',
 };
 
 const panelStyle = {
-  backgroundColor: '#ffffff',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+  backgroundColor: 'var(--paper)',
+  boxShadow: 'var(--bevel-sunken)',
   padding: '8px',
   lineHeight: 1.45,
 };
 
 const buttonStyle = {
   border: 'none',
-  backgroundColor: 'var(--surface)',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+  backgroundColor: 'var(--plastic)',
+  boxShadow: 'var(--bevel-raised)',
   padding: '5px 10px',
   minWidth: '88px',
 };

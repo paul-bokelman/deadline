@@ -11,6 +11,7 @@ import style from './WindowsContainer.module.css';
 const WindowsContainer: FunctionComponent = () => {
   const {
     closeWindow,
+    autoFitWindow,
     focusOnWindow,
     maximizeWindow,
     minimizeWindow,
@@ -88,9 +89,11 @@ const WindowsContainer: FunctionComponent = () => {
             onResized={(size) =>
               window.isResizeable ? resizeWindow(window.id, size) : undefined
             }
+            onAutoSized={(size) => autoFitWindow(window.id, size)}
             showCloseButton={canClose}
             showMaximizeButton={showMaximizeButton}
             size={window.size}
+            sizeMode={window.sizeMode}
             title={windowTitle}
             zIndex={window.zIndex}
           >

@@ -5,6 +5,7 @@
     width: 100%;
     min-height: 0;
     min-width: 0;
+    background: var(--plastic);
 }
 
 .windowContentMenu {
@@ -17,6 +18,7 @@
     min-height: 0;
     min-width: 1px;
     overflow: auto;
+    background: var(--plastic);
 }
 
 .windowContentFooter {

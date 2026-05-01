@@ -1,8 +1,8 @@
 .menu {
     display: inline-flex;
     flex-direction: column;
-    box-shadow: var(--border-window-outer), var(--border-window-inner);
-    background: var(--surface);
+    box-shadow: var(--bevel-raised);
+    background: var(--plastic);
     padding: 3px;
     font-family: var(--font-family-ui), sans-serif;
     font-size: 11px;

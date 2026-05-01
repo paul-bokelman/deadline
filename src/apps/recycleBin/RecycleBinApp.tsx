@@ -1,6 +1,8 @@
 import { h, FunctionComponent } from 'preact';
 import { useMemo } from 'preact/hooks';
 
+import Button from '@/components/shared/Button/Button';
+import Icon from '@/components/shared/Icon/Icon';
 import WindowContent from '@/components/shared/WindowContent/WindowContent';
 import { useGameState } from '@/game/state';
 import { AppProps } from '@/types/App';
@@ -20,62 +22,102 @@ const RecycleBinApp: FunctionComponent<AppProps> = () => {
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 8,
             height: '100%',
             boxSizing: 'border-box',
-            padding: 10,
-            background: 'var(--surface)',
+            background: 'var(--plastic)',
           }}
         >
           <div
             style={{
-              border: '2px inset var(--button-face)',
-              padding: '6px 8px',
-              fontWeight: 700,
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: 8,
+              gap: '4px',
+              padding: '4px',
+              borderBottom: '1px solid var(--button-shadow)',
+              boxShadow: 'inset 0 -1px 0 var(--paper)',
             }}
           >
-            <span>Recycle Bin Contents: {recycledItems.length}</span>
-            <button
-              type="button"
+            <Button
               disabled={recycledItems.length === 0}
+              label="Recover"
               onClick={() => setFlags({ recycledDesktopApps: {} })}
-              style={{
-                border: 'none',
-                backgroundColor: 'var(--surface)',
-                boxShadow:
-                  'var(--border-raised-outer), var(--border-raised-inner)',
-                padding: '2px 8px',
-                color:
-                  recycledItems.length === 0
-                    ? 'var(--button-shadow)'
-                    : 'inherit',
-              }}
-            >
-              Recover All
-            </button>
+            />
           </div>
           <div
             style={{
-              border: '2px inset var(--button-face)',
-              background: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 8px',
+              background: 'var(--plastic)',
+            }}
+          >
+            <Icon iconId="folderOpen" size={32} />
+            <div style={{ fontWeight: 700 }}>Recycle Bin</div>
+          </div>
+          <div
+            style={{
+              boxShadow: 'var(--bevel-sunken)',
+              background: 'var(--paper)',
               minHeight: 0,
               flex: 1,
               overflowY: 'auto',
-              padding: '6px 8px',
-              fontFamily: 'monospace',
+              padding: '6px',
+              margin: '0 6px 6px',
             }}
           >
             {recycledItems.length === 0 ? (
-              <div>Recycle Bin is empty.</div>
+              <div style={{ padding: '4px' }}>This folder is empty.</div>
             ) : (
-              recycledItems.map((itemName, index) => (
-                <div key={`${itemName}-${index}`}>{itemName}</div>
-              ))
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(92px, 1fr))',
+                  gap: '8px',
+                }}
+              >
+                {recycledItems.map((itemName, index) => (
+                  <div
+                    key={`${itemName}-${index}`}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '4px',
+                      minHeight: '68px',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <Icon iconId="folderClosed" size={32} />
+                    <div
+                      style={{
+                        maxWidth: '92px',
+                        overflowWrap: 'anywhere',
+                        lineHeight: '13px',
+                      }}
+                    >
+                      {itemName}
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              padding: '2px',
+              background: 'var(--plastic)',
+            }}
+          >
+            <div
+              style={{
+                flex: 1,
+                padding: '2px 6px',
+                boxShadow: 'var(--bevel-status-well)',
+              }}
+            >
+              Ready
+            </div>
           </div>
         </div>
       }

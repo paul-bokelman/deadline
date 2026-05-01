@@ -32,15 +32,17 @@
     /* Custom */
     --font-family-ui: "PixelatedMsSansSerif", sans-serif;
     --font-family-sys: FixedSysExcelsior, monospace;
-    --box-shadow-notification: inset -1px -1px var(--button-highlight), inset 1px 1px var(--button-shadow);
+    --box-shadow-notification: var(--bevel-status-well);
     /* from Win98.css */
 
     /* Color */
-    --surface: #c0c0c0;
-    --button-highlight: #ffffff;
+    --plastic: #c0c0c0;
+    --paper: #ffffff;
+    --surface: var(--plastic);
+    --button-highlight: var(--paper);
     --button-face: #dfdfdf;
     --button-shadow: #808080;
-    --window-frame: #0a0a0a;
+    --window-frame: #000000;
     /* --dialog-blue: #000080; */
     --dialog-blue:#040080;
     /* --dialog-blue-light: #1084d0; */
@@ -72,13 +74,17 @@
     --checkmark-left: 3px;
     /* Borders */
     --border-width: 1px;
-    --border-raised-outer: inset -1px -1px var(--window-frame), inset 1px 1px var(--button-highlight);
+    --bevel-raised: inset 1px 1px var(--paper), inset 2px 2px var(--button-face), inset -1px -1px var(--window-frame), inset -2px -2px var(--button-shadow);
+    --bevel-sunken: inset 1px 1px var(--button-shadow), inset 2px 2px var(--window-frame), inset -1px -1px var(--paper);
+    --bevel-status-well: inset 1px 1px var(--button-shadow), inset -1px -1px var(--paper);
+    --bevel-group: inset 1px 1px var(--button-shadow), inset -1px -1px var(--paper);
+    --border-raised-outer: inset -1px -1px var(--window-frame), inset 1px 1px var(--paper);
     --border-raised-inner: inset -2px -2px var(--button-shadow), inset 2px 2px var(--button-face);
-    --border-sunken-outer: inset -1px -1px var(--button-highlight), inset 1px 1px var(--window-frame);
-    --border-sunken-inner: inset -2px -2px var(--button-face), inset 2px 2px var(--button-shadow);
+    --border-sunken-outer: inset 1px 1px var(--button-shadow), inset -1px -1px var(--paper);
+    --border-sunken-inner: inset 2px 2px var(--window-frame);
     /* Window borders flip button-face and button-highlight */
-    --border-window-outer: inset -1px -1px var(--window-frame), inset 1px 1px var(--button-face);
-    --border-window-inner: inset -2px -2px var(--button-shadow), inset 2px 2px var(--button-highlight);
+    --border-window-outer: inset -1px -1px var(--window-frame), inset 1px 1px var(--paper);
+    --border-window-inner: inset -2px -2px var(--button-shadow), inset 2px 2px var(--button-face);
     /* Field borders (checkbox, input, etc) flip window-frame and button-shadow */
-    --border-field: inset -1px -1px var(--button-highlight), inset 1px 1px var(--button-shadow), inset -2px -2px var(--button-face), inset 2px 2px var(--window-frame);
+    --border-field: var(--bevel-sunken);
 }

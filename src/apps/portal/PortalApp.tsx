@@ -28,15 +28,31 @@ import {
   FLEE_TRIGGER_RADIUS,
   MICRO_GRID_DIMENSION,
   MICRO_TILE_SIZE,
+  groupBoxStyle,
+  groupTitleStyle,
+  navItemActiveStyle,
+  navItemStyle,
+  navPaneStyle,
+  navTitleStyle,
+  noticeStyle,
   panelStyle,
+  portalBodyStyle,
+  portalHeaderStyle,
+  portalHeaderSubStyle,
+  portalHeaderTitleStyle,
   PORTAL_RESET_EMAIL_ID,
   PORTAL_RESET_EVENT_ID,
   REQUIRED_REPORT_FILE_ID,
   REQUIRED_REPORT_FILE_NAME,
   REQUIRED_REPORT_FILE_TYPE,
   smallMutedStyle,
+  statusBarStyle,
+  statusCellStyle,
   textInputStyle,
   tinyGridStyle,
+  toolbarItemStyle,
+  toolbarStyle,
+  workspaceStyle,
 } from './portal.constants';
 import {
   CAPTCHA_POOL,
@@ -53,7 +69,7 @@ import {
   shuffleWithSeed,
   toCircleAccuracy,
 } from './portal.helpers';
-
+import style from './PortalApp.module.css';
 
 const MarketChartTile: FunctionComponent<{ chart: MarketChart }> = ({
   chart,
@@ -69,7 +85,7 @@ const MarketChartTile: FunctionComponent<{ chart: MarketChart }> = ({
 
   return (
     <svg width="100%" height="72" viewBox="0 0 96 64">
-      <rect x="0" y="0" width="96" height="64" fill="#ffffff" />
+      <rect x="0" y="0" width="96" height="64" fill="var(--paper)" />
       <line x1="0" y1="56" x2="96" y2="56" stroke="#909090" strokeWidth="1" />
       <line x1="8" y1="0" x2="8" y2="64" stroke="#909090" strokeWidth="1" />
       {plotPoints.slice(0, -1).map((point, index) => {
@@ -127,6 +143,7 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
     markEventFired,
     setFlags,
     setStage,
+    rebootGame,
     triggerNetVoiceCall,
   } = useGameState();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -403,556 +420,683 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
 
   return (
     <div style={panelStyle}>
-      {!isAuthenticated && (
-        <div>
-          <div style={{ fontWeight: 700 }}>CorpPortal Sign-In</div>
-          <div style={{ marginTop: '8px', ...smallMutedStyle }}>
-            Enter portal email and password to continue.
+      <div style={portalHeaderStyle}>
+        <div style={portalHeaderTitleStyle}>CorpPortal</div>
+        <div style={portalHeaderSubStyle}>
+          Quantum Dynamics Internal Network - Document Submission and Blame
+          Gateway
+        </div>
+      </div>
+      <div style={toolbarStyle}>
+        {['Home', 'Departments', 'Forms', 'Help Desk'].map((label) => (
+          <button
+            className={style.portalButton}
+            key={label}
+            onClick={() => {
+              if (label === 'Help Desk') rebootGame();
+            }}
+            style={toolbarItemStyle}
+            type="button"
+          >
+            <span>{label}</span>
+          </button>
+        ))}
+        <span style={{ marginLeft: 'auto', ...smallMutedStyle }}>
+          SSL 2.0 Enabled
+        </span>
+      </div>
+      <div style={portalBodyStyle}>
+        <div style={navPaneStyle}>
+          <div style={navTitleStyle}>Corporate Links</div>
+          <div style={isAuthenticated ? navItemStyle : navItemActiveStyle}>
+            <span aria-hidden="true">▣</span> Sign-In
           </div>
-          <div style={{ marginTop: '10px' }}>
-            <div>Email</div>
-            <input
-              style={textInputStyle}
-              value={loginEmail}
-              onInput={(event) =>
-                setLoginEmail(
-                  (event.currentTarget as HTMLInputElement).value ?? ''
-                )
-              }
-              placeholder="email@domain.com"
-            />
+          <div style={isAuthenticated ? navItemActiveStyle : navItemStyle}>
+            <span aria-hidden="true">▣</span> Submit Report
           </div>
-          <div style={{ marginTop: '8px' }}>
-            <div>Password</div>
-            <input
-              type="password"
-              style={textInputStyle}
-              value={loginPassword}
-              onInput={(event) =>
-                setLoginPassword(
-                  (event.currentTarget as HTMLInputElement).value ?? ''
-                )
-              }
-              placeholder="password"
-            />
+          <div style={navItemStyle}>
+            <span aria-hidden="true">▣</span> HR Forms
           </div>
-          <div style={{ marginTop: '10px' }}>
-            <button
-              style={buttonStyle}
-              type="button"
-              onClick={handlePortalLogin}
-            >
-              Sign In
-            </button>
-            <button onClick={closeWindow} style={buttonStyle} type="button">
-              Close
-            </button>
+          <div style={navItemStyle}>
+            <span aria-hidden="true">▣</span> Directory
           </div>
-          {authStatus && <div style={{ marginTop: '8px' }}>{authStatus}</div>}
-
-          <div style={{ marginTop: '14px', ...captchaPanelStyle }}>
-            <div style={{ fontWeight: 700 }}>Reset Password</div>
-            <div style={{ marginTop: '6px', ...smallMutedStyle }}>
-              Enter an email to send reset link. Link will be delivered to Spam.
-            </div>
-            <div style={{ marginTop: '8px' }}>
-              <input
-                style={textInputStyle}
-                value={resetEmail}
-                onInput={(event) =>
-                  setResetEmail(
-                    (event.currentTarget as HTMLInputElement).value ?? ''
-                  )
-                }
-                placeholder="email@domain.com"
-              />
-            </div>
-            <div style={{ marginTop: '8px' }}>
-              <button
-                style={buttonStyle}
-                type="button"
-                onClick={handleSendResetLink}
-              >
-                Send Reset Link
-              </button>
-            </div>
-            {resetStatus && (
-              <div style={{ marginTop: '8px' }}>{resetStatus}</div>
-            )}
+          <div style={navItemStyle}>
+            <span aria-hidden="true">▣</span> Policies
+          </div>
+          <div style={{ marginTop: '10px', ...noticeStyle }}>
+            NOTICE: All submissions are monitored by Accounting, somehow.
           </div>
         </div>
-      )}
-      {isAuthenticated && (
-        <div>
-          <div style={{ fontWeight: 700 }}>CorpPortal</div>
-          <div style={{ marginTop: '8px' }}>
-            Destination:{' '}
-            <span style={{ fontFamily: 'monospace' }}>boss@10.0.0.1</span>
-          </div>
-
-          <div style={{ marginTop: '10px' }}>
-            <div>Required file:</div>
-            <div style={{ fontFamily: 'monospace', marginTop: '4px' }}>
-              {REQUIRED_REPORT_FILE_NAME} (must be .png)
-            </div>
-          </div>
-
-          <div style={{ marginTop: '12px' }}>
-            <div>Select file to upload:</div>
-            <div style={{ marginTop: '6px', width: '100%', maxWidth: '520px' }}>
-              <Dropdown
-                id="portal-file-select"
-                selected={selectedFileId}
-                disabled={flags.hasSubmittedFinalReport || isSubmitting}
-                onChange={(value) => {
-                  setSelectedFileId(value);
-                  setStatus(null);
-                }}
-                options={[
-                  { value: '', label: '(choose a file)' },
-                  ...desktopFiles.map((file) => ({
-                    value: file.id,
-                    label: file.name,
-                  })),
-                ]}
-              />
-            </div>
-            {selectedFile && (
-              <div style={{ marginTop: '6px' }}>
-                Selected:{' '}
-                <span style={{ fontFamily: 'monospace' }}>
-                  {selectedFile.name}
-                </span>
+        <div style={workspaceStyle}>
+          {!isAuthenticated && (
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '16px' }}>
+                Welcome to CorpPortal
               </div>
-            )}
-          </div>
-
-          <div style={{ marginTop: '12px' }}>
-            <button
-              onClick={handleSubmit}
-              style={
-                canSubmit && !isSubmitting ? buttonStyle : disabledButtonStyle
-              }
-              disabled={flags.hasSubmittedFinalReport || isSubmitting}
-              type="button"
-            >
-              {isSubmitting ? 'Submitting...' : 'Submit'}
-            </button>
-            <button onClick={closeWindow} style={buttonStyle} type="button">
-              Close
-            </button>
-          </div>
-
-          {!flags.hasSubmittedFinalReport && (
-            <div style={captchaPanelStyle}>
-              <div style={{ fontWeight: 700 }}>
-                Human Verification (
-                {captchaPassed ? 'complete' : `step ${captchaIdx + 1}/3`})
-              </div>
-              <div style={{ marginTop: '6px', ...smallMutedStyle }}>
-                Failing any step restarts verification.
-              </div>
-              <div
-                style={{
-                  marginTop: '6px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}
-              >
-                {Array.from(
-                  { length: CAPTCHA_LIVES_TOTAL },
-                  (_unused, index) => (
-                    <PixelHeart
-                      key={`captcha-heart-${index}`}
-                      lost={index >= captchaLivesRemaining}
-                    />
-                  )
-                )}
+              <div style={{ marginTop: '4px', ...smallMutedStyle }}>
+                Authorized employees only. Interns count if unsupervised.
               </div>
 
-              {!captchaPassed && captchaStep === 'stroop_trap' && (
-                <div style={{ marginTop: '10px' }}>
-                  <div>
-                    {stroopMode === 'background'
-                      ? 'Type the background color.'
-                      : 'Type the ink color.'}
-                  </div>
-                  <div
-                    style={{
-                      marginTop: '8px',
-                      width: '240px',
-                      padding: '18px 10px',
-                      textAlign: 'center',
-                      fontWeight: 700,
-                      color: stroopInkColor.css,
-                      backgroundColor: stroopBgColor.css,
-                      boxShadow: 'var(--border-field)',
-                      userSelect: 'none',
-                    }}
+              <div style={groupBoxStyle}>
+                <div style={groupTitleStyle}>Employee Sign-In</div>
+                <div style={{ display: 'grid', gap: '6px', maxWidth: '360px' }}>
+                  <label
+                    style={{ justifyContent: 'space-between', gap: '8px' }}
                   >
-                    {stroopWord}
-                  </div>
-                  <div
-                    style={{
-                      marginTop: '8px',
-                      display: 'flex',
-                      gap: '8px',
-                      alignItems: 'center',
-                      flexWrap: 'wrap',
-                    }}
-                  >
+                    <span>Email:</span>
                     <input
                       style={textInputStyle}
-                      value={stroopInput}
+                      value={loginEmail}
                       onInput={(event) =>
-                        setStroopInput(
+                        setLoginEmail(
                           (event.currentTarget as HTMLInputElement).value ?? ''
                         )
                       }
-                      placeholder={
-                        stroopMode === 'background'
-                          ? 'Background color...'
-                          : 'Ink color...'
-                      }
+                      placeholder="email@domain.com"
                     />
-                    <button
-                      style={buttonStyle}
-                      type="button"
-                      onClick={() => {
-                        const answer = stroopInput.trim().toLowerCase();
-                        const expected =
-                          stroopMode === 'background'
-                            ? stroopBgColor.name
-                            : stroopInkColor.name;
-                        if (answer === expected) passStep();
-                        else failCaptcha('Wrong color interpretation.');
-                      }}
-                    >
-                      Verify
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {!captchaPassed && captchaStep === 'micro_pixel_grid' && (
-                <div style={{ marginTop: '10px' }}>
-                  <div>Select all required tiles in this 16x16 grid.</div>
-                  <div style={{ marginTop: '6px', ...smallMutedStyle }}>
-                    Selected: {microSelections.size} / 45
-                  </div>
-                  <div style={tinyGridStyle}>
-                    {Array.from(
-                      { length: MICRO_GRID_DIMENSION * MICRO_GRID_DIMENSION },
-                      (_unused, idx) => {
-                        const isCrosswalk = crosswalkTargetCells.has(idx);
-                        const isSelected = microSelections.has(idx);
-                        return (
-                          <button
-                            key={`micro-${idx}`}
-                            type="button"
-                            onClick={() => {
-                              if (!isCrosswalk) {
-                                failCaptcha('Wrong tile selected.');
-                                return;
-                              }
-                              setMicroSelections((current) => {
-                                const next = new Set(current);
-                                if (next.has(idx)) next.delete(idx);
-                                else next.add(idx);
-                                return next;
-                              });
-                            }}
-                            style={{
-                              width: `${MICRO_TILE_SIZE}px`,
-                              height: `${MICRO_TILE_SIZE}px`,
-                              border: 'none',
-                              padding: 0,
-                              backgroundColor: isSelected
-                                ? '#3b6cff'
-                                : isCrosswalk
-                                ? '#f4f4f4'
-                                : '#636363',
-                              boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.22)',
-                            }}
-                            aria-label="micro-grid-cell"
-                          />
-                        );
+                  </label>
+                  <label
+                    style={{ justifyContent: 'space-between', gap: '8px' }}
+                  >
+                    <span>Password:</span>
+                    <input
+                      type="password"
+                      style={textInputStyle}
+                      value={loginPassword}
+                      onInput={(event) =>
+                        setLoginPassword(
+                          (event.currentTarget as HTMLInputElement).value ?? ''
+                        )
                       }
-                    )}
-                  </div>
-                  <div style={{ marginTop: '8px' }}>
-                    <button
-                      style={buttonStyle}
-                      type="button"
-                      onClick={() => {
-                        const exactlyMatches =
-                          microSelections.size === crosswalkTargetCells.size &&
-                          [...crosswalkTargetCells].every((idx) =>
-                            microSelections.has(idx)
-                          );
-                        if (exactlyMatches) passStep();
-                        else failCaptcha('Required tile selection incomplete.');
-                      }}
-                    >
-                      Verify Grid
-                    </button>
-                  </div>
+                      placeholder="password"
+                    />
+                  </label>
                 </div>
-              )}
-
-              {!captchaPassed && captchaStep === 'bear_market' && (
-                <div style={{ marginTop: '10px' }}>
-                  <div>Select all squares indicating a bearish trend.</div>
-                  <div style={chartGridStyle}>
-                    {bearOrder.map((chart) => {
-                      const selected = bearSelections.has(chart.id);
-                      return (
-                        <button
-                          key={chart.id}
-                          type="button"
-                          onClick={() => {
-                            setBearSelections((current) => {
-                              const next = new Set(current);
-                              if (next.has(chart.id)) next.delete(chart.id);
-                              else next.add(chart.id);
-                              return next;
-                            });
-                          }}
-                          style={{
-                            border: 'none',
-                            padding: '4px',
-                            backgroundColor: selected ? '#c9d7ff' : '#e3e3e3',
-                            boxShadow:
-                              'var(--border-raised-outer), var(--border-raised-inner)',
-                          }}
-                        >
-                          <MarketChartTile chart={chart} />
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <div style={{ marginTop: '8px' }}>
-                    <button
-                      style={buttonStyle}
-                      type="button"
-                      onClick={() => {
-                        const bearishIds = new Set(
-                          bearOrder
-                            .filter((chart) => chart.bearish)
-                            .map((chart) => chart.id)
-                        );
-                        const exact =
-                          bearSelections.size === bearishIds.size &&
-                          [...bearishIds].every((id) => bearSelections.has(id));
-                        if (exact) passStep();
-                        else failCaptcha('Incorrect market trend picks.');
-                      }}
-                    >
-                      Verify Charts
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {!captchaPassed && captchaStep === 'fleeing_checkbox' && (
-                <div style={{ marginTop: '10px' }}>
-                  <div>
-                    Click <em>I am not a robot</em>.
-                  </div>
-                  <div
-                    style={{
-                      marginTop: '8px',
-                      width: '100%',
-                      maxWidth: '520px',
-                      height: '240px',
-                      position: 'relative',
-                      backgroundColor: '#ffffff',
-                      boxShadow: 'var(--border-field)',
-                      overflow: 'hidden',
-                    }}
-                    onMouseMove={(event) => {
-                      const area = event.currentTarget as HTMLDivElement;
-                      const bounds = area.getBoundingClientRect();
-                      const mx = event.clientX - bounds.left;
-                      const my = event.clientY - bounds.top;
-                      setFleeCheckboxPos((prev) => {
-                        const areaWidth = Math.max(
-                          bounds.width,
-                          FLEE_BOX_WIDTH + 1
-                        );
-                        const areaHeight = Math.max(
-                          bounds.height,
-                          FLEE_BOX_HEIGHT + 1
-                        );
-                        const centerX = prev.x + FLEE_BOX_WIDTH / 2;
-                        const centerY = prev.y + FLEE_BOX_HEIGHT / 2;
-                        const dx = centerX - mx;
-                        const dy = centerY - my;
-                        const distance = Math.hypot(dx, dy);
-                        if (
-                          distance > FLEE_TRIGGER_RADIUS ||
-                          distance < FLEE_MIN_RADIUS
-                        ) {
-                          return prev;
-                        }
-                        const push =
-                          ((FLEE_TRIGGER_RADIUS - distance) /
-                            FLEE_TRIGGER_RADIUS) *
-                          FLEE_MAX_PUSH;
-                        const jitter = ((mx + my + distance) % 2) * 18 - 9;
-                        const nx = prev.x + (dx / distance) * push;
-                        const ny = prev.y + (dy / distance) * push + jitter;
-                        return {
-                          x: clamp(nx, 0, areaWidth - FLEE_BOX_WIDTH),
-                          y: clamp(ny, 0, areaHeight - FLEE_BOX_HEIGHT),
-                        };
-                      });
-                    }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => passStep()}
-                      style={{
-                        position: 'absolute',
-                        left: `${fleeCheckboxPos.x}px`,
-                        top: `${fleeCheckboxPos.y}px`,
-                        marginRight: 0,
-                        border: 'none',
-                        backgroundColor: 'var(--surface)',
-                        boxShadow:
-                          'var(--border-raised-outer), var(--border-raised-inner)',
-                        padding: '6px 8px',
-                        fontSize: '12px',
-                        fontFamily: 'sans-serif',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <span
-                        style={{
-                          width: '12px',
-                          height: '12px',
-                          backgroundColor: '#ffffff',
-                          boxShadow: 'var(--border-field)',
-                        }}
-                      />
-                      I am not a robot
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {!captchaPassed && captchaStep === 'circle_game' && (
-                <div style={{ marginTop: '10px' }}>
-                  <div>Draw a circle above 80% accuracy.</div>
-                  <canvas
-                    ref={circleCanvasRef}
-                    width={220}
-                    height={220}
-                    style={{
-                      marginTop: '8px',
-                      width: '220px',
-                      height: '220px',
-                      backgroundColor: '#ffffff',
-                      boxShadow: 'var(--border-field)',
-                      touchAction: 'none',
-                    }}
-                    onPointerDown={(event) => {
-                      const point = getCanvasPoint(event);
-                      setCirclePoints([point]);
-                      setIsCircleDrawing(true);
-                      setCircleAccuracy(null);
-                    }}
-                    onPointerMove={(event) => {
-                      if (!isCircleDrawing) return;
-                      const point = getCanvasPoint(event);
-                      setCirclePoints((current) => [...current, point]);
-                    }}
-                    onPointerUp={() => {
-                      setIsCircleDrawing(false);
-                    }}
-                    onPointerLeave={() => {
-                      setIsCircleDrawing(false);
-                    }}
-                  />
-                  <div
-                    style={{
-                      marginTop: '8px',
-                      display: 'flex',
-                      gap: '8px',
-                      alignItems: 'center',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <button
-                      style={buttonStyle}
-                      type="button"
-                      onClick={() => {
-                        const accuracy = toCircleAccuracy(circlePoints);
-                        setCircleAccuracy(accuracy);
-                        if (accuracy >= 80) passStep();
-                        else
-                          failCaptcha(
-                            `Circle accuracy ${accuracy}%. Need 80%+.`
-                          );
-                      }}
-                    >
-                      Verify Circle
-                    </button>
-                    <span style={{ fontFamily: 'monospace' }}>
-                      Accuracy: {circleAccuracy ?? '--'}%
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {captchaStatus && (
-                <div style={{ marginTop: '10px' }}>{captchaStatus}</div>
-              )}
-              {!captchaPassed && (
                 <div style={{ marginTop: '10px' }}>
                   <button
+                    className={style.portalButton}
                     style={buttonStyle}
                     type="button"
-                    onClick={() => resetCaptchas(Date.now())}
+                    onClick={handlePortalLogin}
                   >
-                    Restart Verification
+                    <span>Sign In</span>
+                  </button>
+                  <button
+                    className={style.portalButton}
+                    onClick={closeWindow}
+                    style={buttonStyle}
+                    type="button"
+                  >
+                    <span>Close</span>
                   </button>
                 </div>
-              )}
+                {authStatus && (
+                  <div style={{ marginTop: '8px' }}>{authStatus}</div>
+                )}
+              </div>
+
+              <div style={groupBoxStyle}>
+                <div style={groupTitleStyle}>Password Assistance</div>
+                <div style={{ marginTop: '6px', ...smallMutedStyle }}>
+                  Reset links are delivered to CorpMail spam quarantine because
+                  Security says this builds character.
+                </div>
+                <div style={{ marginTop: '8px' }}>
+                  <input
+                    style={textInputStyle}
+                    value={resetEmail}
+                    onInput={(event) =>
+                      setResetEmail(
+                        (event.currentTarget as HTMLInputElement).value ?? ''
+                      )
+                    }
+                    placeholder="email@domain.com"
+                  />
+                </div>
+                <div style={{ marginTop: '8px' }}>
+                  <button
+                    className={style.portalButton}
+                    style={buttonStyle}
+                    type="button"
+                    onClick={handleSendResetLink}
+                  >
+                    <span>Send Reset Link</span>
+                  </button>
+                </div>
+                {resetStatus && (
+                  <div style={{ marginTop: '8px' }}>{resetStatus}</div>
+                )}
+              </div>
             </div>
           )}
+          {isAuthenticated && (
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '16px' }}>
+                Q3 Report Submission Center
+              </div>
+              <div style={{ marginTop: '4px', ...smallMutedStyle }}>
+                Route final documentation to Executive Review before 5:00 PM,
+                when leadership becomes unreachable on purpose.
+              </div>
 
-          <div style={{ marginTop: '12px', minHeight: '18px' }}>
-            {flags.hasSubmittedFinalReport ? (
-              <span>Already submitted.</span>
-            ) : (
-              <span
-                style={{
-                  color: !flags.hasFinalReportFile
-                    ? 'maroon'
-                    : selectedFileId && !isCorrectFileSelected
-                    ? 'maroon'
-                    : 'inherit',
-                }}
-              >
-                {!flags.hasFinalReportFile
-                  ? 'Missing required file. Extract the archive first.'
-                  : !selectedFileId
-                  ? 'Select the correct file to enable upload.'
-                  : isCorrectFileSelected
-                  ? 'Ready to submit.'
-                  : 'Incorrect file selected (must be the final report in PNG format).'}
-              </span>
-            )}
-          </div>
+              <div style={groupBoxStyle}>
+                <div style={groupTitleStyle}>Transmission Details</div>
+                <div>
+                  Destination:{' '}
+                  <span style={{ fontFamily: 'monospace' }}>boss@10.0.0.1</span>
+                </div>
+                <div style={{ marginTop: '6px' }}>
+                  Required file:{' '}
+                  <span style={{ fontFamily: 'monospace' }}>
+                    {REQUIRED_REPORT_FILE_NAME}
+                  </span>
+                </div>
+                <div style={{ marginTop: '4px', ...smallMutedStyle }}>
+                  Accepted format: PNG only. PDF support was moved to a
+                  different department and then lost.
+                </div>
+              </div>
 
-          {status && <div style={{ marginTop: '6px' }}>{status}</div>}
+              <div style={groupBoxStyle}>
+                <div style={groupTitleStyle}>Upload File</div>
+                <div
+                  style={{ marginTop: '6px', width: '100%', maxWidth: '520px' }}
+                >
+                  <Dropdown
+                    id="portal-file-select"
+                    selected={selectedFileId}
+                    disabled={flags.hasSubmittedFinalReport || isSubmitting}
+                    onChange={(value) => {
+                      setSelectedFileId(value);
+                      setStatus(null);
+                    }}
+                    options={[
+                      { value: '', label: '(choose a file)' },
+                      ...desktopFiles.map((file) => ({
+                        value: file.id,
+                        label: file.name,
+                      })),
+                    ]}
+                  />
+                </div>
+                {selectedFile && (
+                  <div style={{ marginTop: '6px' }}>
+                    Selected:{' '}
+                    <span style={{ fontFamily: 'monospace' }}>
+                      {selectedFile.name}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {!flags.hasSubmittedFinalReport && (
+                <div style={captchaPanelStyle}>
+                  <div style={{ fontWeight: 700 }}>
+                    Human Verification (
+                    {captchaPassed ? 'complete' : `step ${captchaIdx + 1}/3`})
+                  </div>
+                  <div style={{ marginTop: '6px', ...smallMutedStyle }}>
+                    Failing any step restarts verification. This is not a bug;
+                    it is a compliance journey.
+                  </div>
+                  <div
+                    style={{
+                      marginTop: '6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    {Array.from(
+                      { length: CAPTCHA_LIVES_TOTAL },
+                      (_unused, index) => (
+                        <PixelHeart
+                          key={`captcha-heart-${index}`}
+                          lost={index >= captchaLivesRemaining}
+                        />
+                      )
+                    )}
+                  </div>
+
+                  {!captchaPassed && captchaStep === 'stroop_trap' && (
+                    <div style={{ marginTop: '10px' }}>
+                      <div>
+                        {stroopMode === 'background'
+                          ? 'Type the background color.'
+                          : 'Type the ink color.'}
+                      </div>
+                      <div
+                        style={{
+                          marginTop: '8px',
+                          width: '240px',
+                          padding: '18px 10px',
+                          textAlign: 'center',
+                          fontWeight: 700,
+                          color: stroopInkColor.css,
+                          backgroundColor: stroopBgColor.css,
+                          boxShadow: 'var(--border-field)',
+                          userSelect: 'none',
+                        }}
+                      >
+                        {stroopWord}
+                      </div>
+                      <div
+                        style={{
+                          marginTop: '8px',
+                          display: 'flex',
+                          gap: '8px',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                        }}
+                      >
+                        <input
+                          style={textInputStyle}
+                          value={stroopInput}
+                          onInput={(event) =>
+                            setStroopInput(
+                              (event.currentTarget as HTMLInputElement).value ??
+                                ''
+                            )
+                          }
+                          placeholder={
+                            stroopMode === 'background'
+                              ? 'Background color...'
+                              : 'Ink color...'
+                          }
+                        />
+                        <button
+                          className={style.portalButton}
+                          style={buttonStyle}
+                          type="button"
+                          onClick={() => {
+                            const answer = stroopInput.trim().toLowerCase();
+                            const expected =
+                              stroopMode === 'background'
+                                ? stroopBgColor.name
+                                : stroopInkColor.name;
+                            if (answer === expected) passStep();
+                            else failCaptcha('Wrong color interpretation.');
+                          }}
+                        >
+                          <span>Verify</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {!captchaPassed && captchaStep === 'micro_pixel_grid' && (
+                    <div style={{ marginTop: '10px' }}>
+                      <div>Select all required tiles in this 16x16 grid.</div>
+                      <div style={{ marginTop: '6px', ...smallMutedStyle }}>
+                        Selected: {microSelections.size} / 45
+                      </div>
+                      <div style={tinyGridStyle}>
+                        {Array.from(
+                          {
+                            length: MICRO_GRID_DIMENSION * MICRO_GRID_DIMENSION,
+                          },
+                          (_unused, idx) => {
+                            const isCrosswalk = crosswalkTargetCells.has(idx);
+                            const isSelected = microSelections.has(idx);
+                            return (
+                              <button
+                                key={`micro-${idx}`}
+                                type="button"
+                                onClick={() => {
+                                  if (!isCrosswalk) {
+                                    failCaptcha('Wrong tile selected.');
+                                    return;
+                                  }
+                                  setMicroSelections((current) => {
+                                    const next = new Set(current);
+                                    if (next.has(idx)) next.delete(idx);
+                                    else next.add(idx);
+                                    return next;
+                                  });
+                                }}
+                                style={{
+                                  width: `${MICRO_TILE_SIZE}px`,
+                                  height: `${MICRO_TILE_SIZE}px`,
+                                  border: 'none',
+                                  padding: 0,
+                                  backgroundColor: isSelected
+                                    ? '#3b6cff'
+                                    : isCrosswalk
+                                    ? '#f4f4f4'
+                                    : '#636363',
+                                  boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.22)',
+                                }}
+                                aria-label="micro-grid-cell"
+                              />
+                            );
+                          }
+                        )}
+                      </div>
+                      <div style={{ marginTop: '8px' }}>
+                        <button
+                          className={style.portalButton}
+                          style={buttonStyle}
+                          type="button"
+                          onClick={() => {
+                            const exactlyMatches =
+                              microSelections.size ===
+                                crosswalkTargetCells.size &&
+                              [...crosswalkTargetCells].every((idx) =>
+                                microSelections.has(idx)
+                              );
+                            if (exactlyMatches) passStep();
+                            else
+                              failCaptcha(
+                                'Required tile selection incomplete.'
+                              );
+                          }}
+                        >
+                          <span>Verify Grid</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {!captchaPassed && captchaStep === 'bear_market' && (
+                    <div style={{ marginTop: '10px' }}>
+                      <div>Select all squares indicating a bearish trend.</div>
+                      <div style={chartGridStyle}>
+                        {bearOrder.map((chart) => {
+                          const selected = bearSelections.has(chart.id);
+                          return (
+                            <button
+                              className={style.portalButton}
+                              key={chart.id}
+                              type="button"
+                              onClick={() => {
+                                setBearSelections((current) => {
+                                  const next = new Set(current);
+                                  if (next.has(chart.id)) next.delete(chart.id);
+                                  else next.add(chart.id);
+                                  return next;
+                                });
+                              }}
+                              style={{
+                                border: 'none',
+                                padding: '4px',
+                                backgroundColor: selected
+                                  ? '#c9d7ff'
+                                  : 'var(--plastic)',
+                                boxShadow: 'var(--bevel-raised)',
+                              }}
+                            >
+                              <MarketChartTile chart={chart} />
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div style={{ marginTop: '8px' }}>
+                        <button
+                          className={style.portalButton}
+                          style={buttonStyle}
+                          type="button"
+                          onClick={() => {
+                            const bearishIds = new Set(
+                              bearOrder
+                                .filter((chart) => chart.bearish)
+                                .map((chart) => chart.id)
+                            );
+                            const exact =
+                              bearSelections.size === bearishIds.size &&
+                              [...bearishIds].every((id) =>
+                                bearSelections.has(id)
+                              );
+                            if (exact) passStep();
+                            else failCaptcha('Incorrect market trend picks.');
+                          }}
+                        >
+                          <span>Verify Charts</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {!captchaPassed && captchaStep === 'fleeing_checkbox' && (
+                    <div style={{ marginTop: '10px' }}>
+                      <div>
+                        Click <em>I am not a robot</em>.
+                      </div>
+                      <div
+                        style={{
+                          marginTop: '8px',
+                          width: '100%',
+                          maxWidth: '520px',
+                          height: '240px',
+                          position: 'relative',
+                          backgroundColor: 'var(--paper)',
+                          boxShadow: 'var(--border-field)',
+                          overflow: 'hidden',
+                        }}
+                        onMouseMove={(event) => {
+                          const area = event.currentTarget as HTMLDivElement;
+                          const bounds = area.getBoundingClientRect();
+                          const mx = event.clientX - bounds.left;
+                          const my = event.clientY - bounds.top;
+                          setFleeCheckboxPos((prev) => {
+                            const areaWidth = Math.max(
+                              bounds.width,
+                              FLEE_BOX_WIDTH + 1
+                            );
+                            const areaHeight = Math.max(
+                              bounds.height,
+                              FLEE_BOX_HEIGHT + 1
+                            );
+                            const centerX = prev.x + FLEE_BOX_WIDTH / 2;
+                            const centerY = prev.y + FLEE_BOX_HEIGHT / 2;
+                            const dx = centerX - mx;
+                            const dy = centerY - my;
+                            const distance = Math.hypot(dx, dy);
+                            if (
+                              distance > FLEE_TRIGGER_RADIUS ||
+                              distance < FLEE_MIN_RADIUS
+                            ) {
+                              return prev;
+                            }
+                            const push =
+                              ((FLEE_TRIGGER_RADIUS - distance) /
+                                FLEE_TRIGGER_RADIUS) *
+                              FLEE_MAX_PUSH;
+                            const jitter = ((mx + my + distance) % 2) * 18 - 9;
+                            const nx = prev.x + (dx / distance) * push;
+                            const ny = prev.y + (dy / distance) * push + jitter;
+                            return {
+                              x: clamp(nx, 0, areaWidth - FLEE_BOX_WIDTH),
+                              y: clamp(ny, 0, areaHeight - FLEE_BOX_HEIGHT),
+                            };
+                          });
+                        }}
+                      >
+                        <button
+                          className={style.portalButton}
+                          type="button"
+                          onClick={() => passStep()}
+                          style={{
+                            position: 'absolute',
+                            left: `${fleeCheckboxPos.x}px`,
+                            top: `${fleeCheckboxPos.y}px`,
+                            marginRight: 0,
+                            border: 'none',
+                            backgroundColor: 'var(--plastic)',
+                            boxShadow: 'var(--bevel-raised)',
+                            padding: '6px 8px',
+                            fontSize: '12px',
+                            fontFamily: 'sans-serif',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <span
+                            style={{
+                              width: '12px',
+                              height: '12px',
+                              backgroundColor: 'var(--paper)',
+                              boxShadow: 'var(--border-field)',
+                            }}
+                          />
+                          <span>I am not a robot</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {!captchaPassed && captchaStep === 'circle_game' && (
+                    <div style={{ marginTop: '10px' }}>
+                      <div>Draw a circle above 80% accuracy.</div>
+                      <canvas
+                        ref={circleCanvasRef}
+                        width={220}
+                        height={220}
+                        style={{
+                          marginTop: '8px',
+                          width: '220px',
+                          height: '220px',
+                          backgroundColor: 'var(--paper)',
+                          boxShadow: 'var(--border-field)',
+                          touchAction: 'none',
+                        }}
+                        onPointerDown={(event) => {
+                          const point = getCanvasPoint(event);
+                          setCirclePoints([point]);
+                          setIsCircleDrawing(true);
+                          setCircleAccuracy(null);
+                        }}
+                        onPointerMove={(event) => {
+                          if (!isCircleDrawing) return;
+                          const point = getCanvasPoint(event);
+                          setCirclePoints((current) => [...current, point]);
+                        }}
+                        onPointerUp={() => {
+                          setIsCircleDrawing(false);
+                        }}
+                        onPointerLeave={() => {
+                          setIsCircleDrawing(false);
+                        }}
+                      />
+                      <div
+                        style={{
+                          marginTop: '8px',
+                          display: 'flex',
+                          gap: '8px',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                        }}
+                      >
+                        <button
+                          className={style.portalButton}
+                          style={buttonStyle}
+                          type="button"
+                          onClick={() => {
+                            const accuracy = toCircleAccuracy(circlePoints);
+                            setCircleAccuracy(accuracy);
+                            if (accuracy >= 80) passStep();
+                            else
+                              failCaptcha(
+                                `Circle accuracy ${accuracy}%. Need 80%+.`
+                              );
+                          }}
+                        >
+                          <span>Verify Circle</span>
+                        </button>
+                        <span style={{ fontFamily: 'monospace' }}>
+                          Accuracy: {circleAccuracy ?? '--'}%
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {captchaStatus && (
+                    <div style={{ marginTop: '10px' }}>{captchaStatus}</div>
+                  )}
+                  {!captchaPassed && (
+                    <div style={{ marginTop: '10px' }}>
+                      <button
+                        className={style.portalButton}
+                        style={buttonStyle}
+                        type="button"
+                        onClick={() => resetCaptchas(Date.now())}
+                      >
+                        <span>Restart Verification</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div style={groupBoxStyle}>
+                <div style={groupTitleStyle}>Submission Controls</div>
+                <button
+                  className={style.portalButton}
+                  onClick={handleSubmit}
+                  style={
+                    canSubmit && !isSubmitting
+                      ? buttonStyle
+                      : disabledButtonStyle
+                  }
+                  disabled={flags.hasSubmittedFinalReport || isSubmitting}
+                  type="button"
+                >
+                  <span>
+                    {isSubmitting ? 'Submitting...' : 'Submit Report'}
+                  </span>
+                </button>
+                <button
+                  className={style.portalButton}
+                  onClick={closeWindow}
+                  style={buttonStyle}
+                  type="button"
+                >
+                  <span>Close</span>
+                </button>
+              </div>
+
+              <div style={{ marginTop: '12px', minHeight: '18px' }}>
+                {flags.hasSubmittedFinalReport ? (
+                  <span>Already submitted.</span>
+                ) : (
+                  <span
+                    style={{
+                      color: !flags.hasFinalReportFile
+                        ? 'maroon'
+                        : selectedFileId && !isCorrectFileSelected
+                        ? 'maroon'
+                        : 'inherit',
+                    }}
+                  >
+                    {!flags.hasFinalReportFile
+                      ? 'Missing required file. Extract the archive first.'
+                      : !selectedFileId
+                      ? 'Select the correct file to enable upload.'
+                      : isCorrectFileSelected
+                      ? 'Ready to submit.'
+                      : 'Incorrect file selected (must be the final report in PNG format).'}
+                  </span>
+                )}
+              </div>
+
+              {status && <div style={{ marginTop: '6px' }}>{status}</div>}
+            </div>
+          )}
         </div>
-      )}
+      </div>
+      <div style={statusBarStyle}>
+        <div style={statusCellStyle}>
+          {isAuthenticated ? 'Logged in: Employee' : 'Not logged in'}
+        </div>
+        <div style={statusCellStyle}>
+          {flags.hasSubmittedFinalReport
+            ? 'Status: Submitted'
+            : captchaPassed
+            ? 'Status: Verification complete'
+            : 'Status: Awaiting submission'}
+        </div>
+      </div>
     </div>
   );
 };

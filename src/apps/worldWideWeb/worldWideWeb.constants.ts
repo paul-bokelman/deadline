@@ -4,13 +4,13 @@ export const rootStyle: JSX.CSSProperties = {
   height: '100%',
   display: 'flex',
   flexDirection: 'column',
-  backgroundColor: '#c0c0c0',
+  backgroundColor: 'var(--plastic)',
 };
 
 export const toolbarStyle: JSX.CSSProperties = {
   padding: '6px',
-  backgroundColor: 'var(--surface)',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+  backgroundColor: 'var(--plastic)',
+  boxShadow: 'var(--bevel-group)',
   margin: '6px 6px 0 6px',
   display: 'flex',
   flexDirection: 'column',
@@ -25,8 +25,8 @@ export const navRowStyle: JSX.CSSProperties = {
 
 export const browserButtonStyle: JSX.CSSProperties = {
   border: 'none',
-  backgroundColor: 'var(--surface)',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+  backgroundColor: 'var(--plastic)',
+  boxShadow: 'var(--bevel-raised)',
   padding: '3px 8px',
   fontSize: '12px',
 };
@@ -35,7 +35,7 @@ export const addressInputStyle: JSX.CSSProperties = {
   flex: 1,
   minWidth: '180px',
   border: 'none',
-  backgroundColor: '#ffffff',
+  backgroundColor: 'var(--paper)',
   boxShadow: 'var(--border-field)',
   padding: '3px 6px',
   fontFamily: 'monospace',
@@ -45,16 +45,16 @@ export const addressInputStyle: JSX.CSSProperties = {
 export const pageStyle: JSX.CSSProperties = {
   margin: '6px',
   flex: 1,
-  backgroundColor: '#ffffff',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+  backgroundColor: 'var(--paper)',
+  boxShadow: 'var(--bevel-sunken)',
   padding: '14px',
   overflow: 'auto',
 };
 
 export const sectionCardStyle: JSX.CSSProperties = {
   padding: '10px',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
-  backgroundColor: '#f8f8f8',
+  boxShadow: 'var(--bevel-group)',
+  backgroundColor: 'var(--plastic)',
 };
 
 export const storyListStyle: JSX.CSSProperties = {
@@ -68,7 +68,7 @@ export const bannerStyle: JSX.CSSProperties = {
   marginBottom: '10px',
   background: 'linear-gradient(90deg, #1f4d8f 0%, #3f6cb8 65%, #6d8ad3 100%)',
   color: '#ffffff',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
+  boxShadow: 'var(--bevel-raised)',
   fontSize: '12px',
   letterSpacing: '0.2px',
 };
@@ -85,7 +85,7 @@ export const statChipStyle: JSX.CSSProperties = {
   marginRight: '6px',
   marginBottom: '6px',
   border: '1px solid #c9c9c9',
-  backgroundColor: '#ffffff',
+  backgroundColor: 'var(--paper)',
   fontSize: '11px',
   borderRadius: '12px',
 };

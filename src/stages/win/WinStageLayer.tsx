@@ -29,8 +29,8 @@ const containerStyle: JSX.CSSProperties = {
 };
 
 const bodyStyle: JSX.CSSProperties = {
-  backgroundColor: 'var(--button-highlight)',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
+  backgroundColor: 'var(--paper)',
+  boxShadow: 'var(--bevel-sunken)',
   margin: '0 0 10px',
   padding: '10px',
 };
@@ -44,7 +44,7 @@ const actionsStyle: JSX.CSSProperties = {
 const inputStyle: JSX.CSSProperties = {
   width: '100%',
   border: 'none',
-  backgroundColor: '#ffffff',
+  backgroundColor: 'var(--paper)',
   boxShadow: 'var(--border-field)',
   padding: '4px 6px',
   textTransform: 'uppercase',

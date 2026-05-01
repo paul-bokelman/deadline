@@ -3,6 +3,7 @@
     display: flex;
     height: 21px;
     padding: 1px;
+    background: var(--plastic);
 }
 
 .spaceLeft, .spaceRight {
@@ -11,7 +12,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
-    box-shadow: var(--box-shadow-notification);
+    box-shadow: var(--bevel-status-well);
 
 }
 
