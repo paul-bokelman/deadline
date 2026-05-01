@@ -184,7 +184,7 @@ export const appList: AppList = {
     id: 'remoteDesktopCableFix',
     iconId: 'networkNeighborhood',
     name: 'Remote Desktop Cable Fix',
-    size: { width: 760, height: 720 },
+    size: { width: 700, height: 640 },
     isResizeable: true,
   },
 };
