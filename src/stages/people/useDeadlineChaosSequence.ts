@@ -16,6 +16,7 @@ const HAROLD_LAST_CALL_ID = 'harold_second_call';
 
 const FLY_SWARM_DELAY_MS = 9_000;
 const FLY_SWARM_COUNT = 50;
+const DECLINED_FLY_SWARM_COUNT = 70;
 
 const SPAM_DELAY_MS = 13_000;
 const SPAM_INTERVAL_MS = 250;
@@ -122,11 +123,11 @@ export const useDeadlineChaosSequence = (): void => {
       }
     };
 
-    const scheduleFlySwarm = () => {
+    const scheduleFlySwarm = (count: number) => {
       if (flyTimerId !== null) return;
       flyTimerId = window.setTimeout(() => {
         flyTimerId = null;
-        gameEventBus.emit('fly:spawn_swarm', { count: FLY_SWARM_COUNT });
+        gameEventBus.emit('fly:spawn_swarm', { count });
       }, FLY_SWARM_DELAY_MS);
     };
 
@@ -165,7 +166,18 @@ export const useDeadlineChaosSequence = (): void => {
       'netvoice:call_accepted',
       ({ callId }) => {
         if (callId !== HAROLD_LAST_CALL_ID) return;
-        scheduleFlySwarm();
+        scheduleFlySwarm(FLY_SWARM_COUNT);
+        scheduleScreenShake();
+        scheduleWindowSpam();
+      }
+    );
+
+    const unsubscribeDeclined = gameEventBus.on(
+      'netvoice:call_ended',
+      ({ callId, reason }) => {
+        if (callId !== HAROLD_LAST_CALL_ID) return;
+        if (reason !== 'hangup') return;
+        scheduleFlySwarm(DECLINED_FLY_SWARM_COUNT);
         scheduleScreenShake();
         scheduleWindowSpam();
       }
@@ -181,6 +193,7 @@ export const useDeadlineChaosSequence = (): void => {
       clearAllTimers();
       stopShake();
       unsubscribeAccepted();
+      unsubscribeDeclined();
       unsubscribeRebooted();
     };
   }, []);

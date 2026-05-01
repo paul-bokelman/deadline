@@ -9,7 +9,8 @@ import { Z_INDEX_TIERS } from '../zIndex';
 
 const FLY_AUDIO_URL = '/audio/ambient/fly_buzzing.mp3';
 const FIRST_APPEARANCE_DELAY_MS = 180_000;
-const FLY_CALL_SWARM_COUNT = 50;
+const FLY_CALL_ACCEPT_SWARM_COUNT = 50;
+const FLY_CALL_DECLINE_SWARM_COUNT = 70;
 
 interface SwarmFly {
   id: string;
@@ -66,10 +67,21 @@ const BackgroundFlyOverlay: FunctionComponent = () => {
     const off4 = gameEventBus.on('netvoice:call_accepted', ({ callId }) => {
       if (callId !== 'fly_random') return;
       setSwarmFlies(
-        Array.from({ length: FLY_CALL_SWARM_COUNT }, () => createSwarmFly())
+        Array.from({ length: FLY_CALL_ACCEPT_SWARM_COUNT }, () =>
+          createSwarmFly()
+        )
       );
     });
-    const off5 = gameEventBus.on('fly:spawn_swarm', ({ count }) => {
+    const off5 = gameEventBus.on('netvoice:call_ended', ({ callId, reason }) => {
+      if (callId !== 'fly_random') return;
+      if (reason !== 'hangup') return;
+      setSwarmFlies(
+        Array.from({ length: FLY_CALL_DECLINE_SWARM_COUNT }, () =>
+          createSwarmFly()
+        )
+      );
+    });
+    const off6 = gameEventBus.on('fly:spawn_swarm', ({ count }) => {
       const safeCount = Math.max(0, Math.floor(count));
       if (safeCount === 0) return;
       setSwarmFlies((prev) => [
@@ -83,6 +95,7 @@ const BackgroundFlyOverlay: FunctionComponent = () => {
       off3();
       off4();
       off5();
+      off6();
     };
   }, []);
 

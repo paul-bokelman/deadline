@@ -26,6 +26,10 @@ import { registerManagedAudio } from '@/utils/audio/masterVolume';
 import style from './NetVoiceCallApp.module.css';
 
 const CALL_AUDIO_VOLUME = 0.9;
+const CALLER_VOLUME_MULTIPLIER: Partial<Record<(typeof netVoiceCallers)[keyof typeof netVoiceCallers]['id'], number>> = {
+  greg: 0.85,
+  fly: 1.12,
+};
 const AUTO_ACCEPT_DELAY_MS = 4000;
 const AUTO_HANGUP_DELAY_MS = 2000;
 const RING_TICK_MS = 1700;
@@ -180,7 +184,13 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
     if (ringAudioRef.current) ringAudioRef.current.currentTime = 0;
 
     const callAudio = new Audio(call.audioPath);
-    registerManagedAudio(callAudio, CALL_AUDIO_VOLUME);
+    const callerVolumeMultiplier =
+      CALLER_VOLUME_MULTIPLIER[call.callerId] ?? 1;
+    const callVolume = Math.max(
+      0,
+      Math.min(1, CALL_AUDIO_VOLUME * callerVolumeMultiplier)
+    );
+    registerManagedAudio(callAudio, callVolume);
     attachCallNormalization(callAudio);
     callAudioRef.current = callAudio;
     callAudio.addEventListener(
