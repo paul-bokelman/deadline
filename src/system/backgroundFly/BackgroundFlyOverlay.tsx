@@ -69,11 +69,20 @@ const BackgroundFlyOverlay: FunctionComponent = () => {
         Array.from({ length: FLY_CALL_SWARM_COUNT }, () => createSwarmFly())
       );
     });
+    const off5 = gameEventBus.on('fly:spawn_swarm', ({ count }) => {
+      const safeCount = Math.max(0, Math.floor(count));
+      if (safeCount === 0) return;
+      setSwarmFlies((prev) => [
+        ...prev,
+        ...Array.from({ length: safeCount }, () => createSwarmFly()),
+      ]);
+    });
     return () => {
       off1();
       off2();
       off3();
       off4();
+      off5();
     };
   }, []);
 

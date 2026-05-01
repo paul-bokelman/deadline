@@ -65,6 +65,7 @@ export type CoreGameEvents = {
   'fullscreen:recommendation_visibility': { isVisible: boolean };
   'deadline:seconds_remaining': { seconds: number; remainingMs: number };
   'clock:advanced': { byMs: number };
+  'fly:spawn_swarm': { count: number };
 };
 
 type EventHandler<TPayload> = (payload: TPayload) => void;
