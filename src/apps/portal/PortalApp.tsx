@@ -15,208 +15,45 @@ import { markRunSubmitted, recordCheckpoint } from '@/system/runTimer/runTimer';
 import { playErrorSfx } from '@/utils/audio/osSfx';
 import { AppProps } from '@/types/App';
 import { ShellItem } from '@/types/Shell';
+import {
+  buttonStyle,
+  CAPTCHA_LIVES_TOTAL,
+  captchaPanelStyle,
+  chartGridStyle,
+  disabledButtonStyle,
+  FLEE_BOX_HEIGHT,
+  FLEE_BOX_WIDTH,
+  FLEE_MAX_PUSH,
+  FLEE_MIN_RADIUS,
+  FLEE_TRIGGER_RADIUS,
+  MICRO_GRID_DIMENSION,
+  MICRO_TILE_SIZE,
+  panelStyle,
+  PORTAL_RESET_EMAIL_ID,
+  PORTAL_RESET_EVENT_ID,
+  REQUIRED_REPORT_FILE_ID,
+  REQUIRED_REPORT_FILE_NAME,
+  REQUIRED_REPORT_FILE_TYPE,
+  smallMutedStyle,
+  textInputStyle,
+  tinyGridStyle,
+} from './portal.constants';
+import {
+  CAPTCHA_POOL,
+  CaptchaId,
+  crosswalkTargetCells,
+  MarketChart,
+  marketCharts,
+  STROOP_COLORS,
+  StroopColor,
+} from './portal.data';
+import {
+  clamp,
+  pickThree,
+  shuffleWithSeed,
+  toCircleAccuracy,
+} from './portal.helpers';
 
-const panelStyle: JSX.CSSProperties = {
-  margin: '8px',
-  padding: '10px',
-  backgroundColor: 'var(--button-highlight)',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
-  height: 'calc(100% - 16px)',
-  boxSizing: 'border-box',
-  overflowY: 'auto',
-};
-
-const buttonStyle: JSX.CSSProperties = {
-  border: 'none',
-  backgroundColor: 'var(--surface)',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
-  padding: '4px 10px',
-  marginRight: '8px',
-};
-
-const disabledButtonStyle: JSX.CSSProperties = {
-  ...buttonStyle,
-  color: 'var(--button-shadow)',
-  textShadow: '1px 1px 0 var(--button-highlight)',
-};
-
-const textInputStyle: JSX.CSSProperties = {
-  border: 'none',
-  backgroundColor: '#ffffff',
-  boxShadow: 'var(--border-field)',
-  padding: '3px 6px',
-  fontFamily: 'monospace',
-  width: '260px',
-  maxWidth: '100%',
-};
-
-const captchaPanelStyle: JSX.CSSProperties = {
-  marginTop: '10px',
-  padding: '10px',
-  backgroundColor: 'var(--button-highlight)',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
-};
-
-const MICRO_GRID_DIMENSION = 16;
-const MICRO_TILE_SIZE = 8;
-const MICRO_TILE_GAP = 1;
-const MICRO_GRID_PADDING = 6;
-const MICRO_GRID_OUTER_SIZE =
-  MICRO_GRID_DIMENSION * MICRO_TILE_SIZE +
-  (MICRO_GRID_DIMENSION - 1) * MICRO_TILE_GAP +
-  MICRO_GRID_PADDING * 2;
-const FLEE_BOX_WIDTH = 138;
-const FLEE_BOX_HEIGHT = 28;
-const FLEE_TRIGGER_RADIUS = 9999;
-const FLEE_MIN_RADIUS = 0.001;
-const FLEE_MAX_PUSH = 72;
-
-const tinyGridStyle: JSX.CSSProperties = {
-  marginTop: '8px',
-  display: 'grid',
-  gridTemplateColumns: `repeat(${MICRO_GRID_DIMENSION}, ${MICRO_TILE_SIZE}px)`,
-  gap: `${MICRO_TILE_GAP}px`,
-  width: `${MICRO_GRID_OUTER_SIZE}px`,
-  maxWidth: '100%',
-  backgroundColor: '#3f3f3f',
-  padding: `${MICRO_GRID_PADDING}px`,
-  boxShadow: 'var(--border-field)',
-};
-
-const chartGridStyle: JSX.CSSProperties = {
-  marginTop: '8px',
-  display: 'grid',
-  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-  gap: '8px',
-};
-
-const smallMutedStyle: JSX.CSSProperties = {
-  color: 'var(--button-shadow)',
-  textShadow: '1px 1px 0 var(--button-highlight)',
-  fontFamily: 'monospace',
-  fontSize: '12px',
-};
-
-const REQUIRED_REPORT_FILE_ID = 'q3-real-report';
-const REQUIRED_REPORT_FILE_NAME =
-  'FINAL_v2_FINAL_actuallyfinal_USE_THIS_ONE_REAL_v3.png';
-const REQUIRED_REPORT_FILE_TYPE = 'pngFile';
-const PORTAL_RESET_EMAIL_ID = 'corp-password-reset-link';
-const PORTAL_RESET_EVENT_ID = 'portal:password-reset:sent';
-
-type StroopColor = { name: string; css: string };
-
-const STROOP_COLORS: StroopColor[] = [
-  { name: 'red', css: '#c00000' },
-  { name: 'green', css: '#2f9f2f' },
-  { name: 'blue', css: '#1f4ad1' },
-  { name: 'yellow', css: '#b39600' },
-  { name: 'purple', css: '#6b2f9f' },
-  { name: 'orange', css: '#c96b00' },
-];
-
-type CaptchaId =
-  | 'stroop_trap'
-  | 'micro_pixel_grid'
-  | 'bear_market'
-  | 'fleeing_checkbox'
-  | 'circle_game';
-
-type MarketChart = {
-  id: string;
-  points: number[];
-  bearish: boolean;
-};
-
-const CAPTCHA_LIVES_TOTAL = 3;
-
-const marketCharts: MarketChart[] = [
-  { id: 'ch-1', points: [12.2, 12.1, 12.25, 12.0, 11.95, 11.9], bearish: true },
-  {
-    id: 'ch-2',
-    points: [10.4, 10.55, 10.5, 10.65, 10.6, 10.75],
-    bearish: false,
-  },
-  { id: 'ch-3', points: [13.1, 13.0, 13.05, 12.9, 12.85, 12.8], bearish: true },
-  { id: 'ch-4', points: [9.8, 9.7, 9.85, 9.75, 9.9, 9.95], bearish: false },
-  {
-    id: 'ch-5',
-    points: [11.5, 11.45, 11.35, 11.4, 11.25, 11.2],
-    bearish: true,
-  },
-  { id: 'ch-6', points: [8.9, 8.95, 8.85, 9.0, 8.95, 9.05], bearish: false },
-  {
-    id: 'ch-7',
-    points: [12.7, 12.65, 12.7, 12.5, 12.45, 12.35],
-    bearish: true,
-  },
-  {
-    id: 'ch-8',
-    points: [10.9, 10.8, 10.95, 10.9, 11.0, 11.05],
-    bearish: false,
-  },
-  { id: 'ch-9', points: [11.9, 12.0, 11.85, 11.8, 11.75, 11.7], bearish: true },
-];
-
-const crosswalkTargetCells = (() => {
-  const cells = new Set<number>();
-  let x = 0x96f00d;
-  while (cells.size < 45) {
-    x = (x * 1664525 + 1013904223) >>> 0;
-    const idx = x % 256;
-    cells.add(idx);
-  }
-  return cells;
-})();
-
-const pickThree = <T,>(items: T[], seed: number): T[] => {
-  const arr = [...items];
-  let x = seed >>> 0;
-  for (let i = arr.length - 1; i > 0; i -= 1) {
-    x = (x * 1664525 + 1013904223) >>> 0;
-    const j = x % (i + 1);
-    const tmp = arr[i];
-    arr[i] = arr[j] as T;
-    arr[j] = tmp as T;
-  }
-  return arr.slice(0, 3);
-};
-
-const shuffleWithSeed = <T,>(items: T[], seed: number): T[] => {
-  const arr = [...items];
-  let x = seed >>> 0;
-  for (let i = arr.length - 1; i > 0; i -= 1) {
-    x = (x * 1664525 + 1013904223) >>> 0;
-    const j = x % (i + 1);
-    const tmp = arr[i];
-    arr[i] = arr[j] as T;
-    arr[j] = tmp as T;
-  }
-  return arr;
-};
-
-const clamp = (value: number, min: number, max: number): number => {
-  return Math.max(min, Math.min(max, value));
-};
-
-const toCircleAccuracy = (points: { x: number; y: number }[]): number => {
-  if (points.length < 24) return 0;
-  const cx = points.reduce((sum, p) => sum + p.x, 0) / points.length;
-  const cy = points.reduce((sum, p) => sum + p.y, 0) / points.length;
-  const radii = points.map((p) => Math.hypot(p.x - cx, p.y - cy));
-  const mean = radii.reduce((sum, r) => sum + r, 0) / radii.length;
-  if (mean <= 1) return 0;
-  const variance =
-    radii.reduce((sum, r) => sum + (r - mean) * (r - mean), 0) / radii.length;
-  const stdDev = Math.sqrt(variance);
-  const start = points[0];
-  const end = points[points.length - 1];
-  if (!start || !end) return 0;
-  const closurePenalty = Math.hypot(end.x - start.x, end.y - start.y) / mean;
-  const wobblePenalty = stdDev / mean;
-  const raw = 100 - wobblePenalty * 180 - closurePenalty * 40;
-  return Math.round(clamp(raw, 0, 100));
-};
 
 const MarketChartTile: FunctionComponent<{ chart: MarketChart }> = ({
   chart,
@@ -304,16 +141,7 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
   const [captchaStatus, setCaptchaStatus] = useState<string | null>(null);
   const [captchaSeed, setCaptchaSeed] = useState<number>(() => Date.now());
   const [captchaSteps, setCaptchaSteps] = useState<CaptchaId[]>(() =>
-    pickThree<CaptchaId>(
-      [
-        'stroop_trap',
-        'micro_pixel_grid',
-        'bear_market',
-        'fleeing_checkbox',
-        'circle_game',
-      ],
-      Date.now()
-    )
+    pickThree<CaptchaId>(CAPTCHA_POOL, Date.now())
   );
   const [captchaIdx, setCaptchaIdx] = useState(0);
   const [captchaPassed, setCaptchaPassed] = useState(false);
@@ -350,18 +178,7 @@ const PortalApp: FunctionComponent<AppProps> = ({ closeWindow }: AppProps) => {
   const resetCaptchas = (nextSeed?: number) => {
     const seed = nextSeed ?? Date.now();
     setCaptchaSeed(seed);
-    setCaptchaSteps(
-      pickThree<CaptchaId>(
-        [
-          'stroop_trap',
-          'micro_pixel_grid',
-          'bear_market',
-          'fleeing_checkbox',
-          'circle_game',
-        ],
-        seed
-      )
-    );
+    setCaptchaSteps(pickThree<CaptchaId>(CAPTCHA_POOL, seed));
     setCaptchaIdx(0);
     setCaptchaPassed(false);
     setCaptchaStatus(null);
