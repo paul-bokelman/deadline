@@ -36,13 +36,6 @@ export const appList: AppList = {
     name: 'System Performance',
     size: { width: 520, height: 420 },
   },
-  tipOfDay: {
-    id: 'tipOfDay',
-    iconId: 'help',
-    isResizeable: true,
-    name: 'Tip of the Day',
-    size: { width: 430, height: 220 },
-  },
   calc: {
     id: 'calc',
     iconId: 'calc',
@@ -244,12 +237,6 @@ export const appList: AppList = {
     name: 'NetVoice',
     isResizeable: false,
     size: { width: 480, height: 280 },
-  },
-  importantPasswordsFile: {
-    id: 'importantPasswordsFile',
-    iconId: 'notepadDoc',
-    name: 'IMPORTANT_PASSWORDS.txt',
-    size: { width: 660, height: 520 },
   },
   winRarInstaller: {
     id: 'winRarInstaller',

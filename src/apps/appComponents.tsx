@@ -5,14 +5,12 @@ import DraftDocumentLinkApp from './draftDocumentLink/DraftDocumentLinkApp';
 import EulaApp from './eula/EulaApp';
 import FileConverterApp from './fileConverter/FileConverterApp';
 import SystemPerformanceApp from './systemPerformance/SystemPerformanceApp';
-import TipOfDayApp from './tipOfDay/TipOfDayApp';
 import EmailClient from './email/EmailClient';
 import BlackjackApp from './blackjack/BlackjackApp';
 import ClickMeApp from './clickMe/ClickMeApp';
 import LeaderboardApp from './leaderboard/LeaderboardApp';
 import WalletApp from './wallet/WalletApp';
 import MinesweeperApp from './minesweeper/MinesweeperApp';
-import PasswordsFile from './notepad/PasswordsFile';
 import PortalApp from './portal/PortalApp';
 import RecycleBinApp from './recycleBin/RecycleBinApp';
 import RemoteDesktopCableFixApp from './remoteDesktopCableFix/RemoteDesktopCableFixApp';
@@ -39,17 +37,12 @@ const CorpMailLegacyApp: FunctionComponent<AppProps> = () => (
   <EmailClient accountId="corpMailLegacy" accountLabel="CorpMail 2 (Legacy)" />
 );
 
-const ImportantPasswordsFileApp: FunctionComponent<AppProps> = () => (
-  <PasswordsFile />
-);
-
 export const appComponents: Record<AppId, FunctionComponent<AppProps>> = {
   antiVirus: AntiVirusApp,
   draftDocumentLink: DraftDocumentLinkApp,
   eula: EulaApp,
   fileConverter: FileConverterApp,
   systemPerformance: SystemPerformanceApp,
-  tipOfDay: TipOfDayApp,
   calc: VoidApp,
   cdPlayer: VoidApp,
   clickMeReset: ClickMeApp,
@@ -80,7 +73,6 @@ export const appComponents: Record<AppId, FunctionComponent<AppProps>> = {
   personalMail: PersonalMailApp,
   corpMailLegacy: CorpMailLegacyApp,
   netVoiceCall: NetVoiceCallApp,
-  importantPasswordsFile: ImportantPasswordsFileApp,
   winRarInstaller: WinRarInstaller,
   zipArchive: WinRarExtractor,
   volumeControl: VoidApp,
