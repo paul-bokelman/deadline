@@ -76,11 +76,6 @@ const createInitialOpenWindows = (): OpenWindow[] => {
     x: timerApp.size ? timerApp.size.width : 300,
     y: timerApp.size ? timerApp.size.height : 300,
   });
-  const archiveApp = appList.zipArchive;
-  const archiveSize = clampWindowSizeToViewport({
-    x: archiveApp.size ? archiveApp.size.width : DEFAULT_WINDOW_WIDTH,
-    y: archiveApp.size ? archiveApp.size.height : DEFAULT_WINDOW_HEIGHT,
-  });
   return [
     {
       app: timerApp,
@@ -100,26 +95,6 @@ const createInitialOpenWindows = (): OpenWindow[] => {
       sizeMode: timerApp.sizeMode,
       title: timerApp.name,
       zIndex: Z_INDEX_TIERS.normalBase,
-    },
-    {
-      app: archiveApp,
-      canMaximize: false,
-      canMinimize: false,
-      coords: clampWindowCoordsToViewport({ x: 86, y: 96 }, archiveSize),
-      hasFocus: false,
-      iconId: undefined,
-      id: crypto.randomUUID(),
-      isDraggable: archiveApp.isDraggable ?? true,
-      isMaximized: false,
-      isMinimized: false,
-      isResizeable: archiveApp.isResizeable ?? true,
-      showCloseButton: true,
-      showMaximizeButton: false,
-      showInTaskbar: false,
-      size: archiveSize,
-      sizeMode: archiveApp.sizeMode,
-      title: archiveApp.name,
-      zIndex: Z_INDEX_TIERS.normalBase + 1,
     },
   ];
 };
