@@ -24,8 +24,8 @@ const COMPLETED_EVENT_ID = 'remote_cable_fix:completed';
 
 const BOARD_W = 10;
 const BOARD_H = 10;
-const MIN_WRONG_ROTATIONS = 40;
-const SCRAMBLE_ATTEMPTS = 140;
+const MIN_WRONG_ROTATIONS = 34;
+const SCRAMBLE_ATTEMPTS = 123;
 const TILE_SIZE = 36;
 
 const START = { x: 0, y: 5 };
@@ -177,29 +177,9 @@ const buildSolvedBoard = (): TileDef[] => {
   // One single winding route from host to gateway (no alternate branches).
   addPath([
     { x: 0, y: 5 },
-    { x: 1, y: 5 },
-    { x: 1, y: 4 },
-    { x: 1, y: 3 },
-    { x: 2, y: 3 },
-    { x: 3, y: 3 },
-    { x: 3, y: 2 },
-    { x: 3, y: 1 },
-    { x: 4, y: 1 },
-    { x: 5, y: 1 },
-    { x: 6, y: 1 },
-    { x: 7, y: 1 },
-    { x: 8, y: 1 },
-    { x: 8, y: 2 },
-    { x: 8, y: 3 },
-    { x: 7, y: 3 },
-    { x: 6, y: 3 },
-    { x: 6, y: 4 },
-    { x: 6, y: 5 },
-    { x: 6, y: 6 },
-    { x: 5, y: 6 },
-    { x: 4, y: 6 },
-    { x: 3, y: 6 },
-    { x: 2, y: 6 },
+    { x: 0, y: 6 },
+    { x: 0, y: 7 },
+    { x: 1, y: 7 },
     { x: 2, y: 7 },
     { x: 3, y: 7 },
     { x: 4, y: 7 },
@@ -209,6 +189,34 @@ const buildSolvedBoard = (): TileDef[] => {
     { x: 8, y: 7 },
     { x: 8, y: 6 },
     { x: 8, y: 5 },
+    { x: 8, y: 4 },
+    { x: 7, y: 4 },
+    { x: 6, y: 4 },
+    { x: 5, y: 4 },
+    { x: 4, y: 4 },
+    { x: 3, y: 4 },
+    { x: 2, y: 4 },
+    { x: 1, y: 4 },
+    { x: 1, y: 3 },
+    { x: 1, y: 2 },
+    { x: 2, y: 2 },
+    { x: 3, y: 2 },
+    { x: 4, y: 2 },
+    { x: 5, y: 2 },
+    { x: 6, y: 2 },
+    { x: 7, y: 2 },
+    { x: 8, y: 2 },
+    { x: 8, y: 1 },
+    { x: 7, y: 1 },
+    { x: 6, y: 1 },
+    { x: 6, y: 0 },
+    { x: 7, y: 0 },
+    { x: 8, y: 0 },
+    { x: 9, y: 0 },
+    { x: 9, y: 1 },
+    { x: 9, y: 2 },
+    { x: 9, y: 3 },
+    { x: 9, y: 4 },
     { x: 9, y: 5 },
   ]);
 
@@ -339,11 +347,6 @@ const WireGlyph: FunctionComponent<{
   const wireClass = energized ? `${style.wire} ${style.wireHot}` : style.wire;
   return (
     <div className={style.glyph} aria-hidden="true">
-      <div
-        className={
-          energized ? `${style.wireCenter} ${style.wireHot}` : style.wireCenter
-        }
-      />
       {con.has('N') && <div className={`${style.wireN} ${wireClass}`} />}
       {con.has('S') && <div className={`${style.wireS} ${wireClass}`} />}
       {con.has('W') && <div className={`${style.wireW} ${wireClass}`} />}
@@ -361,15 +364,17 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({
     buildChallengingScramble()
   );
   const [attempts, setAttempts] = useState(0);
+  const [hasSubmittedConnection, setHasSubmittedConnection] = useState(false);
 
   const { isConnected, hasLeaks, energized } = useMemo(
     () => computeNetworkState(tiles),
     [tiles]
   );
-  const isSolved = isConnected && !hasLeaks;
+  const isRouteReady = isConnected && !hasLeaks;
+  const isSolved = hasSubmittedConnection;
 
   useEffect(() => {
-    if (!isSolved) return;
+    if (!hasSubmittedConnection) return;
     if (hasEventFired(COMPLETED_EVENT_ID)) return;
 
     markEventFired(COMPLETED_EVENT_ID);
@@ -381,7 +386,7 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({
       closeWindow();
     }, 850);
     return () => window.clearTimeout(timer);
-  }, [closeWindow, hasEventFired, isSolved, markEventFired]);
+  }, [closeWindow, hasEventFired, hasSubmittedConnection, markEventFired]);
 
   const boardStyle: JSX.CSSProperties = {
     gridTemplateColumns: `repeat(${BOARD_W}, ${TILE_SIZE}px)`,
@@ -398,20 +403,35 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({
           </div>
         </div>
         <div
-          className={`${style.statusPill} ${isSolved ? style.statusOk : ''}`}
-          title={isSolved ? 'CONNECTED' : 'DISCONNECTED'}
+          className={`${style.statusPill} ${isSolved ? style.statusOk : ''} ${
+            !isSolved && !isRouteReady ? style.statusDisconnected : ''
+          }`}
+          title={
+            isSolved ? 'CONNECTED' : isRouteReady ? 'READY TO CONNECT' : 'DISCONNECTED'
+          }
         >
-          {isSolved ? 'CONNECTED' : 'DISCONNECTED'}
+          {isSolved ? 'CONNECTED' : isRouteReady ? 'READY TO CONNECT' : 'DISCONNECTED'}
         </div>
       </div>
 
       <div className={style.panel}>
+        <div className={style.connectionBar}>
+          <div
+            className={`${style.connectionBarFill} ${isSolved ? style.connectionBarFillOn : ''}`}
+          />
+          <div className={style.connectionBarLabel}>
+            {isSolved
+              ? 'LINK ESTABLISHED'
+              : isRouteReady
+              ? 'PATH READY - PRESS CONNECT LINK'
+              : 'LINK OFFLINE'}
+          </div>
+        </div>
         <div className={style.alertBox}>
           <div className={style.alertTitle}>Why this popped up</div>
           <div className={style.alertBody}>
-            WinRAR extraction requested a remote handoff from IT, but the remote
-            desktop cable disconnected. Reconnect the cable path to continue
-            extraction and receive the reset message.
+            IT remote handoff failed. Restore one complete cable route from host
+            to gateway to resume extraction.
           </div>
         </div>
         <div className={style.boardFrame}>
@@ -440,6 +460,8 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({
                     isFixed ? style.tileFixed : ''
                   } ${isStart ? style.tileStart : ''} ${
                     isEnd ? style.tileEnd : ''
+                  } ${isEnd && !isEnergized ? style.tileEndPending : ''} ${
+                    isEnd && isEnergized ? style.tileEndConnected : ''
                   } ${isEnergized ? style.tileEnergized : ''}`}
                   disabled={isEmpty || isFixed || isSolved}
                   onClick={() => {
@@ -482,23 +504,40 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({
 
         <div className={style.actions}>
           <div className={style.hintBox}>
-            <div>
-              <b>Goal:</b> Rotate tiles to reconnect the full cable network with
-              no loose ends.
+            <div
+              className={`${style.objectiveLine} ${
+                isSolved ? style.objectiveDone : style.objectivePending
+              }`}
+            >
+              <b>END GOAL:</b> Connect <b>Host</b> to <b>Gateway</b>. Press{' '}
+              <b>Connect Link</b>.
             </div>
             <div className={style.hintSubline}>
               Attempts: <b>{attempts}</b>{' '}
-              {hasLeaks && !isSolved ? '| Leak detected' : ''}
+              {hasLeaks && !isRouteReady ? '| Leak detected' : ''}
             </div>
           </div>
 
           <div className={style.buttonRow}>
             <button
               type="button"
+              className={`${style.btn} ${!isRouteReady || isSolved ? style.btnDisabled : ''}`}
+              disabled={!isRouteReady || isSolved}
+              onClick={() => {
+                if (!isRouteReady || isSolved) return;
+                setHasSubmittedConnection(true);
+              }}
+              title="Submit network connection"
+            >
+              Connect Link
+            </button>
+            <button
+              type="button"
               className={`${style.btn} ${isSolved ? style.btnDisabled : ''}`}
               disabled={isSolved}
               onClick={() => {
                 setAttempts(0);
+                setHasSubmittedConnection(false);
                 setTiles(buildChallengingScramble());
               }}
               title="Scramble rotations"
@@ -523,6 +562,8 @@ const RemoteDesktopCableFixApp: FunctionComponent<AppProps> = ({
           textLeft={
             isSolved
               ? 'Connection restored. Returning to extraction...'
+              : isRouteReady
+              ? 'Path is complete. Press Connect Link to continue.'
               : 'Resolve cable path to continue WinRAR extraction.'
           }
           textRight={isSolved ? 'Status: CONNECTED' : 'Status: DISCONNECTED'}

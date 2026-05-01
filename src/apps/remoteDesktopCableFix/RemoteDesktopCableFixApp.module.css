@@ -3,10 +3,10 @@
   width: 100%;
   background: var(--plastic);
   box-sizing: border-box;
-  padding: 8px;
+  padding: 6px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   font-family: var(--font-family-ui), sans-serif;
   font-size: 12px;
 }
@@ -15,8 +15,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 8px;
+  gap: 8px;
+  padding: 6px 8px;
   background: var(--paper);
   box-shadow: var(--bevel-sunken);
 }
@@ -41,15 +41,26 @@
 .statusPill {
   font-family: var(--font-family-sys);
   font-size: 11px;
-  padding: 3px 8px;
-  background: #000000;
-  color: #ffffff;
-  border: 1px solid #000;
+  padding: 2px 8px;
+  background: var(--paper);
+  color: var(--text);
+  box-shadow: var(--border-field);
+  min-width: 90px;
+  text-align: center;
 }
 
 .statusOk {
-  background: #0a3f00;
-  border-color: #052600;
+  background: #0aa83f;
+  color: #ffffff;
+  box-shadow: inset 1px 1px 0 #61d98b, inset -1px -1px 0 #06752b;
+  font-weight: 700;
+}
+
+.statusDisconnected {
+  background: #b51616;
+  color: #ffffff;
+  box-shadow: inset 1px 1px 0 #e26a6a, inset -1px -1px 0 #7f0d0d;
+  font-weight: 700;
 }
 
 .panel {
@@ -57,18 +68,52 @@
   min-height: 0;
   background: var(--paper);
   box-shadow: var(--bevel-sunken);
-  padding: 8px;
+  padding: 6px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+}
+
+.connectionBar {
+  position: relative;
+  height: 18px;
+  background: var(--paper);
+  box-shadow: var(--border-field);
+  overflow: hidden;
+}
+
+.connectionBarFill {
+  position: absolute;
+  inset: 0;
+  width: 0%;
+  background: #6f6f6f;
+  transition: width 140ms linear, background-color 140ms linear;
+}
+
+.connectionBarFillOn {
+  width: 100%;
+  background: #0aa83f;
+}
+
+.connectionBarLabel {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-family-sys);
+  font-size: 11px;
+  color: #ffffff;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.55);
 }
 
 .alertBox {
-  padding: 7px 9px;
+  padding: 6px 8px;
   background: var(--paper);
   box-shadow: var(--border-field);
   font-family: var(--font-family-sys);
-  color: #111;
+  color: var(--text);
 }
 
 .alertTitle {
@@ -85,9 +130,9 @@
 .boardFrame {
   flex: 1 1 auto;
   min-height: 0;
-  background: #0c0c0c;
+  background: var(--paper);
   box-shadow: var(--border-field);
-  padding: 10px 10px 8px;
+  padding: 8px;
   overflow: auto;
 }
 
@@ -95,8 +140,8 @@
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 8px;
-  color: #d4e8f8;
+  margin-bottom: 6px;
+  color: var(--text);
   font-family: var(--font-family-sys);
   font-size: 11px;
 }
@@ -111,97 +156,102 @@
 .legendDotRight {
   width: 9px;
   height: 9px;
-  border-radius: 50%;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+  border-radius: 0;
+  box-shadow: var(--border-field);
 }
 
 .legendDotLeft {
-  background: #4ea5ff;
+  background: var(--dialog-blue);
 }
 
 .legendDotRight {
-  background: #f5c05c;
+  background: #4f4f4f;
 }
 
 .board {
   display: grid;
-  gap: 3px;
+  gap: 0;
   justify-content: center;
   align-content: center;
+  min-width: max-content;
+  background: #6f6f6f;
+  padding: 1px;
 }
 
 .tile {
   width: 36px;
   height: 36px;
-  background: #1a1a1a;
-  border: 1px solid #0a0a0a;
-  box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.08);
+  background: var(--paper);
+  border: none;
+  box-shadow: var(--bevel-raised);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   cursor: pointer;
   user-select: none;
-  transition: background-color 90ms linear;
+  transition: none;
 }
 
 .tile:active {
-  transform: translateY(1px);
+  box-shadow: var(--bevel-sunken);
 }
 
 .tileEmpty {
-  background: #0f0f0f;
-  border-color: #0a0a0a;
+  background: #bdbdbd;
+  box-shadow: var(--border-field);
   cursor: default;
 }
 
 .tileFixed {
   cursor: default;
-  background: #141414;
+  background: #d7d7d7;
+  box-shadow: var(--bevel-sunken);
 }
 
 .tileStart {
-  outline: 1px solid #59bfff;
+  outline: 1px solid var(--dialog-blue);
   outline-offset: -1px;
 }
 
 .tileEnd {
-  outline: 1px solid #ffbe4b;
+  outline: 1px solid #4f4f4f;
   outline-offset: -1px;
 }
 
+.tileEndPending {
+  background: #f0b7b7;
+  box-shadow: var(--bevel-sunken);
+}
+
+.tileEndConnected {
+  outline: 2px solid #0a7a2f;
+}
+
 .tileEnergized {
-  background: #173018;
+  background: #d6e4ff;
 }
 
 .glyph {
-  width: 22px;
-  height: 22px;
+  width: 100%;
+  height: 100%;
   position: relative;
 }
 
 .wire {
   position: absolute;
-  background: #b5b5b5;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+  background: #666;
+  box-shadow: none;
 }
 
 .wireHot {
-  background: #3efc3e;
-}
-
-.wireCenter {
-  left: 50%;
-  top: 50%;
-  width: 7px;
-  height: 7px;
-  transform: translate(-50%, -50%);
+  background: var(--dialog-blue);
 }
 
 .wireN {
   left: 50%;
   top: 0;
-  width: 7px;
+  width: 6px;
   height: 50%;
   transform: translateX(-50%);
 }
@@ -209,7 +259,7 @@
 .wireS {
   left: 50%;
   bottom: 0;
-  width: 7px;
+  width: 6px;
   height: 50%;
   transform: translateX(-50%);
 }
@@ -218,7 +268,7 @@
   left: 0;
   top: 50%;
   width: 50%;
-  height: 7px;
+  height: 6px;
   transform: translateY(-50%);
 }
 
@@ -226,14 +276,14 @@
   right: 0;
   top: 50%;
   width: 50%;
-  height: 7px;
+  height: 6px;
   transform: translateY(-50%);
 }
 
 .actions {
   display: flex;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
   flex-wrap: wrap;
 }
@@ -241,17 +291,31 @@
 .hintBox {
   flex: 1 1 auto;
   min-width: 240px;
-  padding: 7px 9px;
+  padding: 6px 8px;
   background: var(--paper);
   box-shadow: var(--border-field);
   font-family: var(--font-family-sys);
   font-size: 11px;
-  color: #111;
+  color: var(--text);
+}
+
+.objectiveLine {
+  padding: 2px 4px;
+}
+
+.objectivePending {
+  color: #8f0000;
+  font-weight: 700;
+}
+
+.objectiveDone {
+  color: #0a7a2f;
+  font-weight: 700;
 }
 
 .hintSubline {
-  margin-top: 5px;
-  color: #1f3a57;
+  margin-top: 4px;
+  color: var(--button-shadow);
 }
 
 .buttonRow {
