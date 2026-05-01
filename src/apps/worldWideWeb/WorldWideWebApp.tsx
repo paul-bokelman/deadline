@@ -5,285 +5,25 @@ import { AppProps } from '@/types/App';
 import { gameEventBus } from '@/game/events';
 import { setPortalPassword } from '@/system/portalAuth/portalAuth';
 import { recordCheckpoint } from '@/system/runTimer/runTimer';
-
-const rootStyle: JSX.CSSProperties = {
-  height: '100%',
-  display: 'flex',
-  flexDirection: 'column',
-  backgroundColor: '#c0c0c0',
-};
-
-const toolbarStyle: JSX.CSSProperties = {
-  padding: '6px',
-  backgroundColor: 'var(--surface)',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
-  margin: '6px 6px 0 6px',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '6px',
-};
-
-const navRowStyle: JSX.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '6px',
-};
-
-const browserButtonStyle: JSX.CSSProperties = {
-  border: 'none',
-  backgroundColor: 'var(--surface)',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
-  padding: '3px 8px',
-  fontSize: '12px',
-};
-
-const addressInputStyle: JSX.CSSProperties = {
-  flex: 1,
-  minWidth: '180px',
-  border: 'none',
-  backgroundColor: '#ffffff',
-  boxShadow: 'var(--border-field)',
-  padding: '3px 6px',
-  fontFamily: 'monospace',
-  fontSize: '12px',
-};
-
-const pageStyle: JSX.CSSProperties = {
-  margin: '6px',
-  flex: 1,
-  backgroundColor: '#ffffff',
-  boxShadow: 'var(--border-sunken-outer), var(--border-sunken-inner)',
-  padding: '14px',
-  overflow: 'auto',
-};
-
-type BrowserPage =
-  | 'home'
-  | 'news'
-  | 'weather'
-  | 'stocks'
-  | 'sports'
-  | 'history'
-  | 'search'
-  | 'winrarDownload'
-  | 'portalResetPassword';
-
-type PasswordRuleResult = {
-  id: string;
-  label: string;
-  passed: boolean;
-};
-
-const forbiddenFat32Chars = /[\\/:*?"<>|]/;
-
-const getSignedNumbers = (input: string): number[] => {
-  return (input.match(/[+-]?\d+(?:\.\d+)?/g) ?? [])
-    .map((raw) => Number(raw))
-    .filter((value) => Number.isFinite(value));
-};
-
-const isTwentyPercentMarkup = (first: number, second: number): boolean => {
-  const expected = first * 1.2;
-  const tolerance = Math.max(1e-8, Math.abs(expected) * 1e-6);
-  return Math.abs(second - expected) <= tolerance;
-};
-
-const evaluatePasswordRules = (value: string): PasswordRuleResult[] => {
-  const trimmed = value.trim();
-  const numbers = getSignedNumbers(trimmed);
-  const specialChars = (trimmed.match(/[^A-Za-z0-9\s]/g) ?? []).filter(
-    (char) => !forbiddenFat32Chars.test(char)
-  );
-  const distinctSpecialChars = new Set(specialChars);
-  const hasUppercaseLetter = /[A-Z]/.test(trimmed);
-  const hasLowercaseLetter = /[a-z]/.test(trimmed);
-
-  const hasArbitragePair = (() => {
-    const regex = /([+-]?\d+(?:\.\d+)?)[A-Za-z]([+-]?\d+(?:\.\d+)?)/g;
-    let match: RegExpExecArray | null;
-    while ((match = regex.exec(trimmed)) !== null) {
-      const first = Number(match[1] ?? NaN);
-      const second = Number(match[2] ?? NaN);
-      if (!Number.isFinite(first) || !Number.isFinite(second)) continue;
-      if (isTwentyPercentMarkup(first, second)) return true;
-    }
-    return false;
-  })();
-
-  const vowelSet = new Set(['a', 'e', 'i', 'o', 'u']);
-  const hasCaseParadox = (() => {
-    for (const char of trimmed) {
-      if (!/[A-Za-z]/.test(char)) continue;
-      const lower = char.toLowerCase();
-      if (vowelSet.has(lower)) {
-        if (char !== lower) return false;
-      } else if (char !== char.toUpperCase()) {
-        return false;
-      }
-    }
-    return true;
-  })();
-
-  const hasNoThreeCharPalindrome = (() => {
-    for (let i = 0; i <= trimmed.length - 3; i += 1) {
-      if (trimmed[i] === trimmed[i + 2]) return false;
-    }
-    return true;
-  })();
-
-  return [
-    {
-      id: 'min-10',
-      label: 'Minimum 10 characters',
-      passed: trimmed.length >= 10,
-    },
-    {
-      id: 'two-specials',
-      label: 'Must contain at least 2 different special characters.',
-      passed: distinctSpecialChars.size >= 2,
-    },
-    {
-      id: 'mixed-case',
-      label: 'Must contain both uppercase and lowercase letters.',
-      passed: hasUppercaseLetter && hasLowercaseLetter,
-    },
-    {
-      id: 'zero-sum-ledger',
-      label:
-        'The numbers in your password must represent a perfectly hedged position: all digits used must sum to exactly zero.',
-      passed:
-        numbers.length === 0 ||
-        Math.abs(numbers.reduce((sum, current) => sum + current, 0)) < 1e-9,
-    },
-    {
-      id: 'arbitrage',
-      label:
-        'Must contain two numbers separated by a letter, where the second number is exactly a 20% markup of the first.',
-      passed: hasArbitragePair,
-    },
-    {
-      id: 'illegal-chars',
-      label:
-        'Must contain a special character, but cannot contain FAT32 restricted characters.',
-      passed:
-        /[^A-Za-z0-9]/.test(trimmed) && !forbiddenFat32Chars.test(trimmed),
-    },
-    {
-      id: 'case-paradox',
-      label: 'All consonants must be uppercase. All vowels must be lowercase.',
-      passed: hasCaseParadox,
-    },
-    {
-      id: 'palindrome-penalty',
-      label:
-        'Password cannot contain any 3-character palindrome (e.g. ABA or 121).',
-      passed: hasNoThreeCharPalindrome,
-    },
-  ];
-};
-
-const sectionCardStyle: JSX.CSSProperties = {
-  padding: '10px',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
-  backgroundColor: '#f8f8f8',
-};
-
-const storyListStyle: JSX.CSSProperties = {
-  margin: '10px 0 0 0',
-  paddingLeft: '18px',
-  lineHeight: 1.55,
-};
-
-const bannerStyle: JSX.CSSProperties = {
-  padding: '8px 10px',
-  marginBottom: '10px',
-  background: 'linear-gradient(90deg, #1f4d8f 0%, #3f6cb8 65%, #6d8ad3 100%)',
-  color: '#ffffff',
-  boxShadow: 'var(--border-raised-outer), var(--border-raised-inner)',
-  fontSize: '12px',
-  letterSpacing: '0.2px',
-};
-
-const cardGridStyle: JSX.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-  gap: '10px',
-};
-
-const statChipStyle: JSX.CSSProperties = {
-  display: 'inline-block',
-  padding: '3px 7px',
-  marginRight: '6px',
-  marginBottom: '6px',
-  border: '1px solid #c9c9c9',
-  backgroundColor: '#ffffff',
-  fontSize: '11px',
-  borderRadius: '12px',
-};
-
-const embarrassingHistoryEntries = [
-  '2:11 PM - "how do i get my ex back fast"',
-  '2:10 PM - "how to seem unbothered but actually bothered"',
-  '2:09 PM - "how to get a six pack in 1 week no exercise"',
-  '2:08 PM - "can confidence be purchased online"',
-  '2:07 PM - "apology text templates that sound accidental"',
-  '2:06 PM - "best revenge glow up timeline realistic"',
-  '2:05 PM - "can i become mysterious by wearing black turtlenecks"',
-  '2:04 PM - "how to look busy when boss walks by"',
-  '2:03 PM - "is soup a beverage legal definition"',
-  '2:02 PM - "cheap abs in 7 days guaranteed"',
-  '2:01 PM - "how to unsend a message from 2004"',
-  '2:00 PM - "does my plant think im dramatic"',
-  '1:59 PM - "how to accidentally post gym selfie"',
-  '1:58 PM - "can i put confidence on my resume"',
-  '1:57 PM - "haircut that says i read books"',
-  '1:56 PM - "how to apologize but still win argument"',
-  '1:55 PM - "why did i wave at someone i dont know"',
-  '1:54 PM - "is 3 coffees breakfast"',
-  '1:53 PM - "how long can i fake liking jazz"',
-  '1:52 PM - "how to stop typing lol in serious emails"',
-  '1:51 PM - "can i become left handed for aesthetic"',
-  '1:50 PM - "how to look rich in grocery store"',
-  '1:49 PM - "do sunglasses hide panic"',
-  '1:48 PM - "how to delete memory of karaoke"',
-  '1:47 PM - "best excuses for owning 14 throw pillows"',
-  '1:46 PM - "can i gain muscle by thinking hard"',
-  '1:45 PM - "what is business casual for emotional support hoodie"',
-  '1:44 PM - "how to text hey without seeming desperate"',
-  '1:43 PM - "is it illegal to overuse ellipses..."',
-  '1:42 PM - "how to recover from saying you too to waiter"',
-  '1:41 PM - "how to politely reject pyramid scheme aunt"',
-  '1:40 PM - "do i need protein shake to open jars"',
-  '1:39 PM - "is 11 alarms a personality trait"',
-  '1:38 PM - "how to stop buying self help books i dont read"',
-  '1:37 PM - "quickest path to mysterious villain energy"',
-  '1:36 PM - "can i list vibes as a skill"',
-  '1:35 PM - "how to ask for raise using interpretive dance"',
-  '1:34 PM - "why did i say love you on customer support call"',
-  '1:33 PM - "can mirrors be gaslighting me"',
-  '1:32 PM - "how to become morning person by friday"',
-  '1:31 PM - "how to remove glitter from car seats permanently"',
-  '1:30 PM - "best fake hobbies for first dates"',
-  '1:29 PM - "is 2am cereal dinner acceptable"',
-  '1:28 PM - "how to train jawline while watching tv"',
-  '1:27 PM - "can i reset my reputation in new zip code"',
-  '1:26 PM - "why does my voice crack when ordering coffee"',
-  '1:25 PM - "how to wear chain without becoming magician"',
-  '1:24 PM - "can i get six pack from laughing hard"',
-  '1:23 PM - "how to recover from seen at 1:23 PM"',
-  '1:22 PM - "is confidence just good posture"',
-  '1:21 PM - "how to stop saying no worries when there are worries"',
-  '1:20 PM - "how to win argument with autocorrect"',
-  '1:19 PM - "is soup still beverage if chunky"',
-  '1:18 PM - "how to make playlist that implies emotional stability"',
-  '1:17 PM - "how to tell barber just a little off means little"',
-  '1:16 PM - "can i meal prep charisma"',
-  '1:15 PM - "how to look athletic in elevator"',
-  '1:14 PM - "how to flirt without sounding like a chatbot"',
-  '1:13 PM - "can i invoice my ex for emotional labor"',
-  '1:12 PM - "best way to return to gym after 4 years"',
-  '1:11 PM - "how to become hot by next tuesday"',
-] as const;
+import {
+  addressInputStyle,
+  bannerStyle,
+  browserButtonStyle,
+  cardGridStyle,
+  navRowStyle,
+  pageStyle,
+  rootStyle,
+  sectionCardStyle,
+  statChipStyle,
+  storyListStyle,
+  toolbarStyle,
+} from './worldWideWeb.constants';
+import { BrowserPage, embarrassingHistoryEntries } from './worldWideWeb.data';
+import {
+  evaluatePasswordRules,
+  getPageAddress,
+  resolvePageForUrl,
+} from './worldWideWeb.helpers';
 
 const WorldWideWebApp: FunctionComponent<AppProps> = ({
   openApp,
@@ -310,42 +50,18 @@ const WorldWideWebApp: FunctionComponent<AppProps> = ({
   };
 
   const navigateForUrl = (rawUrl: string) => {
-    const q = rawUrl.trim().toLowerCase();
-    if (!q) return;
-    if (q.includes('news')) return navigateTo('news');
-    if (q.includes('weather') || q.includes('weeather'))
-      return navigateTo('weather');
-    if (q.includes('stocks')) return navigateTo('stocks');
-    if (q.includes('sports')) return navigateTo('sports');
-    if (q.includes('history')) return navigateTo('history');
-    if (q.includes('reset-password')) return navigateTo('portalResetPassword');
-    if (q.includes('home')) return navigateTo('home');
-    if (
-      q.includes('win-rar.com') ||
-      q.includes('winrar') ||
-      q.includes('.rar') ||
-      q.includes('rar')
-    ) {
-      return navigateTo('winrarDownload');
+    const targetPage = resolvePageForUrl(rawUrl);
+    if (!targetPage) return;
+    if (targetPage === 'search') {
+      setSearchQuery(rawUrl.trim());
     }
-    setSearchQuery(rawUrl.trim());
-    navigateTo('search');
+    navigateTo(targetPage);
   };
 
-  const pageAddress = useMemo(() => {
-    if (page === 'news') return 'http://daily-beeper.net/news';
-    if (page === 'weather') return 'http://cloud.oracle/weather';
-    if (page === 'stocks') return 'http://stonks-4-u.biz/market';
-    if (page === 'sports') return 'http://sports-yelling.example/live';
-    if (page === 'history') return 'worldwideweb://history';
-    if (page === 'search')
-      return `worldwideweb://search?q=${encodeURIComponent(searchQuery)}`;
-    if (page === 'winrarDownload')
-      return 'http://download.winrar-online.example/';
-    if (page === 'portalResetPassword')
-      return 'http://identity.corp.internal/reset-password';
-    return 'http://worldwideweb.home/';
-  }, [page, searchQuery]);
+  const pageAddress = useMemo(
+    () => getPageAddress(page, searchQuery),
+    [page, searchQuery]
+  );
 
   useEffect(() => {
     setTypedAddress(pageAddress);
