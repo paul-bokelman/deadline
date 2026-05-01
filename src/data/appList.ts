@@ -78,27 +78,6 @@ export const appList: AppList = {
     name: 'Windows Explorer',
     size: { width: 400, height: 177 },
   },
-  find: {
-    id: 'find',
-    iconId: 'find',
-    isResizeable: false,
-    name: 'Find Files or Folders... ',
-    size: { width: 400, height: 177 },
-  },
-  findComputer: {
-    id: 'findComputer',
-    iconId: 'findComputer',
-    isResizeable: false,
-    name: 'Find Computer...',
-    size: { width: 400, height: 177 },
-  },
-  findMsn: {
-    id: 'findMsn',
-    iconId: 'findMsn',
-    isResizeable: false,
-    name: 'Find on The Microsoft Network',
-    size: { width: 400, height: 177 },
-  },
   help: {
     id: 'help',
     iconId: 'help',
@@ -171,13 +150,6 @@ export const appList: AppList = {
     name: 'Online Registration',
     size: { width: 400, height: 177 },
   },
-  run: {
-    id: 'run',
-    iconId: 'run',
-    isResizeable: false,
-    name: 'Run',
-    size: { width: 400, height: 177 },
-  },
   scandisk: {
     id: 'scandisk',
     iconId: 'scandisk',
@@ -197,13 +169,6 @@ export const appList: AppList = {
     iconId: 'shutdown',
     isResizeable: false,
     name: 'Reboot...',
-    size: { width: 400, height: 177 },
-  },
-  taskbar: {
-    id: 'taskbar',
-    iconId: 'taskbar',
-    isResizeable: false,
-    name: 'Taskbar...',
     size: { width: 400, height: 177 },
   },
   timer: {

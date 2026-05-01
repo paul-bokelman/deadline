@@ -142,37 +142,10 @@ export const startMenuFs = {
           type: 'dir',
           dir: {},
         },
-        taskbar: {
-          appId: appList.taskbar.id,
-          type: 'app',
-        },
-      },
-    },
-    find: {
-      name: 'Find',
-      iconId: 'find',
-      type: 'dir',
-      dir: {
-        findFiles: {
-          name: 'Files or Folders...',
-          iconId: appList.find.iconId,
-          appId: appList.find.id,
-          type: 'app',
-        },
-        findComputers: {
-          name: 'Computers...',
-          iconId: appList.findComputer.iconId,
-          appId: appList.findComputer.id,
-          type: 'app',
-        },
       },
     },
     help: {
       appId: appList.help.id,
-      type: 'app',
-    },
-    run: {
-      appId: appList.run.id,
       type: 'app',
     },
     shutdown: {
