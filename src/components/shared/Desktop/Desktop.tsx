@@ -20,80 +20,34 @@ import { FileSystemApp } from '@/types/FileSystem';
 import { ShellItem } from '@/types/Shell';
 import { getDirFromPath } from '@/utils/win96/FileSystemUtils';
 import Icon from '../Icon/Icon';
+import {
+  CELL_HEIGHT,
+  CELL_WIDTH,
+  DRAG_THRESHOLD_PX,
+  FALLBACK_DESKTOP_H,
+  FALLBACK_DESKTOP_W,
+  ICON_HITBOX_HEIGHT,
+  ICON_HITBOX_WIDTH,
+  ICON_PADDING_X,
+  ICON_PADDING_Y,
+  PASSWORD_VAULT_FOLDER_NAME,
+} from './desktop.constants';
+import { DragState, IconPosition, SelectionBoxState } from './desktop.types';
+import {
+  clamp,
+  getDesktopMaxBounds,
+  iconRectFromPosition,
+  positionKey,
+  rectsIntersect,
+} from './desktop.utils';
 
 import fileGridStyle from '../FileGrid/FileGrid.module.css';
 import style from './Desktop.module.css';
-
-const CELL_WIDTH = 80;
-const CELL_HEIGHT = 80;
-const ICON_PADDING_X = 4;
-const ICON_PADDING_Y = 4;
-const DRAG_THRESHOLD_PX = 4;
-const FALLBACK_DESKTOP_W = 800;
-const FALLBACK_DESKTOP_H = 600;
-const PASSWORD_VAULT_FOLDER_NAME = 'PasswordVault';
-
-interface IconPosition {
-  left: number;
-  top: number;
-}
-
-interface DragState {
-  primaryFileId: string;
-  draggedFileIds: string[];
-  startPositions: Record<string, IconPosition>;
-  deltaX: number;
-  deltaY: number;
-  pointerStartX: number;
-  pointerStartY: number;
-  pointerId: number;
-  hasMoved: boolean;
-}
-
-interface SelectionBoxState {
-  pointerId: number;
-  startX: number;
-  startY: number;
-  x: number;
-  y: number;
-  isActive: boolean;
-}
-
-interface IconRect {
-  left: number;
-  top: number;
-  right: number;
-  bottom: number;
-}
 
 type Props = {
   background?: string;
   openApp: OpenWindowsContextType['openApp'];
 };
-
-const clamp = (value: number, min: number, max: number): number =>
-  Math.min(max, Math.max(min, value));
-
-const positionKey = (left: number, top: number): string => `${left}:${top}`;
-
-const iconRectFromPosition = (
-  position: IconPosition,
-  width = 78,
-  height = 74
-): IconRect => ({
-  left: position.left,
-  top: position.top,
-  right: position.left + width,
-  bottom: position.top + height,
-});
-
-const rectsIntersect = (a: IconRect, b: IconRect): boolean =>
-  !(
-    a.right < b.left ||
-    a.left > b.right ||
-    a.bottom < b.top ||
-    a.top > b.bottom
-  );
 
 const Desktop: FunctionComponent<Props> = ({
   background = '',
@@ -196,16 +150,13 @@ const Desktop: FunctionComponent<Props> = ({
   useEffect(() => {
     setIconPositions((current) => {
       const next: Record<string, IconPosition> = {};
-      const ICON_W = CELL_WIDTH;
-      const ICON_H = CELL_HEIGHT;
-      const maxLeft = Math.max(ICON_PADDING_X, desktopSize.w - ICON_W);
-      const maxTop = Math.max(ICON_PADDING_Y, desktopSize.h - ICON_H);
+      const { maxLeft, maxTop } = getDesktopMaxBounds(desktopSize.w, desktopSize.h);
       const occupiedPositions = new Set<string>();
 
       const buildOrderedSlots = (): IconPosition[] => {
         const slots: IconPosition[] = [];
-        for (let left = ICON_PADDING_X; left <= maxLeft; left += ICON_W) {
-          for (let top = ICON_PADDING_Y; top <= maxTop; top += ICON_H) {
+        for (let left = ICON_PADDING_X; left <= maxLeft; left += CELL_WIDTH) {
+          for (let top = ICON_PADDING_Y; top <= maxTop; top += CELL_HEIGHT) {
             slots.push({ left, top });
           }
         }
@@ -418,10 +369,7 @@ const Desktop: FunctionComponent<Props> = ({
 
   const clampToDesktop = useCallback(
     (left: number, top: number): { left: number; top: number } => {
-      const ICON_W = CELL_WIDTH;
-      const ICON_H = CELL_HEIGHT;
-      const maxLeft = Math.max(ICON_PADDING_X, desktopSize.w - ICON_W);
-      const maxTop = Math.max(ICON_PADDING_Y, desktopSize.h - ICON_H);
+      const { maxLeft, maxTop } = getDesktopMaxBounds(desktopSize.w, desktopSize.h);
       return {
         left: clamp(left, ICON_PADDING_X, maxLeft),
         top: clamp(top, ICON_PADDING_Y, maxTop),
@@ -480,10 +428,7 @@ const Desktop: FunctionComponent<Props> = ({
       Math.abs(rawDy) > DRAG_THRESHOLD_PX;
     if (!hasMoved) return;
 
-    const ICON_W = CELL_WIDTH;
-    const ICON_H = CELL_HEIGHT;
-    const maxLeft = Math.max(ICON_PADDING_X, desktopSize.w - ICON_W);
-    const maxTop = Math.max(ICON_PADDING_Y, desktopSize.h - ICON_H);
+    const { maxLeft, maxTop } = getDesktopMaxBounds(desktopSize.w, desktopSize.h);
 
     let groupMinLeft = Infinity;
     let groupMinTop = Infinity;
@@ -581,8 +526,8 @@ const Desktop: FunctionComponent<Props> = ({
       const x2 = Math.max(box.startX, box.x) - rect.left;
       const y2 = Math.max(box.startY, box.y) - rect.top;
 
-      const ICON_W = 78;
-      const ICON_H = 74;
+      const ICON_W = ICON_HITBOX_WIDTH;
+      const ICON_H = ICON_HITBOX_HEIGHT;
       const next = new Set<string>();
       desktopItems.forEach((item) => {
         const pos = iconPositions[item.id];
