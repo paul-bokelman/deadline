@@ -7,11 +7,7 @@ import { useGameState } from '@/game/state';
 import { createLoadingSfxController } from '@/utils/audio/sfx';
 import { getErraticProgressStep } from '@/utils/loading/erraticProgress';
 
-type InstallerPhase =
-  | 'installing'
-  | 'purchase'
-  | 'updatePrompt'
-  | 'done';
+type InstallerPhase = 'installing' | 'purchase' | 'done';
 
 const trackStyle: JSX.CSSProperties = {
   width: '100%',
@@ -91,7 +87,7 @@ const INSTALL_PROGRESS_BEHAVIOR = scaleProgressBehavior(
 const WinRarInstaller: FunctionComponent<AppProps> = ({
   closeWindow,
 }: AppProps) => {
-  const { flags, rebootGame, setFlag, setFlags } = useGameState();
+  const { flags, setFlag, setFlags } = useGameState();
   const [phase, setPhase] = useState<InstallerPhase>(
     flags.hasPurchasedWinRar ? 'installing' : 'purchase'
   );
@@ -143,7 +139,7 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
       setProgress(nextProgress);
 
       if (nextProgress >= 100) {
-        setPhase('updatePrompt');
+        setPhase('done');
         setFlag('hasWinRarInstalled', true);
         gameEventBus.emit('popup:test_spawn_random', { x: 220, y: 140 });
         return;
@@ -220,21 +216,6 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
               }}
             />
           </div>
-        </div>
-      )}
-
-      {phase === 'updatePrompt' && (
-        <div>
-          <div>
-            WinRAR is installed, but a suspicious "critical update" is being
-            pushed. Clicking update will immediately reboot your machine.
-          </div>
-          <div style={{ marginTop: '8px' }}>
-            Close this window with the titlebar <b>X</b> to continue safely.
-          </div>
-          <button onClick={rebootGame} style={buttonStyle} type="button">
-            Update Now (Reboot)
-          </button>
         </div>
       )}
     </div>

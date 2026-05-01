@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'preact/hooks';
 
 import { systemConfig } from '@/data/systemConfig';
 import { GameStage, useGameState } from '@/game/state';
@@ -17,35 +23,29 @@ const stageOrder: Record<GameStage, number> = {
 
 interface UseUpdateSchedulerResult {
   isNagVisible: boolean;
+  isDownloadingUpdate: boolean;
   onDismissNag: () => void;
-  onRemindLater: () => void;
-  onRebootNow: () => void;
+  onDownloadUpdate: () => void;
 }
 
-const REMINDER_DELAY_MIN_MS = 50_000;
-const REMINDER_DELAY_MAX_MS = 70_000;
-
-const randomReminderDelayMs = (): number =>
-  Math.floor(
-    REMINDER_DELAY_MIN_MS +
-      Math.random() * (REMINDER_DELAY_MAX_MS - REMINDER_DELAY_MIN_MS)
-  );
+const REBOOT_DELAY_MS = 3_000;
 
 export const useUpdateScheduler = (): UseUpdateSchedulerResult => {
   const { flags, rebootGame, setFlags, stage } = useGameState();
   const [isNagVisible, setIsNagVisible] = useState(false);
+  const [isDownloadingUpdate, setIsDownloadingUpdate] = useState(false);
+  const hasShownWinRarUpdateRef = useRef(false);
+  const rebootTimeoutRef = useRef<number | null>(null);
 
   const isEligible =
     stageOrder[stage] >=
     stageOrder[systemConfig.windowsUpdate.enabledAfterStage];
 
-  const activateWindowsUpdate = useCallback(() => {
-    setFlags({ windowsUpdateActive: true, windowsUpdateRebootAt: null });
-  }, [setFlags]);
-
   useEffect(() => {
     if (!systemConfig.windowsUpdate.enabled) {
       setIsNagVisible(false);
+      setIsDownloadingUpdate(false);
+      hasShownWinRarUpdateRef.current = false;
       if (flags.windowsUpdateActive || flags.windowsUpdateRebootAt !== null)
         setFlags({ windowsUpdateActive: false, windowsUpdateRebootAt: null });
       return;
@@ -53,58 +53,71 @@ export const useUpdateScheduler = (): UseUpdateSchedulerResult => {
 
     if (!isEligible) {
       setIsNagVisible(false);
+      setIsDownloadingUpdate(false);
+      hasShownWinRarUpdateRef.current = false;
       if (flags.windowsUpdateActive || flags.windowsUpdateRebootAt !== null)
         setFlags({ windowsUpdateActive: false, windowsUpdateRebootAt: null });
       return;
     }
 
-    if (!flags.windowsUpdateActive) activateWindowsUpdate();
+    if (!flags.hasWinRarInstalled) {
+      setIsNagVisible(false);
+      setIsDownloadingUpdate(false);
+      hasShownWinRarUpdateRef.current = false;
+      if (flags.windowsUpdateActive || flags.windowsUpdateRebootAt !== null) {
+        setFlags({ windowsUpdateActive: false, windowsUpdateRebootAt: null });
+      }
+      return;
+    }
+
+    if (!hasShownWinRarUpdateRef.current) {
+      hasShownWinRarUpdateRef.current = true;
+      setIsNagVisible(true);
+      if (!flags.windowsUpdateActive || flags.windowsUpdateRebootAt !== null) {
+        setFlags({ windowsUpdateActive: true, windowsUpdateRebootAt: null });
+      }
+    }
   }, [
+    flags.hasWinRarInstalled,
     flags.windowsUpdateActive,
     flags.windowsUpdateRebootAt,
     isEligible,
-    activateWindowsUpdate,
     setFlags,
   ]);
 
   useEffect(() => {
-    if (
-      !systemConfig.windowsUpdate.enabled ||
-      !isEligible ||
-      !flags.windowsUpdateActive
-    ) {
-      setIsNagVisible(false);
-      return;
-    }
-
-    if (isNagVisible) return;
-
-    const timeoutId = window.setTimeout(() => {
-      setIsNagVisible(true);
-    }, randomReminderDelayMs());
-
     return () => {
-      window.clearTimeout(timeoutId);
+      if (rebootTimeoutRef.current !== null) {
+        window.clearTimeout(rebootTimeoutRef.current);
+        rebootTimeoutRef.current = null;
+      }
     };
-  }, [flags.windowsUpdateActive, isEligible, isNagVisible]);
-
-  const onDismissNag = useCallback(() => {
-    setIsNagVisible(false);
   }, []);
 
-  const rebootForUpdate = useCallback(() => {
+  const onDismissNag = useCallback(() => {
+    if (isDownloadingUpdate) return;
     setIsNagVisible(false);
-    setFlags({ windowsUpdateActive: false, windowsUpdateRebootAt: null });
-    rebootGame();
-  }, [rebootGame, setFlags]);
+  }, [isDownloadingUpdate]);
+
+  const onDownloadUpdate = useCallback(() => {
+    if (isDownloadingUpdate) return;
+    setIsDownloadingUpdate(true);
+    rebootTimeoutRef.current = window.setTimeout(() => {
+      setIsDownloadingUpdate(false);
+      setIsNagVisible(false);
+      setFlags({ windowsUpdateActive: false, windowsUpdateRebootAt: null });
+      rebootGame();
+      rebootTimeoutRef.current = null;
+    }, REBOOT_DELAY_MS);
+  }, [isDownloadingUpdate, rebootGame, setFlags]);
 
   return useMemo(
     () => ({
       isNagVisible,
+      isDownloadingUpdate,
       onDismissNag,
-      onRemindLater: rebootForUpdate,
-      onRebootNow: rebootForUpdate,
+      onDownloadUpdate,
     }),
-    [isNagVisible, onDismissNag, rebootForUpdate]
+    [isDownloadingUpdate, isNagVisible, onDismissNag, onDownloadUpdate]
   );
 };
