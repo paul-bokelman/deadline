@@ -88,6 +88,7 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
   closeWindow,
 }: AppProps) => {
   const { flags, setFlag, setFlags } = useGameState();
+  const contentRef = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<InstallerPhase>(
     flags.hasPurchasedWinRar ? 'installing' : 'purchase'
   );
@@ -140,6 +141,16 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
 
       if (nextProgress >= 100) {
         setPhase('done');
+        const installerWindowElement = contentRef.current?.closest('.window');
+        const installerRect = installerWindowElement?.getBoundingClientRect();
+        if (installerRect) {
+          gameEventBus.emit('winrar:installed', {
+            x: Math.round(installerRect.left),
+            y: Math.round(installerRect.top),
+            width: Math.round(installerRect.width),
+            height: Math.round(installerRect.height),
+          });
+        }
         setFlag('hasWinRarInstalled', true);
         gameEventBus.emit('popup:test_spawn_random', { x: 220, y: 140 });
         return;
@@ -152,7 +163,7 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
     return () => {
       if (timeoutId !== null) window.clearTimeout(timeoutId);
     };
-  }, [phase]);
+  }, [phase, setFlag]);
 
   if (phase === 'done') {
     return (
@@ -163,7 +174,7 @@ const WinRarInstaller: FunctionComponent<AppProps> = ({
   }
 
   return (
-    <div style={panelStyle}>
+    <div ref={contentRef} style={panelStyle}>
       {phase === 'purchase' && (
         <div>
           <div style={{ fontWeight: 700 }}>WinRAR Download</div>

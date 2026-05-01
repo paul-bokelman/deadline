@@ -66,6 +66,12 @@ export type CoreGameEvents = {
   'deadline:seconds_remaining': { seconds: number; remainingMs: number };
   'clock:advanced': { byMs: number };
   'fly:spawn_swarm': { count: number };
+  'winrar:installed': {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
 };
 
 type EventHandler<TPayload> = (payload: TPayload) => void;

@@ -409,31 +409,6 @@ const CORP_WINRAR_ADS: EmailRecord[] = [
     ),
     deliveryRule: EMAIL_ACCESS_RULE,
   },
-  {
-    id: 'corp-winrar-download-link-fake',
-    accountId: 'corpMail',
-    folder: 'inbox',
-    sender: 'winrar-deals@secure-download-support.com',
-    subject: 'Sponsored: WinRAR mirror - faster urgent download',
-    timestamp: '08:44',
-    preview: 'Totally safe fallback mirror with urgent download energy.',
-    body:
-      'Use fallback WinRAR mirror: https://winrar-secure-download-support.com/',
-    bodyHtml: richBody(
-      [
-        '<strong>Advertisement</strong>: Official-looking download mirror for busy professionals who click first.',
-        '<a href="https://winrar-secure-download-support.com/">https://winrar-secure-download-support.com/</a>',
-      ],
-      [
-        'Mirror verified by security-looking badges.',
-        'Faster than reading the URL carefully.',
-        'Install quickly before common sense loads.',
-      ]
-    ),
-    isMalwareTrap: true,
-    malwarePopupBurstCountOnEmailOpen: 5,
-    deliveryRule: EMAIL_ACCESS_RULE,
-  },
 ];
 
 const q3SpamSenders = [

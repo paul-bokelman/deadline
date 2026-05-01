@@ -3,13 +3,15 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
 import Button from '@/components/shared/Button/Button';
 import Window from '@/components/shared/Window/Window';
+import { gameEventBus } from '@/game/events';
 import { Z_INDEX_TIERS } from '../zIndex';
 import { useUpdateScheduler } from './useUpdateScheduler';
 
-const POPUP_WIDTH = 360;
-const POPUP_HEIGHT = 196;
+const POPUP_WIDTH = 300;
+const POPUP_HEIGHT = 162;
 const TOP_MARGIN = 14;
 const RIGHT_MARGIN = 14;
+const WINDOW_GAP = 12;
 
 const panelStyle: JSX.CSSProperties = {
   backgroundColor: 'var(--paper)',
@@ -34,6 +36,12 @@ const progressTrackStyle: JSX.CSSProperties = {
 
 const WindowsUpdateNag: FunctionComponent = () => {
   const boundsRef = useRef<HTMLDivElement>(null);
+  const [winRarWindowBounds, setWinRarWindowBounds] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null>(null);
   const {
     isNagVisible,
     isDownloadingUpdate,
@@ -53,12 +61,32 @@ const WindowsUpdateNag: FunctionComponent = () => {
   const [downloadProgress, setDownloadProgress] = useState(0);
 
   useEffect(() => {
+    return gameEventBus.on('winrar:installed', (bounds) => {
+      setWinRarWindowBounds(bounds);
+    });
+  }, []);
+
+  useEffect(() => {
     if (!isNagVisible) return;
+    const maxX = Math.max(0, window.innerWidth - size.x - RIGHT_MARGIN);
+    const maxY = Math.max(0, window.innerHeight - size.y);
+    if (winRarWindowBounds) {
+      const anchoredX = Math.min(
+        maxX,
+        Math.max(
+          0,
+          winRarWindowBounds.x + winRarWindowBounds.width + WINDOW_GAP
+        )
+      );
+      const anchoredY = Math.min(maxY, Math.max(0, winRarWindowBounds.y));
+      setCoords({ x: anchoredX, y: anchoredY });
+      return;
+    }
     setCoords({
-      x: Math.max(0, window.innerWidth - size.x - RIGHT_MARGIN),
+      x: maxX,
       y: TOP_MARGIN,
     });
-  }, [isNagVisible, size.x]);
+  }, [isNagVisible, size.x, size.y, winRarWindowBounds]);
 
   useEffect(() => {
     if (!isDownloadingUpdate) {
@@ -107,9 +135,9 @@ const WindowsUpdateNag: FunctionComponent = () => {
       >
         <div style={{ padding: '8px' }}>
           <div style={panelStyle}>
-            <div>A WinRAR update is available.</div>
+            <div>WinRAR update available.</div>
             <div style={{ marginTop: '6px' }}>
-              Click <b>Download</b> to install the update and reboot.
+              Press <b>Download</b> to install and reboot.
             </div>
 
             {isDownloadingUpdate && (
