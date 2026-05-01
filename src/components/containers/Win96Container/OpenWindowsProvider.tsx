@@ -70,33 +70,71 @@ const getDefaultWindowSize = (app: App): { x: number; y: number } => {
   return clampWindowSizeToViewport(requestedSize);
 };
 
+let hasShownInitialLeaderboard = false;
+
 const createInitialOpenWindows = (): OpenWindow[] => {
   const timerApp = appList.timer;
+  const leaderboardApp = appList.leaderboard;
   const timerSize = clampWindowSizeToViewport({
     x: timerApp.size ? timerApp.size.width : 300,
     y: timerApp.size ? timerApp.size.height : 300,
   });
-  return [
-    {
-      app: timerApp,
-      canMaximize: true,
-      canMinimize: true,
-      coords: clampWindowCoordsToViewport({ x: 420, y: 56 }, timerSize),
-      hasFocus: true,
-      iconId: getAppIconId(timerApp.id),
-      id: crypto.randomUUID(),
-      isDraggable: timerApp.isDraggable ?? true,
-      isMaximized: false,
-      isMinimized: false,
-      isResizeable: timerApp.isResizeable ?? true,
-      showCloseButton: false,
-      showMaximizeButton: true,
-      size: timerSize,
-      sizeMode: timerApp.sizeMode,
-      title: timerApp.name,
-      zIndex: Z_INDEX_TIERS.normalBase,
-    },
-  ];
+  const leaderboardSize = clampWindowSizeToViewport({
+    x: leaderboardApp.size ? leaderboardApp.size.width : 300,
+    y: leaderboardApp.size ? leaderboardApp.size.height : 300,
+  });
+  const timerWindow: OpenWindow = {
+    app: timerApp,
+    canMaximize: true,
+    canMinimize: true,
+    coords: clampWindowCoordsToViewport({ x: 420, y: 56 }, timerSize),
+    hasFocus: true,
+    iconId: getAppIconId(timerApp.id),
+    id: crypto.randomUUID(),
+    isDraggable: timerApp.isDraggable ?? true,
+    isMaximized: false,
+    isMinimized: false,
+    isResizeable: timerApp.isResizeable ?? true,
+    showCloseButton: false,
+    showMaximizeButton: true,
+    size: timerSize,
+    sizeMode: timerApp.sizeMode,
+    title: timerApp.name,
+    zIndex: Z_INDEX_TIERS.normalBase,
+  };
+
+  if (hasShownInitialLeaderboard) return [timerWindow];
+
+  hasShownInitialLeaderboard = true;
+  const leaderboardWindow: OpenWindow = {
+    app: leaderboardApp,
+    canMaximize: true,
+    canMinimize: true,
+    coords: clampWindowCoordsToViewport(
+      {
+        x: Math.round((globalThis.innerWidth - leaderboardSize.x) / 2),
+        y: Math.round(
+          (globalThis.innerHeight - TASKBAR_DOCK_HEIGHT - leaderboardSize.y) / 2
+        ),
+      },
+      leaderboardSize
+    ),
+    hasFocus: false,
+    iconId: getAppIconId(leaderboardApp.id),
+    id: crypto.randomUUID(),
+    isDraggable: leaderboardApp.isDraggable ?? true,
+    isMaximized: false,
+    isMinimized: false,
+    isResizeable: leaderboardApp.isResizeable ?? true,
+    showCloseButton: true,
+    showMaximizeButton: true,
+    size: leaderboardSize,
+    sizeMode: leaderboardApp.sizeMode,
+    title: leaderboardApp.name,
+    zIndex: allocateLeaderboardZIndex(),
+  };
+
+  return [leaderboardWindow, timerWindow];
 };
 
 const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
