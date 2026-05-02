@@ -231,6 +231,8 @@ const ChipBtn: FunctionComponent<ChipBtnProps> = ({
 const BlackjackApp: FunctionComponent<AppProps> = () => {
   const { flags, setFlags } = useGameState();
   const bankroll = flags.bankBalance;
+  const bankrollRef = useRef(bankroll);
+  bankrollRef.current = bankroll;
 
   const [shoe, setShoe] = useState<CardModel[]>(() => buildShoe());
   const [phase, setPhase] = useState<Phase>('betting');
@@ -329,7 +331,7 @@ const BlackjackApp: FunctionComponent<AppProps> = () => {
       payout = betAmt;
     }
 
-    setFlags({ bankBalance: flags.bankBalance + payout });
+    setFlags({ bankBalance: bankrollRef.current + payout });
     setOutcome(result);
     setPhase('settled');
 

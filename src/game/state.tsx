@@ -241,7 +241,6 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
     if (flags.hasPurchasedWinRar) return undefined;
     const isBrokeNow = flags.bankBalance <= 0 && flags.blackjackBalance <= 0;
     if (!isBrokeNow) return undefined;
-    if (activeNetVoiceCallId !== null) return undefined;
 
     // Small debounce to avoid races where a hand just started but the
     // blackjack "hand_started" event hasn't been processed/rendered yet.
@@ -250,7 +249,6 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
         flags.bankBalance <= 0 && flags.blackjackBalance <= 0;
       const noActiveHands = flags.blackjackHandsInProgress <= 0;
       if (!isStillBroke || !noActiveHands) return;
-      if (activeNetVoiceCallId !== null) return;
 
       const bailoutCount = flags.blackjackBailoutCount ?? 0;
       const eventId = `blackjack:bailout:${bailoutCount}:triggered`;
