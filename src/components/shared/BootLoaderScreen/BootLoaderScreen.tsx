@@ -2,12 +2,15 @@ import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { gameEventBus } from '@/game/events';
 import { Z_INDEX_TIERS } from '@/system/zIndex';
+import { getAppViewportSize } from '@/system/viewport';
 import { playStartupSfx } from '@/utils/audio/osSfx';
 
 const BOOT_DURATION_MS = 3000;
 const DEFAULT_PRE_FADE_MS = 0;
 const DEFAULT_POST_FADE_MS = 850;
-const MAX_VISIBLE_LINES = 34;
+const BOOT_FONT_SIZE_PX = 17;
+const BOOT_LINE_HEIGHT = 1.25;
+const BOOT_PADDING_Y_PX = 28;
 
 interface BootLine {
   prefix: string;
@@ -287,6 +290,46 @@ const BOOT_LINES: BootLine[] = [
     prefix: 'BL2',
     text: 'Checksum window 0x50180000-0x501C82A0 ... 0x00000000',
   },
+  { prefix: 'BL2', text: 'Mounting /corp/policies/read-only-except-mistakes' },
+  { prefix: 'BL2', text: 'Policy daemon: lunch_break=false deadline=true' },
+  { prefix: 'BL2', text: 'Loading employee productivity horoscope table' },
+  { prefix: 'BL2', text: 'Calendar panic index: 97.3%, manager nearby' },
+  { prefix: 'BL2', text: 'Searching for Q3_REPORT_FINAL_FINAL_REAL.doc' },
+  {
+    prefix: 'BL2',
+    text: 'Found Q3_REPORT_FINAL_FINAL_REAL_USE_THIS_ONE_2.doc',
+  },
+  { prefix: 'BL2', text: 'Validating file naming confidence ... inconclusive' },
+  {
+    prefix: 'BL2',
+    text: 'Scanning desktop for emotionally significant shortcuts',
+  },
+  {
+    prefix: 'BL2',
+    text: 'Shortcut "DoNotOpen" marked safe by previous intern',
+  },
+  {
+    prefix: 'BL2',
+    text: 'Loading WinRar guilt module: trial days exceeded by 6934',
+  },
+  { prefix: 'BL2', text: 'Expense portal entropy source: rejected receipts' },
+  { prefix: 'BL2', text: 'NetVoice handshake: caller breathing detected' },
+  { prefix: 'BL2', text: 'NetVoice codec fallback: 8kbps hallway argument' },
+  { prefix: 'BL2', text: 'Mouse acceleration: randomized for user engagement' },
+  { prefix: 'BL2', text: 'Popup suppression service ... not installed' },
+  { prefix: 'BL2', text: 'Popup multiplication coefficient: hydra_safe=false' },
+  { prefix: 'BL2', text: 'Anti-virus license status: aspirational' },
+  { prefix: 'BL2', text: 'Recycling bin contents deny all allegations' },
+  { prefix: 'BL2', text: 'Boss proximity sensor: shoes squeaking in corridor' },
+  { prefix: 'BL2', text: 'Coffee spill checksum: sticky but bootable' },
+  {
+    prefix: 'BL2',
+    text: 'Fly subsystem: wings armed, personal space disabled',
+  },
+  { prefix: 'BL2', text: 'Detecting browser: please do not be Safari' },
+  { prefix: 'BL2', text: 'Browser compatibility prayer wheel spun 3 times' },
+  { prefix: 'BL2', text: 'User stress telemetry: graph leaves chart area' },
+  { prefix: 'BL2', text: 'Final report confidence: ask again later' },
   {
     prefix: 'BL2',
     text: 'Header checksum: stored 0x9F32A1C4, calculated 0x00000000',
@@ -344,8 +387,8 @@ const containerStyle: JSX.CSSProperties = {
   backgroundColor: '#000000',
   color: '#d8d8d8',
   fontFamily: '"VT323", "Courier New", "Lucida Console", Consolas, monospace',
-  fontSize: '17px',
-  lineHeight: 1.25,
+  fontSize: `${BOOT_FONT_SIZE_PX}px`,
+  lineHeight: BOOT_LINE_HEIGHT,
   padding: '14px 18px',
   // Bootloader must visually sit above *all* windows and overlays.
   zIndex: Z_INDEX_TIERS.bootLoader,
@@ -409,8 +452,50 @@ const BootLoaderScreen: FunctionComponent = () => {
   const [overlayOpacity, setOverlayOpacity] = useState(0);
   const [visibleCount, setVisibleCount] = useState(0);
   const [showCursor, setShowCursor] = useState(true);
+  const [maxVisibleLines, setMaxVisibleLines] = useState(() => {
+    const viewport = getAppViewportSize();
+    return Math.max(
+      1,
+      Math.floor(
+        (viewport.height - BOOT_PADDING_Y_PX) /
+          (BOOT_FONT_SIZE_PX * BOOT_LINE_HEIGHT)
+      )
+    );
+  });
   const tokenRef = useRef(0);
   const fadeDurationMsRef = useRef(0);
+
+  useEffect(() => {
+    const updateMaxVisibleLines = () => {
+      const viewport = getAppViewportSize();
+      setMaxVisibleLines(
+        Math.max(
+          1,
+          Math.floor(
+            (viewport.height - BOOT_PADDING_Y_PX) /
+              (BOOT_FONT_SIZE_PX * BOOT_LINE_HEIGHT)
+          )
+        )
+      );
+    };
+
+    updateMaxVisibleLines();
+    window.addEventListener('resize', updateMaxVisibleLines, { passive: true });
+    window.visualViewport?.addEventListener('resize', updateMaxVisibleLines, {
+      passive: true,
+    });
+    document.addEventListener('fullscreenchange', updateMaxVisibleLines, {
+      passive: true,
+    });
+    return () => {
+      window.removeEventListener('resize', updateMaxVisibleLines);
+      window.visualViewport?.removeEventListener(
+        'resize',
+        updateMaxVisibleLines
+      );
+      document.removeEventListener('fullscreenchange', updateMaxVisibleLines);
+    };
+  }, []);
 
   useEffect(() => {
     const handleTrigger = (options?: TriggerBootLoaderOptions): void => {
@@ -545,7 +630,7 @@ const BootLoaderScreen: FunctionComponent = () => {
   if (!isOverlayVisible) return null;
 
   const visibleLines = BOOT_LINES.slice(
-    Math.max(0, visibleCount - MAX_VISIBLE_LINES),
+    Math.max(0, visibleCount - maxVisibleLines),
     visibleCount
   );
 
