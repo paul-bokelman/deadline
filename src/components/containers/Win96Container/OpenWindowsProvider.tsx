@@ -19,6 +19,7 @@ import {
   allocateVoiceCallZIndex,
   resetZIndexAllocators,
 } from '@/system/zIndex';
+import { getAppViewportSize, getDesktopViewportSize } from '@/system/viewport';
 
 interface Props {
   children: ComponentChildren;
@@ -33,13 +34,14 @@ const WINDOW_SCREEN_MARGIN = 12;
 const STARTUP_WINDOW_GAP_PX = 12;
 
 const clampWindowSizeToViewport = (size: { x: number; y: number }) => {
+  const viewport = getAppViewportSize();
   const maxWidth = Math.max(
     MIN_WINDOW_WIDTH,
-    globalThis.innerWidth - WINDOW_SCREEN_MARGIN * 2
+    viewport.width - WINDOW_SCREEN_MARGIN * 2
   );
   const maxHeight = Math.max(
     MIN_WINDOW_HEIGHT,
-    globalThis.innerHeight - TASKBAR_DOCK_HEIGHT - WINDOW_SCREEN_MARGIN * 2
+    viewport.height - TASKBAR_DOCK_HEIGHT - WINDOW_SCREEN_MARGIN * 2
   );
   return {
     x: Math.max(MIN_WINDOW_WIDTH, Math.min(size.x, maxWidth)),
@@ -51,13 +53,11 @@ const clampWindowCoordsToViewport = (
   coords: { x: number; y: number },
   size: { x: number; y: number }
 ) => {
+  const desktopViewport = getDesktopViewportSize();
   const minX = 0;
   const minY = 0;
-  const maxX = Math.max(minX, globalThis.innerWidth - size.x);
-  const maxY = Math.max(
-    minY,
-    globalThis.innerHeight - TASKBAR_DOCK_HEIGHT - size.y
-  );
+  const maxX = Math.max(minX, desktopViewport.width - size.x);
+  const maxY = Math.max(minY, desktopViewport.height - size.y);
   return {
     x: Math.max(minX, Math.min(coords.x, maxX)),
     y: Math.max(minY, Math.min(coords.y, maxY)),
@@ -118,9 +118,9 @@ const createInitialOpenWindows = (): OpenWindow[] => {
     canMinimize: true,
     coords: clampWindowCoordsToViewport(
       {
-        x: Math.round((globalThis.innerWidth - leaderboardSize.x) / 2),
+        x: Math.round((getDesktopViewportSize().width - leaderboardSize.x) / 2),
         y: Math.round(
-          (globalThis.innerHeight - TASKBAR_DOCK_HEIGHT - leaderboardSize.y) / 2
+          (getDesktopViewportSize().height - leaderboardSize.y) / 2
         ),
       },
       leaderboardSize
@@ -230,18 +230,18 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
         const app = appList[appId];
         const iconId = getWindowIconId(app, workingDir);
         const title = getWindowTitle(app, workingDir, workingFile);
-        const eulaWidth = Math.round(window.innerWidth * 0.8);
-        const eulaHeight = Math.round(window.innerHeight * 0.8);
+        const appViewport = getAppViewportSize();
+        const desktopViewport = getDesktopViewportSize();
+        const eulaWidth = Math.round(appViewport.width * 0.8);
+        const eulaHeight = Math.round(appViewport.height * 0.8);
         const eulaSize = clampWindowSizeToViewport({
           x: eulaWidth,
           y: eulaHeight,
         });
         const defaultSize = getDefaultWindowSize(app);
         const eulaCoords = {
-          x: Math.round((window.innerWidth - eulaSize.x) / 2),
-          y: Math.round(
-            (window.innerHeight - TASKBAR_DOCK_HEIGHT - eulaSize.y) / 2
-          ),
+          x: Math.round((desktopViewport.width - eulaSize.x) / 2),
+          y: Math.round((desktopViewport.height - eulaSize.y) / 2),
         };
         const randomCoords = clampWindowCoordsToViewport(
           {
@@ -300,11 +300,19 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
       setOpenWindows((windows) => {
         const targetWindow = windows.find((window) => window.id === id);
         if (!targetWindow) return windows;
+        const hasOnlyTargetFocused = windows.every((window) =>
+          window.id === id ? window.hasFocus : !window.hasFocus
+        );
+        if (hasOnlyTargetFocused) return windows;
         const zIndex = allocateZIndexForAppId(targetWindow.app.id);
         return windows.map((window) =>
           window.id === id
-            ? { ...window, hasFocus: true, zIndex }
-            : { ...window, hasFocus: false }
+            ? window.hasFocus && window.zIndex === zIndex
+              ? window
+              : { ...window, hasFocus: true, zIndex }
+            : window.hasFocus
+            ? { ...window, hasFocus: false }
+            : window
         );
       });
     },
@@ -351,11 +359,13 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
           if (window.id !== id || window.isMaximized) return window;
           const maxAllowedHeight = Math.max(
             MIN_WINDOW_HEIGHT,
-            globalThis.innerHeight - TASKBAR_DOCK_HEIGHT - window.coords.y
+            getDesktopViewportSize().height - window.coords.y
           );
           const maxAllowedWidth = Math.max(
             MIN_WINDOW_WIDTH,
-            globalThis.innerWidth - window.coords.x - WINDOW_SCREEN_MARGIN
+            getDesktopViewportSize().width -
+              window.coords.x -
+              WINDOW_SCREEN_MARGIN
           );
           const clampedHeight = Math.max(
             MIN_WINDOW_HEIGHT,
@@ -425,6 +435,47 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
       resetZIndexAllocators();
       setOpenWindows(createInitialOpenWindows());
     });
+  }, []);
+
+  useEffect(() => {
+    const clampOpenWindows = () => {
+      setOpenWindows((windows) => {
+        let hasChanges = false;
+        const nextWindows = windows.map((window) => {
+          const nextSize = clampWindowSizeToViewport(window.size);
+          const nextCoords = clampWindowCoordsToViewport(
+            window.coords,
+            nextSize
+          );
+          const didChange =
+            nextSize.x !== window.size.x ||
+            nextSize.y !== window.size.y ||
+            nextCoords.x !== window.coords.x ||
+            nextCoords.y !== window.coords.y;
+          if (!didChange) return window;
+          hasChanges = true;
+          return {
+            ...window,
+            coords: nextCoords,
+            size: nextSize,
+          };
+        });
+        return hasChanges ? nextWindows : windows;
+      });
+    };
+
+    window.addEventListener('resize', clampOpenWindows, { passive: true });
+    window.visualViewport?.addEventListener('resize', clampOpenWindows, {
+      passive: true,
+    });
+    document.addEventListener('fullscreenchange', clampOpenWindows, {
+      passive: true,
+    });
+    return () => {
+      window.removeEventListener('resize', clampOpenWindows);
+      window.visualViewport?.removeEventListener('resize', clampOpenWindows);
+      document.removeEventListener('fullscreenchange', clampOpenWindows);
+    };
   }, []);
 
   const contextValue = useMemo(

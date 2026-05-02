@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'preact/hooks';
 
 import { gameEventBus } from '@/game/events';
 import { Z_INDEX_TIERS } from '../zIndex';
+import { getAppViewportSize } from '../viewport';
 
 // Editable tuning values.
 const DEAD_PIXEL_SIZE_PX = 2;
@@ -39,8 +40,9 @@ const DeadPixelOverlay: FunctionComponent = () => {
     if (!canvas) return;
 
     const dpr = window.devicePixelRatio || 1;
-    const cssWidth = Math.max(1, window.innerWidth);
-    const cssHeight = Math.max(1, window.innerHeight);
+    const viewport = getAppViewportSize();
+    const cssWidth = Math.max(1, viewport.width);
+    const cssHeight = Math.max(1, viewport.height);
 
     canvas.width = Math.round(cssWidth * dpr);
     canvas.height = Math.round(cssHeight * dpr);
@@ -59,7 +61,8 @@ const DeadPixelOverlay: FunctionComponent = () => {
   const clearCanvas = () => {
     const ctx = ctxRef.current;
     if (!ctx) return;
-    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    const viewport = getAppViewportSize();
+    ctx.clearRect(0, 0, viewport.width, viewport.height);
   };
 
   const resetSpawningState = () => {
@@ -70,8 +73,9 @@ const DeadPixelOverlay: FunctionComponent = () => {
   const drawRandomDeadPixel = () => {
     const ctx = ctxRef.current;
     if (!ctx) return;
-    const maxX = Math.max(0, window.innerWidth - DEAD_PIXEL_SIZE_PX);
-    const maxY = Math.max(0, window.innerHeight - DEAD_PIXEL_SIZE_PX);
+    const viewport = getAppViewportSize();
+    const maxX = Math.max(0, viewport.width - DEAD_PIXEL_SIZE_PX);
+    const maxY = Math.max(0, viewport.height - DEAD_PIXEL_SIZE_PX);
     const x = Math.floor(Math.random() * (maxX + 1));
     const y = Math.floor(Math.random() * (maxY + 1));
 
@@ -114,10 +118,30 @@ const DeadPixelOverlay: FunctionComponent = () => {
       setupCanvas();
       startSpawning();
     });
+    const handleViewportChanged = () => {
+      setupCanvas();
+      clearCanvas();
+    };
+
+    window.addEventListener('resize', handleViewportChanged, {
+      passive: true,
+    });
+    window.visualViewport?.addEventListener('resize', handleViewportChanged, {
+      passive: true,
+    });
+    document.addEventListener('fullscreenchange', handleViewportChanged, {
+      passive: true,
+    });
 
     return () => {
       stopSpawning();
       unsubscribeRebooted();
+      window.removeEventListener('resize', handleViewportChanged);
+      window.visualViewport?.removeEventListener(
+        'resize',
+        handleViewportChanged
+      );
+      document.removeEventListener('fullscreenchange', handleViewportChanged);
     };
     // Mount-only: setupCanvas/startSpawning/stopSpawning capture refs.
     // eslint-disable-next-line react-hooks/exhaustive-deps

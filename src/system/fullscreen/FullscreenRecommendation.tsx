@@ -5,6 +5,7 @@ import Window from '@/components/shared/Window/Window';
 import Button from '@/components/shared/Button/Button';
 import { Z_INDEX_TIERS } from '../zIndex';
 import { gameEventBus } from '@/game/events';
+import { getDesktopViewportSize } from '../viewport';
 
 const WIDTH = 312;
 const HEIGHT = 156;
@@ -15,6 +16,7 @@ const FullscreenRecommendation: FunctionComponent = () => {
     document.fullscreenElement === null
   );
   const [size, setSize] = useState({ x: WIDTH, y: HEIGHT });
+  const [viewportSize, setViewportSize] = useState(getDesktopViewportSize);
 
   useEffect(() => {
     return gameEventBus.on('game:rebooted', () => {
@@ -33,19 +35,33 @@ const FullscreenRecommendation: FunctionComponent = () => {
 
   const coords = useMemo(
     () => ({
-      x: Math.max(0, Math.round((window.innerWidth - WIDTH) / 2)),
-      y: Math.max(0, Math.round((window.innerHeight - HEIGHT) / 2) - 40),
+      x: Math.max(0, Math.round((viewportSize.width - WIDTH) / 2)),
+      y: Math.max(0, Math.round((viewportSize.height - HEIGHT) / 2) - 40),
     }),
-    []
+    [viewportSize.height, viewportSize.width]
   );
 
   useEffect(() => {
     const handleFullscreenChange = () => {
+      setViewportSize(getDesktopViewportSize());
       if (document.fullscreenElement) setIsVisible(false);
     };
+    const handleViewportChanged = () => {
+      setViewportSize(getDesktopViewportSize());
+    };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () =>
+    window.addEventListener('resize', handleViewportChanged, { passive: true });
+    window.visualViewport?.addEventListener('resize', handleViewportChanged, {
+      passive: true,
+    });
+    return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      window.removeEventListener('resize', handleViewportChanged);
+      window.visualViewport?.removeEventListener(
+        'resize',
+        handleViewportChanged
+      );
+    };
   }, []);
 
   if (!isVisible) return null;

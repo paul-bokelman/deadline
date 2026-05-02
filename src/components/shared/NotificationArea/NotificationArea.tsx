@@ -30,9 +30,9 @@ import {
   AMBIENT_MUSIC_WEBM_URL,
   VIBE_JAM_HOME_URL,
 } from '@/data/urls';
+import { getSupportedAudioSource } from '@/system/browserCompat';
 
-const AUDIO_SOURCE_WEBM = AMBIENT_MUSIC_WEBM_URL;
-const AUDIO_SOURCE_MP3 = AMBIENT_MUSIC_MP3_URL;
+const AUDIO_SOURCES = [AMBIENT_MUSIC_WEBM_URL, AMBIENT_MUSIC_MP3_URL];
 
 const formatTrayTime = (date: Date) =>
   date.toLocaleTimeString([], {
@@ -236,7 +236,8 @@ const NotificationArea: FunctionComponent = () => {
   }, [isRamCrashActive]);
 
   useEffect(() => {
-    const audio = new Audio(AUDIO_SOURCE_WEBM);
+    const fallbackSource = AMBIENT_MUSIC_MP3_URL;
+    const audio = new Audio(getSupportedAudioSource(AUDIO_SOURCES));
     audioRef.current = audio;
     audio.loop = true;
     audio.preload = 'auto';
@@ -247,8 +248,8 @@ const NotificationArea: FunctionComponent = () => {
     };
 
     const handleError = () => {
-      if (audio.src !== AUDIO_SOURCE_MP3) {
-        audio.src = AUDIO_SOURCE_MP3;
+      if (!audio.src.endsWith(fallbackSource)) {
+        audio.src = fallbackSource;
         audio.load();
       }
     };

@@ -18,8 +18,10 @@ import { playClickSfx } from '@/utils/audio/sfx';
 import DeadPixelOverlay from '@/system/deadPixels/DeadPixelOverlay';
 import BackgroundFlyOverlay from '@/system/backgroundFly/BackgroundFlyOverlay';
 import { gameEventBus } from '@/game/events';
-import ClippyAssistant from '@/system/clippy/ClippyAssistant';
 import InstantBsodTrap from '@/system/traps/InstantBsodTrap';
+import SafariWarningWindow from '@/system/SafariWarningWindow';
+import { getAppViewportSize } from '@/system/viewport';
+import { isSafariBrowser } from '@/system/browserCompat';
 
 import style from './Win96Container.module.css';
 import { Z_INDEX_TIERS } from '@/system/zIndex';
@@ -236,13 +238,18 @@ const CtrlAltDelTaskManagerTrap: FunctionComponent = () => {
 };
 
 const Win96Container: FunctionComponent = () => {
+  const isSafari = isSafariBrowser();
+  const [
+    ClippyAssistant,
+    setClippyAssistant,
+  ] = useState<FunctionComponent | null>(null);
+
   useEffect(() => {
     const root = document.documentElement;
+    root.classList.toggle('is-safari', isSafari);
 
     const updateAppViewportVars = () => {
-      const vv = window.visualViewport;
-      const width = Math.round(vv?.width ?? window.innerWidth);
-      const height = Math.round(vv?.height ?? window.innerHeight);
+      const { width, height } = getAppViewportSize();
       root.style.setProperty('--app-width', `${width}px`);
       root.style.setProperty('--app-height', `${height}px`);
     };
@@ -272,7 +279,18 @@ const Win96Container: FunctionComponent = () => {
       );
       document.removeEventListener('fullscreenchange', updateAppViewportVars);
     };
-  }, []);
+  }, [isSafari]);
+
+  useEffect(() => {
+    if (isSafari) return undefined;
+    let isCancelled = false;
+    void import('@/system/clippy/ClippyAssistant').then((module) => {
+      if (!isCancelled) setClippyAssistant(() => module.default);
+    });
+    return () => {
+      isCancelled = true;
+    };
+  }, [isSafari]);
 
   useEffect(() => {
     // Skip the bootloader screen and startup SFX on the very first load —
@@ -311,12 +329,13 @@ const Win96Container: FunctionComponent = () => {
               <IntrusivePopupManager />
               <WindowsUpdateNag />
               <InstantBsodTrap />
-              <ClippyAssistant />
+              {ClippyAssistant && <ClippyAssistant />}
               <SaveHotkeyTrap />
               <CtrlAltDelTaskManagerTrap />
               <NetVoiceCallWindowSync />
               <BrowserNavigationSync />
               <GameScenarioController />
+              {isSafari && <SafariWarningWindow />}
             </div>
             <div className={style.taskbarView}>
               <TaskbarContainer />

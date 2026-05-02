@@ -4,6 +4,7 @@ import { useRef, useState } from 'preact/hooks';
 import { AppId } from '@/types/App';
 import { FileSystemDir, FileSystemFile } from '@/types/FileSystem';
 import { IconId } from '@/types/Icon';
+import { getAppViewportSize } from '@/system/viewport';
 import Icon from '../Icon/Icon';
 import Menu from '../Menu/Menu';
 
@@ -51,7 +52,7 @@ const MenuOption: FunctionComponent<Props> = ({
       if (!optionRect || !subMenuWidth) return;
 
       const projectedRightEdge = optionRect.right + subMenuWidth - 3;
-      const overflowRight = projectedRightEdge > window.innerWidth;
+      const overflowRight = projectedRightEdge > getAppViewportSize().width;
       setOpenLeft(overflowRight);
     });
   };

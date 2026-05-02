@@ -336,8 +336,11 @@ const BOOT_LINES: BootLine[] = [
 ];
 
 const containerStyle: JSX.CSSProperties = {
-  position: 'fixed',
-  inset: 0,
+  position: 'absolute',
+  left: 0,
+  top: 0,
+  width: 'var(--app-width, 100vw)',
+  height: 'var(--app-height, 100vh)',
   backgroundColor: '#000000',
   color: '#d8d8d8',
   fontFamily: '"VT323", "Courier New", "Lucida Console", Consolas, monospace',

@@ -13,8 +13,8 @@ import {
   playIntrusivePopupSpawnSfx,
   stopIntrusivePopupLoopSfx,
 } from './sfx';
+import { getDesktopViewportSize } from '../viewport';
 
-const TASKBAR_HEIGHT_PX = 28;
 const AMBIENT_SPAWN_EVERY_MS = 60_000;
 const clamp = (value: number, min: number, max: number): number =>
   Math.max(min, Math.min(value, max));
@@ -83,8 +83,9 @@ const IntrusivePopupManager: FunctionComponent = () => {
 
   const getBounds = useCallback((): { height: number; width: number } => {
     const rect = boundsRef.current?.getBoundingClientRect();
-    const fallbackWidth = window.innerWidth;
-    const fallbackHeight = Math.max(0, window.innerHeight - TASKBAR_HEIGHT_PX);
+    const viewport = getDesktopViewportSize();
+    const fallbackWidth = viewport.width;
+    const fallbackHeight = Math.max(0, viewport.height);
     return {
       width: rect && rect.width > 0 ? rect.width : fallbackWidth,
       height: rect && rect.height > 0 ? rect.height : fallbackHeight,
@@ -493,6 +494,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
 
   useEffect(() => {
     if (hasAntiVirus) return undefined;
+    if (activePopups.length === 0) return undefined;
 
     let rafId = 0;
     let previousTimestamp = performance.now();
@@ -506,7 +508,6 @@ const IntrusivePopupManager: FunctionComponent = () => {
 
       const popups = activePopupsRef.current;
       if (!popups.length) {
-        rafId = window.requestAnimationFrame(tick);
         return;
       }
 
@@ -553,7 +554,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
     return () => {
       window.cancelAnimationFrame(rafId);
     };
-  }, [getBounds, hasAntiVirus]);
+  }, [activePopups.length, getBounds, hasAntiVirus]);
 
   useEffect(() => {
     const popupLoopMap = popupLoopSfxRef.current;

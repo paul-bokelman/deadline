@@ -7,7 +7,6 @@ import {
   getTouchCoordsFromEvent,
   getFirstTouchIdFromEvent,
 } from '../utils/DomUtils';
-import { debounceWithRequestAnimationFrame } from '../utils/FunctionUtils';
 import { getBounds, getBoundedOffset } from '../utils/BoundingUtils';
 
 export interface Options {
@@ -38,8 +37,23 @@ const useDragging = (
   const handleEltRef = useRef<HTMLElement | null>();
   const draggedEltRef = useRef<HTMLElement | null>();
   const boundingEltRef = useRef<HTMLElement | null>();
+  const boundsRef = useRef<ReturnType<typeof getBounds> | null>(null);
+  const currentCoordsRef = useRef<Coords>(initialCoords);
+  const dragAnimationFrameRef = useRef<number | null>(null);
+  const latestDragCoordsRef = useRef<Coords | null>(null);
 
   const [coords, setCoords] = useState<Coords>(initialCoords);
+
+  const commitCoords = (nextCoords: Coords): void => {
+    currentCoordsRef.current = nextCoords;
+    setCoords(nextCoords);
+  };
+
+  const applyCoordsToDraggedElement = (nextCoords: Coords): void => {
+    const draggedElement = draggedEltRef.current;
+    if (!draggedElement || minCoordsValue) return;
+    draggedElement.style.transform = `translate3d(${nextCoords.x}px, ${nextCoords.y}px, 0px)`;
+  };
 
   const getRenderedTranslateCoords = (): Coords | null => {
     const draggedElement = draggedEltRef.current;
@@ -68,6 +82,7 @@ const useDragging = (
   };
 
   useEffect(() => {
+    currentCoordsRef.current = initialCoords;
     setCoords(initialCoords);
     // Intentionally re-syncs only when the *initial* coords change (resets).
     // Including the full object would re-fire on every render.
@@ -87,6 +102,7 @@ const useDragging = (
     addPointerStartEventListeners();
     return () => {
       if (!isEnabled) return;
+      cancelScheduledApplyDrag();
       removePointerStartEventListeners();
       removePointerMoveEventListeners();
       removePointerStopEventListeners();
@@ -143,25 +159,40 @@ const useDragging = (
     document.removeEventListener('touchcancel', handleOnEnd);
   };
 
-  const applyDragging = debounceWithRequestAnimationFrame(
-    (mouseCoords: Coords) => {
-      if (!handleEltRef.current) return;
-      if (!draggedEltRef.current) return;
-      const mouseOffsetX = mouseCoords.x - originalMouseCoords.current.x;
-      const mouseOffsetY = mouseCoords.y - originalMouseCoords.current.y;
-      const nextX = originalElementCoords.current.x + mouseOffsetX;
-      const nextY = originalElementCoords.current.y + mouseOffsetY;
+  const applyDrag = (mouseCoords: Coords): void => {
+    if (!handleEltRef.current) return;
+    if (!draggedEltRef.current) return;
+    const mouseOffsetX = mouseCoords.x - originalMouseCoords.current.x;
+    const mouseOffsetY = mouseCoords.y - originalMouseCoords.current.y;
+    const nextX = originalElementCoords.current.x + mouseOffsetX;
+    const nextY = originalElementCoords.current.y + mouseOffsetY;
 
-      const bounds = getBounds(
-        draggedEltRef.current,
-        boundingEltRef.current,
-        minCoordsValue
-      );
-      const newCoords = getBoundedOffset({ x: nextX, y: nextY }, bounds);
+    const bounds = boundsRef.current;
+    const newCoords = getBoundedOffset({ x: nextX, y: nextY }, bounds);
 
-      setCoords(() => newCoords);
+    currentCoordsRef.current = newCoords;
+    applyCoordsToDraggedElement(newCoords);
+    if (minCoordsValue) setCoords(newCoords);
+  };
+
+  const scheduleApplyDrag = (mouseCoords: Coords): void => {
+    latestDragCoordsRef.current = mouseCoords;
+    if (dragAnimationFrameRef.current !== null) return;
+    dragAnimationFrameRef.current = window.requestAnimationFrame(() => {
+      dragAnimationFrameRef.current = null;
+      const nextMouseCoords = latestDragCoordsRef.current;
+      latestDragCoordsRef.current = null;
+      if (nextMouseCoords) applyDrag(nextMouseCoords);
+    });
+  };
+
+  const cancelScheduledApplyDrag = (): void => {
+    if (dragAnimationFrameRef.current !== null) {
+      window.cancelAnimationFrame(dragAnimationFrameRef.current);
+      dragAnimationFrameRef.current = null;
     }
-  );
+    latestDragCoordsRef.current = null;
+  };
 
   const handleOnTouchStart = (e: TouchEvent): void => {
     e.preventDefault();
@@ -187,6 +218,13 @@ const useDragging = (
       originalElementCoords.current =
         getRenderedTranslateCoords() ?? elementCoords;
       originalMouseCoords.current = mouseCoords;
+      boundsRef.current = draggedEltRef.current
+        ? getBounds(
+            draggedEltRef.current,
+            boundingEltRef.current,
+            minCoordsValue
+          )
+        : null;
       return elementCoords;
     });
 
@@ -196,7 +234,7 @@ const useDragging = (
   const handleOnMouseMove = (e: MouseEvent): void => {
     e.preventDefault();
     const mouseCoords = getMouseCoordsFromEvent(e);
-    applyDragging(mouseCoords);
+    scheduleApplyDrag(mouseCoords);
   };
 
   const handleOnTouchMove = (e: TouchEvent): void => {
@@ -205,20 +243,23 @@ const useDragging = (
       return;
 
     const touchCoords = getTouchCoordsFromEvent(e, touchId.current);
-    if (touchCoords) applyDragging(touchCoords);
+    if (touchCoords) scheduleApplyDrag(touchCoords);
   };
 
   const handleOnEnd = (e: MouseEvent | TouchEvent): void => {
     e.preventDefault();
 
+    if ('clientX' in e) applyDrag(getMouseCoordsFromEvent(e));
+    cancelScheduledApplyDrag();
+
     removePointerMoveEventListeners();
     removePointerStopEventListeners();
     addPointerStartEventListeners();
+    boundsRef.current = null;
 
-    setCoords((currentCoords) => {
-      if (onDragStop) onDragStop(currentCoords);
-      return currentCoords;
-    });
+    const finalCoords = currentCoordsRef.current;
+    commitCoords(finalCoords);
+    if (onDragStop) onDragStop(finalCoords);
   };
 
   return coords;

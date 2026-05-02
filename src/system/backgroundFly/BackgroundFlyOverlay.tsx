@@ -6,6 +6,7 @@ import flyAssetUrl from '@/assets/images/ambient/fly_final.png';
 import { useGameState } from '@/game/state';
 import { gameEventBus } from '@/game/events';
 import { Z_INDEX_TIERS } from '../zIndex';
+import { getAppViewportSize } from '../viewport';
 
 const FLY_AUDIO_URL = '/audio/ambient/fly_buzzing.mp3';
 const FIRST_APPEARANCE_DELAY_MS = 180_000;
@@ -22,21 +23,22 @@ interface SwarmFly {
 const createOffscreenFlyPosition = (): { x: number; y: number } => {
   const margin = 64;
   const edge = Math.floor(Math.random() * 4);
+  const viewport = getAppViewportSize();
   switch (edge) {
     case 0:
-      return { x: Math.random() * window.innerWidth, y: -margin };
+      return { x: Math.random() * viewport.width, y: -margin };
     case 1:
       return {
-        x: window.innerWidth + margin,
-        y: Math.random() * window.innerHeight,
+        x: viewport.width + margin,
+        y: Math.random() * viewport.height,
       };
     case 2:
       return {
-        x: Math.random() * window.innerWidth,
-        y: window.innerHeight + margin,
+        x: Math.random() * viewport.width,
+        y: viewport.height + margin,
       };
     default:
-      return { x: -margin, y: Math.random() * window.innerHeight };
+      return { x: -margin, y: Math.random() * viewport.height };
   }
 };
 

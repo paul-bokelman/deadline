@@ -22,6 +22,7 @@ import {
   stopCallOverSfx,
 } from '@/utils/audio/osSfx';
 import { registerManagedAudio } from '@/utils/audio/masterVolume';
+import { isSafariBrowser } from '@/system/browserCompat';
 
 import style from './NetVoiceCallApp.module.css';
 
@@ -72,6 +73,12 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
   const caller = useMemo(() => (call ? netVoiceCallers[call.callerId] : null), [
     call,
   ]);
+
+  const getCallVolume = useCallback((): number => {
+    if (!call) return CALL_AUDIO_VOLUME;
+    const callerVolumeMultiplier = CALLER_VOLUME_MULTIPLIER[call.callerId] ?? 1;
+    return Math.max(0, Math.min(1, CALL_AUDIO_VOLUME * callerVolumeMultiplier));
+  }, [call]);
 
   const stopCallOverTone = useCallback(() => {
     stopCallOverSfx(callOverAudioRef.current);
@@ -137,18 +144,27 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
     setCallDurationSec(0);
     hasEndedCallRef.current = false;
     stopCallOverTone();
+    callAudioRef.current?.pause();
+    callAudioRef.current = null;
 
-    if (!activeNetVoiceCallId) return;
+    if (!activeNetVoiceCallId || !call) return;
 
     const ringAudio = playIncomingCallSfxLoop();
     ringAudioRef.current = ringAudio;
     ringAudio.play().catch(() => undefined);
 
+    const callAudio = new Audio(call.audioPath);
+    callAudio.preload = 'auto';
+    registerManagedAudio(callAudio, getCallVolume());
+    callAudio.load();
+    callAudioRef.current = callAudio;
+
     return () => {
       ringAudio.pause();
       ringAudio.currentTime = 0;
+      callAudio.pause();
     };
-  }, [activeNetVoiceCallId, stopCallOverTone]);
+  }, [activeNetVoiceCallId, call, getCallVolume, stopCallOverTone]);
 
   useEffect(() => {
     if (!activeNetVoiceCallId || isAccepted) return;
@@ -220,15 +236,14 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
       ringAudioRef.current?.pause();
       if (ringAudioRef.current) ringAudioRef.current.currentTime = 0;
 
-      const callAudio = new Audio(call.audioPath);
-      const callerVolumeMultiplier =
-        CALLER_VOLUME_MULTIPLIER[call.callerId] ?? 1;
-      const callVolume = Math.max(
-        0,
-        Math.min(1, CALL_AUDIO_VOLUME * callerVolumeMultiplier)
-      );
-      registerManagedAudio(callAudio, callVolume);
-      if (shouldNormalizeAudio) attachCallNormalization(callAudio);
+      const callAudio = callAudioRef.current ?? new Audio(call.audioPath);
+      if (!callAudioRef.current) {
+        callAudio.preload = 'auto';
+        registerManagedAudio(callAudio, getCallVolume());
+      }
+      if (shouldNormalizeAudio && !isSafariBrowser()) {
+        attachCallNormalization(callAudio);
+      }
       callAudioRef.current = callAudio;
       callAudio.addEventListener(
         'ended',
@@ -250,6 +265,7 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
       activeNetVoiceCallId,
       attachCallNormalization,
       call,
+      getCallVolume,
       isAccepted,
       playCallAudio,
       stopCallOverTone,

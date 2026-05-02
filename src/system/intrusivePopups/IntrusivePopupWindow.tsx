@@ -8,6 +8,7 @@ import {
 
 import Window from '@/components/shared/Window/Window';
 import { ActiveIntrusivePopup } from './types';
+import { isSafariBrowser } from '../browserCompat';
 
 interface Props {
   boundsRef: RefObject<HTMLDivElement>;
@@ -93,7 +94,9 @@ const IntrusivePopupWindow: FunctionComponent<Props> = ({
           backgroundPosition: popup.config.backgroundImageUrl
             ? 'center'
             : undefined,
-          animation: 'malwareFlash 0.8s steps(2, jump-none) infinite',
+          animation: isSafariBrowser()
+            ? undefined
+            : 'malwareFlash 0.8s steps(2, jump-none) infinite',
         }}
       >
         <div style={bodyStyle}>{children ?? null}</div>

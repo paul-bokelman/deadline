@@ -6,6 +6,7 @@ import Window from '@/components/shared/Window/Window';
 import { gameEventBus } from '@/game/events';
 import { Z_INDEX_TIERS } from '../zIndex';
 import { useUpdateScheduler } from './useUpdateScheduler';
+import { getDesktopViewportSize } from '../viewport';
 
 const POPUP_WIDTH = 300;
 const POPUP_HEIGHT = 162;
@@ -48,17 +49,43 @@ const WindowsUpdateNag: FunctionComponent = () => {
     onDismissNag,
     onDownloadUpdate,
   } = useUpdateScheduler();
+  const [viewportSize, setViewportSize] = useState(getDesktopViewportSize);
 
   const popupCoords = useMemo(
     () => ({
-      x: Math.max(0, window.innerWidth - POPUP_WIDTH - RIGHT_MARGIN),
+      x: Math.max(0, viewportSize.width - POPUP_WIDTH - RIGHT_MARGIN),
       y: TOP_MARGIN,
     }),
-    []
+    [viewportSize.width]
   );
   const [coords, setCoords] = useState(popupCoords);
   const [size, setSize] = useState({ x: POPUP_WIDTH, y: POPUP_HEIGHT });
   const [downloadProgress, setDownloadProgress] = useState(0);
+
+  useEffect(() => {
+    const handleViewportChanged = () => {
+      setViewportSize(getDesktopViewportSize());
+    };
+
+    window.addEventListener('resize', handleViewportChanged, {
+      passive: true,
+    });
+    window.visualViewport?.addEventListener('resize', handleViewportChanged, {
+      passive: true,
+    });
+    document.addEventListener('fullscreenchange', handleViewportChanged, {
+      passive: true,
+    });
+
+    return () => {
+      window.removeEventListener('resize', handleViewportChanged);
+      window.visualViewport?.removeEventListener(
+        'resize',
+        handleViewportChanged
+      );
+      document.removeEventListener('fullscreenchange', handleViewportChanged);
+    };
+  }, []);
 
   useEffect(() => {
     return gameEventBus.on('winrar:installed', (bounds) => {
@@ -68,8 +95,8 @@ const WindowsUpdateNag: FunctionComponent = () => {
 
   useEffect(() => {
     if (!isNagVisible) return;
-    const maxX = Math.max(0, window.innerWidth - size.x - RIGHT_MARGIN);
-    const maxY = Math.max(0, window.innerHeight - size.y);
+    const maxX = Math.max(0, viewportSize.width - size.x - RIGHT_MARGIN);
+    const maxY = Math.max(0, viewportSize.height - size.y);
     if (winRarWindowBounds) {
       const anchoredX = Math.min(
         maxX,
@@ -86,7 +113,7 @@ const WindowsUpdateNag: FunctionComponent = () => {
       x: maxX,
       y: TOP_MARGIN,
     });
-  }, [isNagVisible, size.x, size.y, winRarWindowBounds]);
+  }, [isNagVisible, size.x, size.y, viewportSize, winRarWindowBounds]);
 
   useEffect(() => {
     if (!isDownloadingUpdate) {

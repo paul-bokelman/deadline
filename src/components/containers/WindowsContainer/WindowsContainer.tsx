@@ -39,9 +39,9 @@ const WindowsContainer: FunctionComponent = () => {
   return (
     <div className={style.windowsContainer}>
       {windows.map((window) => {
-        if (window.isMinimized) return null;
-
         const isNetVoiceCallWindow = window.app.id === 'netVoiceCall';
+        if (window.isMinimized && !isNetVoiceCallWindow) return null;
+
         const canClose =
           !isNetVoiceCallWindow && (window.showCloseButton ?? true);
         const canMinimize = window.canMinimize ?? true;
@@ -94,6 +94,7 @@ const WindowsContainer: FunctionComponent = () => {
             showMaximizeButton={showMaximizeButton}
             size={window.size}
             sizeMode={window.sizeMode}
+            style={window.isMinimized ? { display: 'none' } : undefined}
             title={windowTitle}
             zIndex={window.zIndex}
           >

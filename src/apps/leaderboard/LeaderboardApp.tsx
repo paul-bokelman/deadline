@@ -1,7 +1,6 @@
-import { h, FunctionComponent } from 'preact';
+import { FunctionComponent, h } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 
-import { AppProps } from '@/types/App';
 import { useGameState } from '@/game/state';
 import {
   getLeaderboardViewModel,
@@ -9,6 +8,7 @@ import {
   loadLeaderboard,
   subscribeLeaderboard,
 } from '@/system/leaderboard/runtime';
+import { AppProps } from '@/types/App';
 import style from './LeaderboardApp.module.css';
 
 const formatTime = (ms: number): string => {
@@ -99,7 +99,7 @@ const LeaderboardApp: FunctionComponent<AppProps> = () => {
                 }. Time: ${formatTime(youEntry.ms)} · Reboots: ${
                   youEntry.reboots
                 }`
-              : `No submitted run yet. ${board.length} entries loaded.`}
+              : `${board.length} entries recorded.`}
           </div>
         </div>
       </div>

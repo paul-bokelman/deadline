@@ -1,4 +1,5 @@
 import { registerManagedAudio } from './masterVolume';
+import { isSafariBrowser } from '@/system/browserCompat';
 
 const SFX_PATHS = {
   reboot: '/audio/os/reboot.mp3',
@@ -29,7 +30,39 @@ const createUnmanagedAudio = (
   return audio;
 };
 
+const oneShotPools = new Map<string, HTMLAudioElement[]>();
+const oneShotPoolIndexes = new Map<string, number>();
+const ONE_SHOT_POOL_SIZE = 3;
+
+const getOneShotPool = (src: string, volume: number): HTMLAudioElement[] => {
+  const existingPool = oneShotPools.get(src);
+  if (existingPool) return existingPool;
+  const pool = Array.from({ length: ONE_SHOT_POOL_SIZE }, () => {
+    const audio = createAudio(src, volume);
+    audio.load();
+    return audio;
+  });
+  oneShotPools.set(src, pool);
+  return pool;
+};
+
 const playOneShot = (src: string, volume: number): Promise<boolean> => {
+  if (isSafariBrowser()) {
+    const pool = getOneShotPool(src, volume);
+    const index = oneShotPoolIndexes.get(src) ?? 0;
+    const audio = pool[index];
+    oneShotPoolIndexes.set(src, (index + 1) % pool.length);
+    try {
+      audio.currentTime = 0;
+    } catch {
+      // Safari can reject seeks while metadata is still loading.
+    }
+    return audio
+      .play()
+      .then(() => true)
+      .catch(() => false);
+  }
+
   const audio = createAudio(src, volume);
   return audio
     .play()

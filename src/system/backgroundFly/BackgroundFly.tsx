@@ -1,6 +1,7 @@
 import { h, FunctionComponent, JSX } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { registerManagedAudio } from '@/utils/audio/masterVolume';
+import { getAppViewportSize } from '../viewport';
 
 /**
  * Scalable ambient critter overlay. Defaults to a fly that crawls between
@@ -76,8 +77,9 @@ const randInRange = ([lo, hi]: [number, number]) =>
   lo + Math.random() * (hi - lo);
 
 const randomPointInViewport = (margin: number): Vec2 => {
-  const w = Math.max(margin * 2 + 1, window.innerWidth);
-  const h = Math.max(margin * 2 + 1, window.innerHeight);
+  const viewport = getAppViewportSize();
+  const w = Math.max(margin * 2 + 1, viewport.width);
+  const h = Math.max(margin * 2 + 1, viewport.height);
   return {
     x: margin + Math.random() * (w - margin * 2),
     y: margin + Math.random() * (h - margin * 2),
@@ -86,8 +88,9 @@ const randomPointInViewport = (margin: number): Vec2 => {
 
 const randomOffscreenTarget = (_from: Vec2, distance: number): Vec2 => {
   const edge = Math.floor(Math.random() * 4);
-  const w = window.innerWidth;
-  const h = window.innerHeight;
+  const viewport = getAppViewportSize();
+  const w = viewport.width;
+  const h = viewport.height;
   switch (edge) {
     case 0:
       return { x: Math.random() * w, y: -distance };
@@ -102,8 +105,9 @@ const randomOffscreenTarget = (_from: Vec2, distance: number): Vec2 => {
 
 const randomEntryPoint = (margin: number): Vec2 => {
   const edge = Math.floor(Math.random() * 4);
-  const w = window.innerWidth;
-  const h = window.innerHeight;
+  const viewport = getAppViewportSize();
+  const w = viewport.width;
+  const h = viewport.height;
   switch (edge) {
     case 0:
       return { x: Math.random() * w, y: -margin };
@@ -188,10 +192,14 @@ const BackgroundFly: FunctionComponent<BackgroundCritterProps> = ({
   const spriteRef = useRef<HTMLImageElement | null>(null);
 
   const posRef = useRef<Vec2>(
-    initialPosition ?? {
-      x: Math.max(10, window.innerWidth / 2),
-      y: Math.max(10, window.innerHeight / 2),
-    }
+    initialPosition ??
+      (() => {
+        const viewport = getAppViewportSize();
+        return {
+          x: Math.max(10, viewport.width / 2),
+          y: Math.max(10, viewport.height / 2),
+        };
+      })()
   );
   const headingDegRef = useRef<number>(0);
   const visibleRef = useRef<boolean>(true);
@@ -264,10 +272,15 @@ const BackgroundFly: FunctionComponent<BackgroundCritterProps> = ({
   };
 
   useEffect(() => {
-    posRef.current = initialPosition ?? {
-      x: Math.max(10, window.innerWidth / 2),
-      y: Math.max(10, window.innerHeight / 2),
-    };
+    posRef.current =
+      initialPosition ??
+      (() => {
+        const viewport = getAppViewportSize();
+        return {
+          x: Math.max(10, viewport.width / 2),
+          y: Math.max(10, viewport.height / 2),
+        };
+      })();
     isExitingRef.current = false;
     headingDegRef.current = 0;
     segmentRef.current = null;

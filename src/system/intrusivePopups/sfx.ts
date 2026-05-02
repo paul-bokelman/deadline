@@ -1,5 +1,9 @@
 import { pickRandom } from '@/utils/random';
-import { registerManagedAudio } from '@/utils/audio/masterVolume';
+import {
+  registerManagedAudio,
+  subscribeMasterVolume,
+} from '@/utils/audio/masterVolume';
+import { isSafariBrowser } from '../browserCompat';
 
 const SPAWN_SOURCES = ['/audio/popups/popup1.mp3', '/audio/popups/popup2.mp3'];
 const LOOP_SOURCES = [
@@ -24,6 +28,10 @@ let closePool: HTMLAudioElement[] | null = null;
 let nextCloseIndex = 0;
 
 const clipStopTimers = new WeakMap<HTMLAudioElement, number>();
+let closeAudioContext: AudioContext | null = null;
+let closeGainNode: GainNode | null = null;
+let closeBufferPromise: Promise<AudioBuffer | null> | null = null;
+let unsubscribeCloseVolume: (() => void) | null = null;
 
 const createAudio = (source: string, volume: number): HTMLAudioElement => {
   const audio = new Audio(source);
@@ -49,6 +57,56 @@ const getClosePool = (): HTMLAudioElement[] => {
     closePool = buildPool(CLICK_SOURCE, 0.338, CLOSE_POOL_SIZE);
   }
   return closePool;
+};
+
+const getCloseAudioContext = (): AudioContext | null => {
+  if (typeof window === 'undefined') return null;
+  if (!closeAudioContext) {
+    const contextCtor =
+      window.AudioContext ||
+      (window as Window & { webkitAudioContext?: typeof AudioContext })
+        .webkitAudioContext;
+    if (!contextCtor) return null;
+    closeAudioContext = new contextCtor();
+    closeGainNode = closeAudioContext.createGain();
+    closeGainNode.gain.value = 0.338;
+    closeGainNode.connect(closeAudioContext.destination);
+    unsubscribeCloseVolume = subscribeMasterVolume((volume) => {
+      if (closeGainNode) closeGainNode.gain.value = 0.338 * volume;
+    });
+    void unsubscribeCloseVolume;
+  }
+  return closeAudioContext;
+};
+
+const getCloseBuffer = (): Promise<AudioBuffer | null> => {
+  if (!closeBufferPromise) {
+    const context = getCloseAudioContext();
+    closeBufferPromise = context
+      ? fetch(CLICK_SOURCE)
+          .then((response) => response.arrayBuffer())
+          .then((buffer) => context.decodeAudioData(buffer))
+          .catch(() => null)
+      : Promise.resolve(null);
+  }
+  return closeBufferPromise;
+};
+
+const playSafariClippedClick = (): void => {
+  const context = getCloseAudioContext();
+  const gainNode = closeGainNode;
+  if (!context || !gainNode) return;
+  if (context.state === 'suspended') {
+    void context.resume().catch(() => undefined);
+  }
+
+  getCloseBuffer().then((buffer) => {
+    if (!buffer) return;
+    const source = context.createBufferSource();
+    source.buffer = buffer;
+    source.connect(gainNode);
+    source.start(0, CLICK_START_SECONDS, CLICK_CLIP_MS / 1000);
+  });
 };
 
 const playClippedClick = (pool: HTMLAudioElement[], index: number): number => {
@@ -89,6 +147,7 @@ export const playIntrusivePopupSpawnSfx = (): void => {
 };
 
 export const createIntrusivePopupLoopSfx = (): HTMLAudioElement | null => {
+  if (isSafariBrowser()) return null;
   if (Math.random() >= 0.5) return null;
   const source = pickRandom(LOOP_SOURCES);
   if (!source) return null;
@@ -110,5 +169,9 @@ export const stopIntrusivePopupLoopSfx = (
 };
 
 export const playIntrusivePopupCloseSfx = (): void => {
+  if (isSafariBrowser()) {
+    playSafariClippedClick();
+    return;
+  }
   nextCloseIndex = playClippedClick(getClosePool(), nextCloseIndex);
 };

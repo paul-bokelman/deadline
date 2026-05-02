@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { useGameState } from '@/game/state';
 import { CLIPPY_VIDEO_URL } from '@/data/urls';
 import { playClippyTipSfx } from '@/utils/audio/sfx';
+import { isSafariBrowser } from '../browserCompat';
 
 import style from './ClippyAssistant.module.css';
 
@@ -31,7 +32,9 @@ const ClippyAssistant: FunctionComponent = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>(0);
   const hasCanvasAccessRef = useRef(true);
-  const [useFallbackVideo, setUseFallbackVideo] = useState(false);
+  const [isClippyRenderable, setIsClippyRenderable] = useState(
+    !isSafariBrowser()
+  );
   const [speechMessage, setSpeechMessage] = useState<string | null>(null);
   const [typedSpeechMessage, setTypedSpeechMessage] = useState('');
 
@@ -84,11 +87,12 @@ const ClippyAssistant: FunctionComponent = () => {
   useEffect(() => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
+    if (isSafariBrowser()) return;
     if (!video || !canvas) return;
 
     const context = canvas.getContext('2d', { willReadFrequently: true });
     if (!context) {
-      setUseFallbackVideo(true);
+      setIsClippyRenderable(false);
       return;
     }
     context.imageSmoothingEnabled = false;
@@ -97,7 +101,7 @@ const ClippyAssistant: FunctionComponent = () => {
       willReadFrequently: true,
     });
     if (!workContext) {
-      setUseFallbackVideo(true);
+      setIsClippyRenderable(false);
       return;
     }
     workContext.imageSmoothingEnabled = false;
@@ -188,7 +192,7 @@ const ClippyAssistant: FunctionComponent = () => {
         } catch (error) {
           void error;
           hasCanvasAccessRef.current = false;
-          setUseFallbackVideo(true);
+          setIsClippyRenderable(false);
         }
       }
 
@@ -199,7 +203,7 @@ const ClippyAssistant: FunctionComponent = () => {
       window.cancelAnimationFrame(rafRef.current);
       rafRef.current = window.requestAnimationFrame(drawFrame);
       video.play().catch(() => {
-        setUseFallbackVideo(true);
+        setIsClippyRenderable(false);
       });
     };
 
@@ -220,8 +224,8 @@ const ClippyAssistant: FunctionComponent = () => {
     <div aria-hidden className={style.layer}>
       <div className={style.wander}>
         <div className={style.bob}>
-          <div className={style.shadow} />
-          {speechMessage && (
+          {isClippyRenderable && <div className={style.shadow} />}
+          {isClippyRenderable && speechMessage && (
             <div className={style.speechBubble}>
               <span>{typedSpeechMessage}</span>
             </div>
@@ -232,7 +236,11 @@ const ClippyAssistant: FunctionComponent = () => {
             title="Reboot via Clippy"
             type="button"
           >
-            <div className={style.frame}>
+            <div
+              className={`${style.frame} ${
+                isClippyRenderable ? '' : style.isHidden
+              }`}
+            >
               <video
                 autoPlay
                 className={style.source}
@@ -243,22 +251,7 @@ const ClippyAssistant: FunctionComponent = () => {
                 ref={videoRef}
                 src={CLIPPY_SRC}
               />
-              <canvas
-                className={`${style.clipCanvas} ${
-                  useFallbackVideo ? style.isHidden : ''
-                }`}
-                ref={canvasRef}
-              />
-              <video
-                autoPlay
-                className={`${style.clipFallback} ${
-                  useFallbackVideo ? '' : style.isHidden
-                }`}
-                loop
-                muted
-                playsInline
-                src={CLIPPY_SRC}
-              />
+              <canvas className={style.clipCanvas} ref={canvasRef} />
             </div>
           </button>
         </div>
