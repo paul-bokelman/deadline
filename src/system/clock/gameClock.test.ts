@@ -19,16 +19,16 @@ describe('gameClock', () => {
     vi.useRealTimers();
   });
 
-  it('starts the virtual clock at 4:45 PM local time after reset', () => {
+  it('starts the virtual clock at 4:50 PM local time after reset', () => {
     const date = getGameDate();
     expect(date.getHours()).toBe(16);
-    expect(date.getMinutes()).toBe(45);
+    expect(date.getMinutes()).toBe(50);
   });
 
   it('advances real-time elapsed since reset', () => {
     vi.advanceTimersByTime(2_000);
     const date = getGameDate();
-    expect(date.getMinutes()).toBe(45);
+    expect(date.getMinutes()).toBe(50);
     expect(date.getSeconds()).toBe(2);
   });
 
@@ -36,19 +36,19 @@ describe('gameClock', () => {
     advanceGameClockByMs(60_000);
     const date = getGameDate();
     expect(date.getHours()).toBe(16);
-    expect(date.getMinutes()).toBe(46);
+    expect(date.getMinutes()).toBe(51);
   });
 
   it('manual advance by 1 minute shifts the time forward by 1 minute', () => {
     advanceGameClockByMinutes(1);
-    expect(getGameDate().getMinutes()).toBe(46);
+    expect(getGameDate().getMinutes()).toBe(51);
   });
 
   it('ignores non-positive minute advances', () => {
     advanceGameClockByMinutes(0);
     advanceGameClockByMinutes(-5);
     advanceGameClockByMinutes(Number.NaN);
-    expect(getGameDate().getMinutes()).toBe(45);
+    expect(getGameDate().getMinutes()).toBe(50);
   });
 
   it('emits clock:advanced when advanced', () => {
@@ -59,9 +59,9 @@ describe('gameClock', () => {
     off();
   });
 
-  it('reset returns the clock to 4:45 PM', () => {
+  it('reset returns the clock to 4:50 PM', () => {
     advanceGameClockByMinutes(10);
     resetGameClock();
-    expect(getGameDate().getMinutes()).toBe(45);
+    expect(getGameDate().getMinutes()).toBe(50);
   });
 });

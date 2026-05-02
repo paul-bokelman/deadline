@@ -5,8 +5,8 @@ import { gameEventBus } from '@/game/events';
 import { useGameState } from '@/game/state';
 import { pickRandom, randomIntBetween } from '@/utils/random';
 
-const MIN_DELAY_MS = 20_000;
-const MAX_DELAY_MS = 60_000;
+const MIN_DELAY_MS = 15_000;
+const MAX_DELAY_MS = 40_000;
 
 export const useEmailDripScheduler = (): void => {
   const { flags } = useGameState();

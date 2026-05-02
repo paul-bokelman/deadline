@@ -2,7 +2,7 @@
 // trivially unit-testable without the surrounding Preact component.
 
 export const DEADLINE_HOUR = 17; // 5:00 PM local
-export const COUNTDOWN_MS = 15 * 60 * 1000;
+export const COUNTDOWN_MS = 10 * 60 * 1000;
 
 export const formatCountdown = (remainingMs: number): string => {
   const totalSeconds = Math.max(0, Math.ceil(remainingMs / 1000));

@@ -37,3 +37,21 @@ export const getDesktopViewportSize = (): AppViewportSize => {
     ),
   };
 };
+
+export const getRandomDesktopWindowCoords = (
+  size: { x: number; y: number },
+  margin = 24
+): { x: number; y: number } => {
+  const viewport = getDesktopViewportSize();
+  const maxX = Math.max(0, viewport.width - size.x);
+  const maxY = Math.max(0, viewport.height - size.y);
+  const minX = Math.min(margin, maxX);
+  const minY = Math.min(margin, maxY);
+  const usableMaxX = Math.max(minX, maxX - margin);
+  const usableMaxY = Math.max(minY, maxY - margin);
+
+  return {
+    x: Math.round(minX + Math.random() * (usableMaxX - minX)),
+    y: Math.round(minY + Math.random() * (usableMaxY - minY)),
+  };
+};

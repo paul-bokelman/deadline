@@ -14,6 +14,6 @@ export const systemConfig: SystemConfig = {
   windowsUpdate: {
     enabled: true,
     enabledAfterStage: 'desktop_intro',
-    countdownMs: 15 * 60 * 1000,
+    countdownMs: 10 * 60 * 1000,
   },
 };

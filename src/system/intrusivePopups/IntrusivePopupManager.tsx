@@ -15,7 +15,7 @@ import {
 } from './sfx';
 import { getDesktopViewportSize } from '../viewport';
 
-const AMBIENT_SPAWN_EVERY_MS = 60_000;
+const AMBIENT_SPAWN_EVERY_MS = 40_000;
 const clamp = (value: number, min: number, max: number): number =>
   Math.max(min, Math.min(value, max));
 

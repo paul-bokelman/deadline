@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import Window from '@/components/shared/Window/Window';
 import { createLoadingSfxController } from '@/utils/audio/sfx';
 import { getErraticProgressStep } from '@/utils/loading/erraticProgress';
+import { getRandomDesktopWindowCoords } from '@/system/viewport';
 import { Z_INDEX_TIERS } from '@/system/zIndex';
 
 interface ProgressBarWindowProps {
@@ -45,12 +46,16 @@ const PROGRESS_BEHAVIOR = {
   stepSize: 2,
 };
 
+const INITIAL_SIZE = { x: 420, y: 160 };
+
 const ProgressBarWindow: FunctionComponent<ProgressBarWindowProps> = ({
   onClose,
   onFailure,
 }: ProgressBarWindowProps) => {
-  const [coords, setCoords] = useState({ x: 260, y: 190 });
-  const [size, setSize] = useState({ x: 420, y: 160 });
+  const [coords, setCoords] = useState(() =>
+    getRandomDesktopWindowCoords(INITIAL_SIZE)
+  );
+  const [size, setSize] = useState(INITIAL_SIZE);
   const [isMaximized, setIsMaximized] = useState(false);
   const [progress, setProgress] = useState(0);
   const [cycle, setCycle] = useState<1 | 2 | 3>(1);

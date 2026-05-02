@@ -3,6 +3,7 @@ import { useState } from 'preact/hooks';
 
 import Button from '@/components/shared/Button/Button';
 import Window from '@/components/shared/Window/Window';
+import { getRandomDesktopWindowCoords } from '@/system/viewport';
 import { Z_INDEX_TIERS } from '@/system/zIndex';
 
 interface DownloadDialogProps {
@@ -23,11 +24,15 @@ const actionsStyle: JSX.CSSProperties = {
   justifyContent: 'center',
 };
 
+const WINDOW_SIZE = { x: 360, y: 170 };
+
 const DownloadDialog: FunctionComponent<DownloadDialogProps> = ({
   onReboot,
   onStartDownload,
 }) => {
-  const [coords, setCoords] = useState({ x: 230, y: 120 });
+  const [coords, setCoords] = useState(() =>
+    getRandomDesktopWindowCoords(WINDOW_SIZE)
+  );
   const [containerEl, setContainerEl] = useState<HTMLDivElement | null>(null);
 
   return (
@@ -49,7 +54,7 @@ const DownloadDialog: FunctionComponent<DownloadDialogProps> = ({
           isResizeable={false}
           onClickClose={onStartDownload}
           onMoved={(nextCoords) => setCoords(nextCoords)}
-          size={{ x: 360, y: 170 }}
+          size={WINDOW_SIZE}
           title="Download File"
           zIndex={Z_INDEX_TIERS.progress + 98}
         >

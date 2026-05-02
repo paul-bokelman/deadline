@@ -43,6 +43,7 @@ const Window: FunctionComponent<Props> = ({
   isInactive = false,
   isMaximized = false,
   isResizeable = true,
+  isUrgent = false,
   windowRef: externalWindowRef,
   onWindowElement,
   onClickMinimize,
@@ -162,7 +163,7 @@ const Window: FunctionComponent<Props> = ({
 
   return (
     <div
-      className={`${style.window}`}
+      className={`${style.window} ${isUrgent ? style.urgent : ''}`}
       onMouseDown={onMouseDown}
       onTouchStart={onMouseDown}
       ref={setWindowRef}
@@ -181,6 +182,7 @@ const Window: FunctionComponent<Props> = ({
         innerRef={titleBarRef}
         isInactive={isInactive}
         isMaximized={isMaximized}
+        isUrgent={isUrgent}
         onClickMinimize={onClickMinimize}
         onClickMaximize={onClickMaximize}
         onClickRestore={onClickRestore}

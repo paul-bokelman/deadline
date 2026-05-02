@@ -11,7 +11,7 @@ describe('formatCountdown', () => {
     expect(formatCountdown(0)).toBe('00:00');
     expect(formatCountdown(1_000)).toBe('00:01');
     expect(formatCountdown(60_000)).toBe('01:00');
-    expect(formatCountdown(15 * 60_000)).toBe('15:00');
+    expect(formatCountdown(10 * 60_000)).toBe('10:00');
   });
 
   it('rounds remaining ms up to the next whole second', () => {
@@ -24,7 +24,7 @@ describe('formatCountdown', () => {
   });
 
   it('matches the documented countdown duration constant', () => {
-    expect(COUNTDOWN_MS).toBe(15 * 60 * 1000);
+    expect(COUNTDOWN_MS).toBe(10 * 60 * 1000);
   });
 });
 
@@ -35,8 +35,8 @@ describe('computeRemainingMsTo5pm', () => {
     return d;
   };
 
-  it('returns 15 minutes when called at 4:45 PM', () => {
-    expect(computeRemainingMsTo5pm(at(16, 45))).toBe(15 * 60_000);
+  it('returns 10 minutes when called at 4:50 PM', () => {
+    expect(computeRemainingMsTo5pm(at(16, 50))).toBe(10 * 60_000);
   });
 
   it('returns 2 minutes when called at 4:58 PM', () => {
@@ -51,8 +51,8 @@ describe('computeRemainingMsTo5pm', () => {
     expect(computeRemainingMsTo5pm(at(17, 5))).toBe(0);
   });
 
-  it('treats 7:30 remaining as half of the standard countdown', () => {
-    const remaining = computeRemainingMsTo5pm(at(16, 52, 30));
+  it('treats 5:00 remaining as half of the standard countdown', () => {
+    const remaining = computeRemainingMsTo5pm(at(16, 55));
     expect(remaining).toBe(COUNTDOWN_MS / 2);
   });
 });

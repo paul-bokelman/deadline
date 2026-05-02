@@ -7,8 +7,8 @@ import { getAppViewportSize } from '../viewport';
 
 // Editable tuning values.
 const DEAD_PIXEL_SIZE_PX = 2;
-const DEAD_PIXEL_START_DELAY_MS = 60_000;
-const DEAD_PIXEL_SPAWN_INTERVAL_MS = 3000;
+const DEAD_PIXEL_START_DELAY_MS = 40_000;
+const DEAD_PIXEL_SPAWN_INTERVAL_MS = 2550;
 
 const generateRandomRgbCss = (): string => {
   const r = Math.floor(Math.random() * 256);

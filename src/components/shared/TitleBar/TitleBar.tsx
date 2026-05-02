@@ -8,6 +8,7 @@ import style from './TitleBar.module.css';
 export interface Props {
   iconId?: IconId;
   isInactive?: boolean;
+  isUrgent?: boolean;
   isMaximized?: boolean;
   onClickMinimize?: () => void;
   onClickMaximize?: () => void;
@@ -24,6 +25,7 @@ export interface Props {
 const TitleBar: FunctionComponent<Props> = ({
   iconId,
   isInactive = false,
+  isUrgent = false,
   isMaximized = false,
   onClickMinimize,
   onClickMaximize,
@@ -49,7 +51,9 @@ const TitleBar: FunctionComponent<Props> = ({
 
   return (
     <div
-      className={`${style.titleBar} ${isInactive ? style.inactive : ''}`}
+      className={`${style.titleBar} ${isInactive ? style.inactive : ''} ${
+        isUrgent ? style.urgent : ''
+      }`}
       onDblClick={onDblClickTitleBar}
       ref={innerRef}
     >

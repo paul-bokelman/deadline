@@ -15,6 +15,25 @@
   color: var(--surface);
 }
 
+.titleBar.urgent {
+  animation: deadlineTitleBarFlash 650ms steps(1, end) infinite;
+  background: #b00000;
+  color: #ffffff;
+}
+
+@keyframes deadlineTitleBarFlash {
+  0%,
+  100% {
+    background: #b00000;
+    color: #ffffff;
+  }
+
+  50% {
+    background: #ffef00;
+    color: #000000;
+  }
+}
+
 .titleBarText {
   flex: 1;
   margin: 0 24px 0 1px;

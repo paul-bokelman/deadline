@@ -9,7 +9,7 @@ import { Z_INDEX_TIERS } from '../zIndex';
 import { getAppViewportSize } from '../viewport';
 
 const FLY_AUDIO_URL = '/audio/ambient/fly_buzzing.mp3';
-const FIRST_APPEARANCE_DELAY_MS = 180_000;
+const FIRST_APPEARANCE_DELAY_MS = 120_000;
 const FLY_CALL_ACCEPT_SWARM_COUNT = 40;
 const FLY_CALL_DECLINE_SWARM_COUNT = 50;
 

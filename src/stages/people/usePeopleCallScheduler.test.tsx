@@ -7,7 +7,7 @@ import { GameStateContextValue } from '@/game/state';
 import { usePeopleCallScheduler } from './usePeopleCallScheduler';
 
 const mockGameState = vi.hoisted(() => ({
-  current: null as unknown as GameStateContextValue,
+  current: (null as unknown) as GameStateContextValue,
 }));
 
 vi.mock('@/game/state', async () => {
@@ -115,9 +115,24 @@ describe('usePeopleCallScheduler', () => {
   it('triggers deadline milestone voice calls in gated order', () => {
     container = renderScheduler();
 
-    act(() => gameEventBus.emit('deadline:seconds_remaining', { seconds: 0, remainingMs: 0 }));
-    act(() => gameEventBus.emit('deadline:seconds_remaining', { seconds: 0, remainingMs: 0 }));
-    act(() => gameEventBus.emit('deadline:seconds_remaining', { seconds: 0, remainingMs: 0 }));
+    act(() =>
+      gameEventBus.emit('deadline:seconds_remaining', {
+        seconds: 7 * 60,
+        remainingMs: 7 * 60_000,
+      })
+    );
+    act(() =>
+      gameEventBus.emit('deadline:seconds_remaining', {
+        seconds: 2 * 60,
+        remainingMs: 2 * 60_000,
+      })
+    );
+    act(() =>
+      gameEventBus.emit('deadline:seconds_remaining', {
+        seconds: 0,
+        remainingMs: 0,
+      })
+    );
 
     expect(mockGameState.current.triggerNetVoiceCall).toHaveBeenNthCalledWith(
       1,
@@ -142,7 +157,12 @@ describe('usePeopleCallScheduler', () => {
     });
     container = renderScheduler();
 
-    act(() => gameEventBus.emit('deadline:seconds_remaining', { seconds: 0, remainingMs: 0 }));
+    act(() =>
+      gameEventBus.emit('deadline:seconds_remaining', {
+        seconds: 0,
+        remainingMs: 0,
+      })
+    );
 
     expect(mockGameState.current.triggerNetVoiceCall).not.toHaveBeenCalled();
   });
@@ -151,7 +171,12 @@ describe('usePeopleCallScheduler', () => {
     mockGameState.current = createMockState({ stage: 'win' });
     container = renderScheduler();
 
-    act(() => gameEventBus.emit('deadline:seconds_remaining', { seconds: 0, remainingMs: 0 }));
+    act(() =>
+      gameEventBus.emit('deadline:seconds_remaining', {
+        seconds: 0,
+        remainingMs: 0,
+      })
+    );
 
     expect(mockGameState.current.triggerNetVoiceCall).not.toHaveBeenCalled();
   });

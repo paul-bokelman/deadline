@@ -1,6 +1,5 @@
 import { useEffect } from 'preact/hooks';
 
-import { systemConfig } from '@/data/systemConfig';
 import { NetVoiceCallId } from '@/game/netvoice/calls';
 import { gameEventBus } from '@/game/events';
 import { useGameState } from '@/game/state';
@@ -9,10 +8,8 @@ import { pickRandom } from '@/utils/random';
 const ALICE_HALFWAY_CALL_EVENT_ID = 'people:alice_halfway:triggered';
 const HAROLD_FIRST_CALL_EVENT_ID = 'people:harold_first_call:triggered';
 const HAROLD_SECOND_CALL_EVENT_ID = 'people:harold_second_call:triggered';
+const ALICE_SEVEN_MINUTES_LEFT_TARGET_SECONDS = 7 * 60;
 const HAROLD_FIRST_CALL_TARGET_SECONDS = 2 * 60;
-const HALF_WAY_TARGET_SECONDS = Math.floor(
-  systemConfig.windowsUpdate.countdownMs / 1000 / 2
-);
 const RANDOM_CALL_POOL: NetVoiceCallId[] = [
   'alice_greg_warning',
   'mom_www_issues',
@@ -37,7 +34,7 @@ export const usePeopleCallScheduler = (): void => {
         if (stage === 'win') return;
 
         if (
-          seconds <= HALF_WAY_TARGET_SECONDS &&
+          seconds <= ALICE_SEVEN_MINUTES_LEFT_TARGET_SECONDS &&
           !hasEventFired(ALICE_HALFWAY_CALL_EVENT_ID)
         ) {
           markEventFired(ALICE_HALFWAY_CALL_EVENT_ID);
@@ -87,7 +84,7 @@ export const usePeopleCallScheduler = (): void => {
       if (!selectedCallId) return;
       markEventFired(`people:random:${selectedCallId}:triggered`);
       triggerNetVoiceCall(selectedCallId);
-    }, 12000);
+    }, 8000);
 
     return () => window.clearInterval(intervalId);
   }, [

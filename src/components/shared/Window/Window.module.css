@@ -8,6 +8,21 @@
     box-shadow: var(--bevel-raised);
   }
 
+.window.urgent {
+    animation: deadlineWindowFlash 650ms steps(1, end) infinite;
+}
+
+@keyframes deadlineWindowFlash {
+    0%,
+    100% {
+        box-shadow: var(--bevel-raised), 0 0 0 3px #b00000;
+    }
+
+    50% {
+        box-shadow: var(--bevel-raised), 0 0 0 3px #ffef00;
+    }
+}
+
 .windowMain {
     flex: 1 1 auto;
     min-height: 0;

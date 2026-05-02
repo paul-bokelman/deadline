@@ -1,8 +1,9 @@
 import { h, FunctionComponent } from 'preact';
-import { useContext } from 'preact/hooks';
+import { useContext, useEffect, useState } from 'preact/hooks';
 
 import { appComponents } from '@/apps/appComponents';
 import OpenWindowsContext, { OpenWindow } from '@/context/OpenWindowsContext';
+import { gameEventBus } from '@/game/events';
 import { useGameState } from '@/game/state';
 import Window from '@/components/shared/Window/Window';
 
@@ -22,6 +23,13 @@ const WindowsContainer: FunctionComponent = () => {
     windows,
   } = useContext(OpenWindowsContext);
   const { isNetVoiceCallAccepted } = useGameState();
+  const [isDeadlineUrgent, setIsDeadlineUrgent] = useState(false);
+
+  useEffect(() => {
+    return gameEventBus.on('deadline:seconds_remaining', ({ seconds }) => {
+      setIsDeadlineUrgent(seconds > 0 && seconds <= 60);
+    });
+  }, []);
 
   const getAppComponent = (window: OpenWindow) => {
     const component = appComponents[window.app.id];
@@ -62,6 +70,7 @@ const WindowsContainer: FunctionComponent = () => {
             isInactive={!window.hasFocus}
             isMaximized={window.isMaximized}
             isResizeable={window.isResizeable}
+            isUrgent={window.app.id === 'timer' && isDeadlineUrgent}
             onClickClose={
               canClose ? () => closeWindow(window.id) : () => undefined
             }

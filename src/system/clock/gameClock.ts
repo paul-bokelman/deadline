@@ -6,7 +6,7 @@ let isInitialized = false;
 
 export const resetGameClock = (): void => {
   const now = new Date();
-  now.setHours(16, 45, 0, 0); // 4:45 PM local time
+  now.setHours(16, 50, 0, 0); // 4:50 PM local time
   baseRealMs = Date.now();
   baseVirtualMs = now.getTime();
 };

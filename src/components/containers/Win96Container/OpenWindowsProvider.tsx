@@ -19,7 +19,11 @@ import {
   allocateVoiceCallZIndex,
   resetZIndexAllocators,
 } from '@/system/zIndex';
-import { getAppViewportSize, getDesktopViewportSize } from '@/system/viewport';
+import {
+  getAppViewportSize,
+  getDesktopViewportSize,
+  getRandomDesktopWindowCoords,
+} from '@/system/viewport';
 
 interface Props {
   children: ComponentChildren;
@@ -244,10 +248,7 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
           y: Math.round((desktopViewport.height - eulaSize.y) / 2),
         };
         const randomCoords = clampWindowCoordsToViewport(
-          {
-            x: 50 + Math.round(Math.random() * 200),
-            y: 50 + Math.round(Math.random() * 200),
-          },
+          getRandomDesktopWindowCoords(defaultSize),
           defaultSize
         );
         const zIndex = allocateZIndexForAppId(appId);
