@@ -7,7 +7,7 @@ import { AppId } from '@/types/App';
 // When the player runs out of time, `usePeopleCallScheduler` triggers
 // Harold's final call. This hook reacts to that call being accepted and
 // unleashes the end-of-deadline chaos:
-//   - 9s after pickup: 50-fly swarm
+//   - 9s after pickup: 40-fly swarm
 //   - 12s after pickup: screen shake begins, ramping cubically
 //   - 13s after pickup: popup + random app-window spam (250ms cadence)
 //   - ~18s after pickup: ~20 windows accumulated → 16MB RAM cap → BSOD;
@@ -15,8 +15,8 @@ import { AppId } from '@/types/App';
 const HAROLD_LAST_CALL_ID = 'harold_second_call';
 
 const FLY_SWARM_DELAY_MS = 9_000;
-const FLY_SWARM_COUNT = 50;
-const DECLINED_FLY_SWARM_COUNT = 70;
+const FLY_SWARM_COUNT = 40;
+const DECLINED_FLY_SWARM_COUNT = 50;
 
 const SPAM_DELAY_MS = 13_000;
 const SPAM_INTERVAL_MS = 250;
@@ -45,7 +45,7 @@ const SPAMMABLE_APP_IDS: AppId[] = [
   'blackjack',
 ];
 
-const pickRandom = <T,>(items: T[]): T =>
+const pickRandom = <T>(items: T[]): T =>
   items[Math.floor(Math.random() * items.length)];
 
 export const useDeadlineChaosSequence = (): void => {
@@ -96,9 +96,10 @@ export const useDeadlineChaosSequence = (): void => {
         const intensity = ramp * ramp * ramp;
         const dx = (Math.random() * 2 - 1) * SHAKE_MAX_AMPLITUDE_PX * intensity;
         const dy = (Math.random() * 2 - 1) * SHAKE_MAX_AMPLITUDE_PX * intensity;
-        const dr =
-          (Math.random() * 2 - 1) * SHAKE_MAX_ROTATION_DEG * intensity;
-        shakeTarget.style.transform = `translate3d(${dx.toFixed(2)}px, ${dy.toFixed(2)}px, 0) rotate(${dr.toFixed(3)}deg)`;
+        const dr = (Math.random() * 2 - 1) * SHAKE_MAX_ROTATION_DEG * intensity;
+        shakeTarget.style.transform = `translate3d(${dx.toFixed(
+          2
+        )}px, ${dy.toFixed(2)}px, 0) rotate(${dr.toFixed(3)}deg)`;
         shakeRafId = window.requestAnimationFrame(tick);
       };
       shakeRafId = window.requestAnimationFrame(tick);

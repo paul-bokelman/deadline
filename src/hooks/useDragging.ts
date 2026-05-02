@@ -41,6 +41,32 @@ const useDragging = (
 
   const [coords, setCoords] = useState<Coords>(initialCoords);
 
+  const getRenderedTranslateCoords = (): Coords | null => {
+    const draggedElement = draggedEltRef.current;
+    if (!draggedElement) return null;
+    const transform = getComputedStyle(draggedElement).transform;
+    if (!transform || transform === 'none') return null;
+    const matrix3dMatch = transform.match(/^matrix3d\(([^)]+)\)$/);
+    if (matrix3dMatch) {
+      const parts = matrix3dMatch[1]
+        .split(',')
+        .map((part) => Number(part.trim()));
+      if (parts.length < 16) return null;
+      const x = parts[12];
+      const y = parts[13];
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+      return { x, y };
+    }
+
+    const match = transform.match(/^matrix\(([^)]+)\)$/);
+    if (!match) return null;
+    const parts = match[1].split(',').map((part) => Number(part.trim()));
+    if (parts.length < 6) return null;
+    const [x, y] = parts.slice(4, 6);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+    return { x, y };
+  };
+
   useEffect(() => {
     setCoords(initialCoords);
     // Intentionally re-syncs only when the *initial* coords change (resets).
@@ -158,7 +184,8 @@ const useDragging = (
     addPointerStopEventListeners();
 
     setCoords((elementCoords) => {
-      originalElementCoords.current = elementCoords;
+      originalElementCoords.current =
+        getRenderedTranslateCoords() ?? elementCoords;
       originalMouseCoords.current = mouseCoords;
       return elementCoords;
     });

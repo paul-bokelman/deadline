@@ -1,5 +1,5 @@
 import { h, Fragment, FunctionComponent } from 'preact';
-import { useEffect, useState } from 'preact/hooks';
+import { useCallback, useEffect, useState } from 'preact/hooks';
 
 import BackgroundFly from './BackgroundFly';
 import flyAssetUrl from '@/assets/images/ambient/fly_final.png';
@@ -9,8 +9,8 @@ import { Z_INDEX_TIERS } from '../zIndex';
 
 const FLY_AUDIO_URL = '/audio/ambient/fly_buzzing.mp3';
 const FIRST_APPEARANCE_DELAY_MS = 180_000;
-const FLY_CALL_ACCEPT_SWARM_COUNT = 50;
-const FLY_CALL_DECLINE_SWARM_COUNT = 70;
+const FLY_CALL_ACCEPT_SWARM_COUNT = 40;
+const FLY_CALL_DECLINE_SWARM_COUNT = 50;
 
 interface SwarmFly {
   id: string;
@@ -53,6 +53,10 @@ const BackgroundFlyOverlay: FunctionComponent = () => {
   const [isBootloaderActive, setIsBootloaderActive] = useState(false);
   const [swarmFlies, setSwarmFlies] = useState<SwarmFly[]>([]);
 
+  const removeSwarmFly = useCallback((flyId: string) => {
+    setSwarmFlies((current) => current.filter((fly) => fly.id !== flyId));
+  }, []);
+
   useEffect(() => {
     const off1 = gameEventBus.on('game:rebooted', () => {
       setResetNonce((n) => n + 1);
@@ -72,15 +76,18 @@ const BackgroundFlyOverlay: FunctionComponent = () => {
         )
       );
     });
-    const off5 = gameEventBus.on('netvoice:call_ended', ({ callId, reason }) => {
-      if (callId !== 'fly_random') return;
-      if (reason !== 'hangup') return;
-      setSwarmFlies(
-        Array.from({ length: FLY_CALL_DECLINE_SWARM_COUNT }, () =>
-          createSwarmFly()
-        )
-      );
-    });
+    const off5 = gameEventBus.on(
+      'netvoice:call_ended',
+      ({ callId, reason }) => {
+        if (callId !== 'fly_random') return;
+        if (reason !== 'hangup') return;
+        setSwarmFlies(
+          Array.from({ length: FLY_CALL_DECLINE_SWARM_COUNT }, () =>
+            createSwarmFly()
+          )
+        );
+      }
+    );
     const off6 = gameEventBus.on('fly:spawn_swarm', ({ count }) => {
       const safeCount = Math.max(0, Math.floor(count));
       if (safeCount === 0) return;
@@ -141,6 +148,7 @@ const BackgroundFlyOverlay: FunctionComponent = () => {
           spawnDelayMs={0}
           forceHidden={forceHidden}
           initialPosition={fly.initialPosition}
+          onWalkedOffscreen={() => removeSwarmFly(fly.id)}
           zIndex={Z_INDEX_TIERS.ambientCritter}
         />
       ))}

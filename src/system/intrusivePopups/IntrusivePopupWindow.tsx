@@ -18,6 +18,8 @@ interface Props {
   onToggleMaximize: (popupId: string) => void;
   onPopupMouseDown: (popupId: string) => void;
   popup: ActiveIntrusivePopup;
+  onWindowElement?: (element: HTMLDivElement | null) => void;
+  windowRef?: RefObject<HTMLDivElement>;
 }
 
 const shellStyle: JSX.CSSProperties = {
@@ -46,7 +48,9 @@ const IntrusivePopupWindow: FunctionComponent<Props> = ({
   onMoved,
   onToggleMaximize,
   onPopupMouseDown,
+  onWindowElement,
   popup,
+  windowRef,
 }: Props) => {
   return (
     <Window
@@ -56,6 +60,8 @@ const IntrusivePopupWindow: FunctionComponent<Props> = ({
       isDraggable
       isMaximized={popup.isMaximized}
       isResizeable={false}
+      onWindowElement={onWindowElement}
+      windowRef={windowRef}
       onClickClose={() => onClose(popup.id)}
       onClickMaximize={() => onToggleMaximize(popup.id)}
       onClickRestore={() => onToggleMaximize(popup.id)}

@@ -49,6 +49,8 @@ export interface BackgroundCritterProps {
   zIndex?: number;
   /** Click handler. */
   onClick?: () => void;
+  /** Called when the critter finishes walking offscreen. */
+  onWalkedOffscreen?: () => void;
   /** Reset trigger - changing this nonce restarts behavior. */
   resetNonce?: number;
   /**
@@ -177,11 +179,13 @@ const BackgroundFly: FunctionComponent<BackgroundCritterProps> = ({
   initialPosition,
   zIndex = 9_999_999,
   onClick,
+  onWalkedOffscreen,
   resetNonce = 0,
   spawnDelayMs = 0,
   forceHidden = false,
 }) => {
   const [, forceRender] = useState(0);
+  const spriteRef = useRef<HTMLImageElement | null>(null);
 
   const posRef = useRef<Vec2>(
     initialPosition ?? {
@@ -205,6 +209,17 @@ const BackgroundFly: FunctionComponent<BackgroundCritterProps> = ({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const forceHiddenRef = useRef<boolean>(forceHidden);
   forceHiddenRef.current = forceHidden;
+
+  const applySpriteStyle = () => {
+    const sprite = spriteRef.current;
+    if (!sprite) return;
+    const shouldShow = visibleRef.current && !forceHiddenRef.current;
+    sprite.style.transform = `translate3d(${posRef.current.x - sizePx / 2}px, ${
+      posRef.current.y - sizePx / 2
+    }px, 0) rotate(${headingDegRef.current}deg)`;
+    sprite.style.pointerEvents = shouldShow && onClick ? 'auto' : 'none';
+    sprite.style.visibility = shouldShow ? 'visible' : 'hidden';
+  };
 
   const beginWalkTo = (target: Vec2) => {
     segmentRef.current = {
@@ -265,6 +280,7 @@ const BackgroundFly: FunctionComponent<BackgroundCritterProps> = ({
       modeRef.current = 'paused';
       phaseEndsAtRef.current = performance.now() + 100;
     }
+    applySpriteStyle();
     forceRender((n) => n + 1);
     // initialPosition + spawnDelayMs are read intentionally only when
     // resetNonce changes; they should not retrigger the spawn-reset effect.
@@ -284,6 +300,10 @@ const BackgroundFly: FunctionComponent<BackgroundCritterProps> = ({
       audioRef.current = null;
     };
   }, [audioUrl, audioVolume]);
+
+  useEffect(() => {
+    applySpriteStyle();
+  });
 
   useEffect(() => {
     lastFrameMsRef.current = performance.now();
@@ -329,6 +349,10 @@ const BackgroundFly: FunctionComponent<BackgroundCritterProps> = ({
           if (isExitingRef.current) {
             visibleRef.current = false;
             isExitingRef.current = false;
+            if (onWalkedOffscreen) {
+              onWalkedOffscreen();
+              return;
+            }
             modeRef.current = 'offscreen';
             phaseEndsAtRef.current = nowMs + randInRange(offscreenAwayMsRange);
           } else {
@@ -355,7 +379,7 @@ const BackgroundFly: FunctionComponent<BackgroundCritterProps> = ({
         }
       }
 
-      forceRender((n) => (n + 1) % 1_000_000);
+      applySpriteStyle();
       rafIdRef.current = window.requestAnimationFrame(tick);
     };
 
@@ -393,9 +417,9 @@ const BackgroundFly: FunctionComponent<BackgroundCritterProps> = ({
     top: 0,
     width: `${sizePx}px`,
     height: `${sizePx}px`,
-    transform: `translate(${posRef.current.x - sizePx / 2}px, ${
+    transform: `translate3d(${posRef.current.x - sizePx / 2}px, ${
       posRef.current.y - sizePx / 2
-    }px) rotate(${headingDegRef.current}deg)`,
+    }px, 0) rotate(${headingDegRef.current}deg)`,
     transformOrigin: '50% 50%',
     pointerEvents:
       visibleRef.current && !forceHidden && onClick ? 'auto' : 'none',
@@ -408,6 +432,7 @@ const BackgroundFly: FunctionComponent<BackgroundCritterProps> = ({
   return (
     <div style={containerStyle} aria-hidden="true">
       <img
+        ref={spriteRef}
         src={assetUrl}
         alt=""
         draggable={false}

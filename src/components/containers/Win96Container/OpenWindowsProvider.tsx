@@ -1,5 +1,5 @@
 import { h, FunctionComponent, ComponentChildren } from 'preact';
-import { useEffect, useState } from 'preact/hooks';
+import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
 
 import { App } from '@/types/App';
 import { IconId } from '@/types/Icon';
@@ -142,7 +142,10 @@ const createInitialOpenWindows = (): OpenWindow[] => {
 
   const timerToRightCoords = clampWindowCoordsToViewport(
     {
-      x: leaderboardWindow.coords.x + leaderboardWindow.size.x + STARTUP_WINDOW_GAP_PX,
+      x:
+        leaderboardWindow.coords.x +
+        leaderboardWindow.size.x +
+        STARTUP_WINDOW_GAP_PX,
       y: leaderboardWindow.coords.y,
     },
     timerSize
@@ -158,31 +161,33 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
     createInitialOpenWindows
   );
 
-  const allocateZIndexForAppId = (appId: string): number => {
+  const allocateZIndexForAppId = useCallback((appId: string): number => {
     if (appId === 'netVoiceCall') return allocateVoiceCallZIndex();
     if (appId === 'leaderboard') return allocateLeaderboardZIndex();
     return allocateNormalZIndex();
-  };
+  }, []);
 
-  const getWindowTitle = (
-    app: App,
-    workingDir?: FileSystemDir,
-    workingFile?: FileSystemFile
-  ): string => {
-    const translatedAppName = app.name;
-    if (workingFile && workingFile.name) {
-      return `${workingFile.name} - ${translatedAppName}`;
-    }
-    if (workingDir) return workingDir.name;
-    return translatedAppName;
-  };
+  const getWindowTitle = useCallback(
+    (
+      app: App,
+      workingDir?: FileSystemDir,
+      workingFile?: FileSystemFile
+    ): string => {
+      const translatedAppName = app.name;
+      if (workingFile && workingFile.name) {
+        return `${workingFile.name} - ${translatedAppName}`;
+      }
+      if (workingDir) return workingDir.name;
+      return translatedAppName;
+    },
+    []
+  );
 
   // Window + taskbar icons should match the app's desktop icon when one
   // exists; otherwise fall back to whatever icon the app declares.
-  const getWindowIconId = (
-    app: App,
-    workingDir?: FileSystemDir
-  ): IconId | undefined => {
+  const getWindowIconId = useCallback((app: App, workingDir?: FileSystemDir):
+    | IconId
+    | undefined => {
     if (app.id === 'zipArchive') {
       return undefined;
     }
@@ -191,128 +196,130 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
       if (workingDir) return 'folderOpen';
     }
     return getAppIconId(app.id);
-  };
+  }, []);
 
-  const openApp: OpenWindowsContextType['openApp'] = ({
-    appId,
-    workingDir,
-    workingFile,
-  }) => {
-    if (appId === 'shutdown') {
-      rebootGame();
-      return;
-    }
-
-    if (appId === 'clickMeReset') {
-      for (let i = 0; i < 3; i += 1) {
-        gameEventBus.emit('popup:test_spawn_random', {
-          x: 80 + Math.round(Math.random() * 280),
-          y: 60 + Math.round(Math.random() * 180),
-        });
+  const openApp: OpenWindowsContextType['openApp'] = useCallback(
+    ({ appId, workingDir, workingFile }) => {
+      if (appId === 'shutdown') {
+        rebootGame();
+        return;
       }
-      return;
-    }
 
-    if (appId === 'explorer' && workingDir?.name === 'DoNotOpen') {
-      rebootGame();
-      return;
-    }
-    const isProjectDeadlineWindow = appId === 'timer';
-    const isEulaWindow = appId === 'eula';
-    const isNetVoiceCallWindow = appId === 'netVoiceCall';
-    const isOpenWithWindow = appId === 'zipArchive';
-    const isWinRarArchiveWindow = appId === 'winRarArchive';
-    const isCloseOnlyWindow = isOpenWithWindow || isWinRarArchiveWindow;
+      if (appId === 'clickMeReset') {
+        for (let i = 0; i < 3; i += 1) {
+          gameEventBus.emit('popup:test_spawn_random', {
+            x: 80 + Math.round(Math.random() * 280),
+            y: 60 + Math.round(Math.random() * 180),
+          });
+        }
+        return;
+      }
 
-    setOpenWindows((windows) => {
-      const app = appList[appId];
-      const iconId = getWindowIconId(app, workingDir);
-      const title = getWindowTitle(app, workingDir, workingFile);
-      const eulaWidth = Math.round(window.innerWidth * 0.8);
-      const eulaHeight = Math.round(window.innerHeight * 0.8);
-      const eulaSize = clampWindowSizeToViewport({
-        x: eulaWidth,
-        y: eulaHeight,
+      if (appId === 'explorer' && workingDir?.name === 'DoNotOpen') {
+        rebootGame();
+        return;
+      }
+      const isProjectDeadlineWindow = appId === 'timer';
+      const isEulaWindow = appId === 'eula';
+      const isNetVoiceCallWindow = appId === 'netVoiceCall';
+      const isOpenWithWindow = appId === 'zipArchive';
+      const isWinRarArchiveWindow = appId === 'winRarArchive';
+      const isCloseOnlyWindow = isOpenWithWindow || isWinRarArchiveWindow;
+
+      setOpenWindows((windows) => {
+        const app = appList[appId];
+        const iconId = getWindowIconId(app, workingDir);
+        const title = getWindowTitle(app, workingDir, workingFile);
+        const eulaWidth = Math.round(window.innerWidth * 0.8);
+        const eulaHeight = Math.round(window.innerHeight * 0.8);
+        const eulaSize = clampWindowSizeToViewport({
+          x: eulaWidth,
+          y: eulaHeight,
+        });
+        const defaultSize = getDefaultWindowSize(app);
+        const eulaCoords = {
+          x: Math.round((window.innerWidth - eulaSize.x) / 2),
+          y: Math.round(
+            (window.innerHeight - TASKBAR_DOCK_HEIGHT - eulaSize.y) / 2
+          ),
+        };
+        const randomCoords = clampWindowCoordsToViewport(
+          {
+            x: 50 + Math.round(Math.random() * 200),
+            y: 50 + Math.round(Math.random() * 200),
+          },
+          defaultSize
+        );
+        const zIndex = allocateZIndexForAppId(appId);
+        const existingWindows = windows.map((window) => ({
+          ...window,
+          hasFocus: false,
+        }));
+        return [
+          ...existingWindows,
+          {
+            app,
+            canMaximize: !isNetVoiceCallWindow && !isCloseOnlyWindow,
+            canMinimize: !isEulaWindow && !isCloseOnlyWindow,
+            iconId,
+            id: crypto.randomUUID(),
+            coords: isEulaWindow
+              ? clampWindowCoordsToViewport(eulaCoords, eulaSize)
+              : randomCoords,
+            hasFocus: true,
+            isDraggable: isEulaWindow ? false : app.isDraggable ?? true,
+            isMinimized: false,
+            isMaximized: false,
+            isResizeable: isEulaWindow
+              ? false
+              : isProjectDeadlineWindow
+              ? true
+              : app.isResizeable ?? true,
+            showCloseButton: isEulaWindow ? false : !isProjectDeadlineWindow,
+            showMaximizeButton: !isNetVoiceCallWindow && !isCloseOnlyWindow,
+            showInTaskbar: !isOpenWithWindow,
+            size: isEulaWindow ? eulaSize : defaultSize,
+            sizeMode: app.sizeMode,
+            title,
+            workingDir,
+            workingFile,
+            zIndex,
+          },
+        ];
       });
-      const defaultSize = getDefaultWindowSize(app);
-      const eulaCoords = {
-        x: Math.round((window.innerWidth - eulaSize.x) / 2),
-        y: Math.round(
-          (window.innerHeight - TASKBAR_DOCK_HEIGHT - eulaSize.y) / 2
-        ),
-      };
-      const randomCoords = clampWindowCoordsToViewport(
-        {
-          x: 50 + Math.round(Math.random() * 200),
-          y: 50 + Math.round(Math.random() * 200),
-        },
-        defaultSize
-      );
-      const zIndex = allocateZIndexForAppId(appId);
-      const existingWindows = windows.map((window) => ({
-        ...window,
-        hasFocus: false,
-      }));
-      return [
-        ...existingWindows,
-        {
-          app,
-          canMaximize: !isNetVoiceCallWindow && !isCloseOnlyWindow,
-          canMinimize: !isEulaWindow && !isCloseOnlyWindow,
-          iconId,
-          id: crypto.randomUUID(),
-          coords: isEulaWindow
-            ? clampWindowCoordsToViewport(eulaCoords, eulaSize)
-            : randomCoords,
-          hasFocus: true,
-          isDraggable: isEulaWindow ? false : app.isDraggable ?? true,
-          isMinimized: false,
-          isMaximized: false,
-          isResizeable: isEulaWindow
-            ? false
-            : isProjectDeadlineWindow
-            ? true
-            : app.isResizeable ?? true,
-          showCloseButton: isEulaWindow ? false : !isProjectDeadlineWindow,
-          showMaximizeButton: !isNetVoiceCallWindow && !isCloseOnlyWindow,
-          showInTaskbar: !isOpenWithWindow,
-          size: isEulaWindow ? eulaSize : defaultSize,
-          sizeMode: app.sizeMode,
-          title,
-          workingDir,
-          workingFile,
-          zIndex,
-        },
-      ];
-    });
-  };
+    },
+    [allocateZIndexForAppId, getWindowIconId, getWindowTitle, rebootGame]
+  );
 
-  const closeWindow = (id: string) => {
+  const closeWindow = useCallback((id: string) => {
     setOpenWindows((windows) => windows.filter((window) => window.id !== id));
-  };
+  }, []);
 
-  const focusOnWindow = (id: string) => {
-    setOpenWindows((windows) => {
-      const targetWindow = windows.find((window) => window.id === id);
-      if (!targetWindow) return windows;
-      const zIndex = allocateZIndexForAppId(targetWindow.app.id);
-      return windows.map((window) =>
-        window.id === id
-          ? { ...window, hasFocus: true, zIndex }
-          : { ...window, hasFocus: false }
-      );
-    });
-  };
+  const focusOnWindow = useCallback(
+    (id: string) => {
+      setOpenWindows((windows) => {
+        const targetWindow = windows.find((window) => window.id === id);
+        if (!targetWindow) return windows;
+        const zIndex = allocateZIndexForAppId(targetWindow.app.id);
+        return windows.map((window) =>
+          window.id === id
+            ? { ...window, hasFocus: true, zIndex }
+            : { ...window, hasFocus: false }
+        );
+      });
+    },
+    [allocateZIndexForAppId]
+  );
 
-  const maximizeWindow = (id: string) => {
+  const maximizeWindow = useCallback((id: string) => {
     setOpenWindows((windows) => {
       return windows.map((window) =>
         window.id === id ? { ...window, isMaximized: true } : window
       );
     });
-  };
+  }, []);
 
-  const minimizeWindow = (id: string) => {
+  const minimizeWindow = useCallback((id: string) => {
     setOpenWindows((windows) => {
       return windows.map((window) =>
         window.id === id
@@ -320,86 +327,98 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
           : window
       );
     });
-  };
+  }, []);
 
-  const moveWindow = (id: string, coords: { x: number; y: number }) => {
-    setOpenWindows((windows) => {
-      return windows.map((window) => {
-        if (window.id !== id || window.isMaximized) return window;
-        return {
-          ...window,
-          coords,
-        };
+  const moveWindow = useCallback(
+    (id: string, coords: { x: number; y: number }) => {
+      setOpenWindows((windows) => {
+        return windows.map((window) => {
+          if (window.id !== id || window.isMaximized) return window;
+          return {
+            ...window,
+            coords,
+          };
+        });
       });
-    });
-  };
+    },
+    []
+  );
 
-  const resizeWindow = (id: string, size: { x: number; y: number }) => {
-    setOpenWindows((windows) => {
-      return windows.map((window) => {
-        if (window.id !== id || window.isMaximized) return window;
-        const maxAllowedHeight = Math.max(
-          MIN_WINDOW_HEIGHT,
-          globalThis.innerHeight - TASKBAR_DOCK_HEIGHT - window.coords.y
-        );
-        const maxAllowedWidth = Math.max(
-          MIN_WINDOW_WIDTH,
-          globalThis.innerWidth - window.coords.x - WINDOW_SCREEN_MARGIN
-        );
-        const clampedHeight = Math.max(
-          MIN_WINDOW_HEIGHT,
-          Math.min(size.y, maxAllowedHeight)
-        );
-        const clampedWidth = Math.max(
-          MIN_WINDOW_WIDTH,
-          Math.min(size.x, maxAllowedWidth)
-        );
-        return {
-          ...window,
-          size: {
-            ...size,
-            x: clampedWidth,
-            y: clampedHeight,
-          },
-        };
+  const resizeWindow = useCallback(
+    (id: string, size: { x: number; y: number }) => {
+      setOpenWindows((windows) => {
+        return windows.map((window) => {
+          if (window.id !== id || window.isMaximized) return window;
+          const maxAllowedHeight = Math.max(
+            MIN_WINDOW_HEIGHT,
+            globalThis.innerHeight - TASKBAR_DOCK_HEIGHT - window.coords.y
+          );
+          const maxAllowedWidth = Math.max(
+            MIN_WINDOW_WIDTH,
+            globalThis.innerWidth - window.coords.x - WINDOW_SCREEN_MARGIN
+          );
+          const clampedHeight = Math.max(
+            MIN_WINDOW_HEIGHT,
+            Math.min(size.y, maxAllowedHeight)
+          );
+          const clampedWidth = Math.max(
+            MIN_WINDOW_WIDTH,
+            Math.min(size.x, maxAllowedWidth)
+          );
+          return {
+            ...window,
+            size: {
+              ...size,
+              x: clampedWidth,
+              y: clampedHeight,
+            },
+          };
+        });
       });
-    });
-  };
+    },
+    []
+  );
 
-  const autoFitWindow = (id: string, size: { x: number; y: number }) => {
-    setOpenWindows((windows) => {
-      return windows.map((window) => {
-        if (window.id !== id || window.isMaximized) return window;
-        const nextSize = clampWindowSizeToViewport(size);
-        return {
-          ...window,
-          coords: clampWindowCoordsToViewport(window.coords, nextSize),
-          size: nextSize,
-        };
+  const autoFitWindow = useCallback(
+    (id: string, size: { x: number; y: number }) => {
+      setOpenWindows((windows) => {
+        return windows.map((window) => {
+          if (window.id !== id || window.isMaximized) return window;
+          const nextSize = clampWindowSizeToViewport(size);
+          return {
+            ...window,
+            coords: clampWindowCoordsToViewport(window.coords, nextSize),
+            size: nextSize,
+          };
+        });
       });
-    });
-  };
+    },
+    []
+  );
 
-  const unMaximizeWindow = (id: string) => {
+  const unMaximizeWindow = useCallback((id: string) => {
     setOpenWindows((windows) => {
       return windows.map((window) =>
         window.id === id ? { ...window, isMaximized: false } : window
       );
     });
-  };
+  }, []);
 
-  const unMinimizeWindow = (id: string) => {
-    setOpenWindows((windows) => {
-      const targetWindow = windows.find((window) => window.id === id);
-      if (!targetWindow) return windows;
-      const zIndex = allocateZIndexForAppId(targetWindow.app.id);
-      return windows.map((window) =>
-        window.id === id
-          ? { ...window, hasFocus: true, isMinimized: false, zIndex }
-          : { ...window, hasFocus: false }
-      );
-    });
-  };
+  const unMinimizeWindow = useCallback(
+    (id: string) => {
+      setOpenWindows((windows) => {
+        const targetWindow = windows.find((window) => window.id === id);
+        if (!targetWindow) return windows;
+        const zIndex = allocateZIndexForAppId(targetWindow.app.id);
+        return windows.map((window) =>
+          window.id === id
+            ? { ...window, hasFocus: true, isMinimized: false, zIndex }
+            : { ...window, hasFocus: false }
+        );
+      });
+    },
+    [allocateZIndexForAppId]
+  );
 
   useEffect(() => {
     return gameEventBus.on('game:rebooted', () => {
@@ -408,22 +427,37 @@ const OpenWindowsProvider: FunctionComponent<Props> = ({ children }: Props) => {
     });
   }, []);
 
+  const contextValue = useMemo(
+    () => ({
+      openApp,
+      closeWindow,
+      autoFitWindow,
+      focusOnWindow,
+      maximizeWindow,
+      minimizeWindow,
+      moveWindow,
+      resizeWindow,
+      unMaximizeWindow,
+      unMinimizeWindow,
+      windows: openWindows,
+    }),
+    [
+      autoFitWindow,
+      closeWindow,
+      focusOnWindow,
+      maximizeWindow,
+      minimizeWindow,
+      moveWindow,
+      openApp,
+      openWindows,
+      resizeWindow,
+      unMaximizeWindow,
+      unMinimizeWindow,
+    ]
+  );
+
   return (
-    <OpenWindowsContext.Provider
-      value={{
-        openApp,
-        closeWindow,
-        autoFitWindow,
-        focusOnWindow,
-        maximizeWindow,
-        minimizeWindow,
-        moveWindow,
-        resizeWindow,
-        unMaximizeWindow,
-        unMinimizeWindow,
-        windows: openWindows,
-      }}
-    >
+    <OpenWindowsContext.Provider value={contextValue}>
       {children}
     </OpenWindowsContext.Provider>
   );

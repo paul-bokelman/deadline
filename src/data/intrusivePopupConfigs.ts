@@ -12,6 +12,10 @@ const POPUP_BASE_HEIGHT = 716;
 const POPUP_SCALES = [0.25, 0.5, 0.75] as const;
 const POPUP_BOUNCE_SPEED_MIN = 120;
 const POPUP_BOUNCE_SPEED_MAX = 150;
+const RECENT_BACKGROUND_CACHE_SIZE = 6;
+const RECENT_BACKGROUND_REUSE_CHANCE = 0.65;
+
+const recentBackgroundImages: string[] = [];
 
 const randomInt = (min: number, max: number): number => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -22,6 +26,23 @@ const randomEntry = <T>(entries: T[]): T => {
 };
 
 const maybe = (chance: number): boolean => Math.random() < chance;
+
+const selectBackgroundImage = (): string | undefined => {
+  if (popupBackgroundImages.length === 0) return undefined;
+  if (
+    recentBackgroundImages.length > 0 &&
+    maybe(RECENT_BACKGROUND_REUSE_CHANCE)
+  ) {
+    return randomEntry(recentBackgroundImages);
+  }
+
+  const imageUrl = randomEntry(popupBackgroundImages);
+  recentBackgroundImages.unshift(imageUrl);
+  if (recentBackgroundImages.length > RECENT_BACKGROUND_CACHE_SIZE) {
+    recentBackgroundImages.length = RECENT_BACKGROUND_CACHE_SIZE;
+  }
+  return imageUrl;
+};
 
 const createRandomBehavior = (): IntrusivePopupConfig['behavior'] => {
   const hasHydra = maybe(0.6);
@@ -64,10 +85,7 @@ export const createRandomIntrusivePopupConfig = (): IntrusivePopupConfig => {
       'Action Required',
     ]),
     size: { width, height },
-    backgroundImageUrl:
-      popupBackgroundImages.length > 0
-        ? randomEntry(popupBackgroundImages)
-        : undefined,
+    backgroundImageUrl: selectBackgroundImage(),
     behavior: createRandomBehavior(),
   };
 };

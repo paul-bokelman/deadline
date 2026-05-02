@@ -5,8 +5,10 @@ import { usePeopleCallScheduler } from '@/stages/people/usePeopleCallScheduler';
 import { useDeadlineChaosSequence } from '@/stages/people/useDeadlineChaosSequence';
 import { useEmailDripScheduler } from '@/stages/email/useEmailDripScheduler';
 import { useFlyVoiceLineScheduler } from '@/stages/fly/useFlyVoiceLineScheduler';
+import { useDeadlineTicker } from '@/system/deadline/useDeadlineTicker';
 
 const GameScenarioController: FunctionComponent = () => {
+  useDeadlineTicker();
   useIntroCallStage();
   usePeopleCallScheduler();
   useDeadlineChaosSequence();

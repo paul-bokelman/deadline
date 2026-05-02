@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'preact/hooks';
@@ -331,50 +332,95 @@ export const GameStateProvider: FunctionComponent<GameStateProviderProps> = ({
     });
   }, [rebootGame]);
 
-  const setStage: GameStateContextValue['setStage'] = (nextStage) => {
-    setStageState(nextStage);
-  };
+  const setStage: GameStateContextValue['setStage'] = useCallback(
+    (nextStage) => {
+      setStageState((currentStage) =>
+        currentStage === nextStage ? currentStage : nextStage
+      );
+    },
+    []
+  );
 
-  const setFlag: GameStateContextValue['setFlag'] = (flag, value) => {
-    setFlagsState((currentFlags) => ({ ...currentFlags, [flag]: value }));
-  };
+  const setFlag: GameStateContextValue['setFlag'] = useCallback(
+    (flag, value) => {
+      setFlagsState((currentFlags) => {
+        if (currentFlags[flag] === value) return currentFlags;
+        return { ...currentFlags, [flag]: value };
+      });
+    },
+    []
+  );
 
-  const setFlags: GameStateContextValue['setFlags'] = (partialFlags) => {
-    setFlagsState((currentFlags) => ({ ...currentFlags, ...partialFlags }));
-  };
+  const setFlags: GameStateContextValue['setFlags'] = useCallback(
+    (partialFlags) => {
+      setFlagsState((currentFlags) => {
+        const changedFlags = Object.keys(partialFlags) as (keyof GameFlags)[];
+        const hasChanges = changedFlags.some(
+          (flag) => currentFlags[flag] !== partialFlags[flag]
+        );
+        if (!hasChanges) return currentFlags;
+        return { ...currentFlags, ...partialFlags };
+      });
+    },
+    []
+  );
 
-  const markEventFired: GameStateContextValue['markEventFired'] = (eventId) => {
-    setFiredEvents((currentEvents) => {
-      if (currentEvents[eventId]) return currentEvents;
-      return { ...currentEvents, [eventId]: true };
-    });
-  };
+  const markEventFired: GameStateContextValue['markEventFired'] = useCallback(
+    (eventId) => {
+      setFiredEvents((currentEvents) => {
+        if (currentEvents[eventId]) return currentEvents;
+        return { ...currentEvents, [eventId]: true };
+      });
+    },
+    []
+  );
 
-  const hasEventFired: GameStateContextValue['hasEventFired'] = (eventId) => {
-    return firedEvents[eventId] === true;
-  };
+  const hasEventFired: GameStateContextValue['hasEventFired'] = useCallback(
+    (eventId) => {
+      return firedEvents[eventId] === true;
+    },
+    [firedEvents]
+  );
 
-  const completeInitialBios: GameStateContextValue['completeInitialBios'] = () => {
+  const completeInitialBios: GameStateContextValue['completeInitialBios'] = useCallback(() => {
     setHasSeenInitialBiosState(true);
     setStage('desktop_intro');
-  };
+  }, [setStage]);
 
-  const contextValue: GameStateContextValue = {
-    stage,
-    flags,
-    hasSeenInitialBios,
-    firedEvents,
-    activeNetVoiceCallId,
-    isNetVoiceCallAccepted,
-    setStage,
-    setFlag,
-    setFlags,
-    markEventFired,
-    hasEventFired,
-    triggerNetVoiceCall,
-    completeInitialBios,
-    rebootGame,
-  };
+  const contextValue: GameStateContextValue = useMemo(
+    () => ({
+      stage,
+      flags,
+      hasSeenInitialBios,
+      firedEvents,
+      activeNetVoiceCallId,
+      isNetVoiceCallAccepted,
+      setStage,
+      setFlag,
+      setFlags,
+      markEventFired,
+      hasEventFired,
+      triggerNetVoiceCall,
+      completeInitialBios,
+      rebootGame,
+    }),
+    [
+      activeNetVoiceCallId,
+      completeInitialBios,
+      firedEvents,
+      flags,
+      hasEventFired,
+      hasSeenInitialBios,
+      isNetVoiceCallAccepted,
+      markEventFired,
+      rebootGame,
+      setFlag,
+      setFlags,
+      setStage,
+      stage,
+      triggerNetVoiceCall,
+    ]
+  );
 
   return (
     <GameStateContext.Provider value={contextValue}>

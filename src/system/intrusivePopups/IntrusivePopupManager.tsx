@@ -55,6 +55,12 @@ const managerBoundsStyle: JSX.CSSProperties = {
   pointerEvents: 'none',
 };
 
+interface PopupMotionState {
+  coords: { x: number; y: number };
+  pausedVelocity: { x: number; y: number } | null;
+  velocity: { x: number; y: number } | null;
+}
+
 const IntrusivePopupManager: FunctionComponent = () => {
   const { flags } = useGameState();
   const hasAntiVirus = flags.hasPurchasedAntiVirus;
@@ -63,6 +69,13 @@ const IntrusivePopupManager: FunctionComponent = () => {
   const boundsRef = useRef<HTMLDivElement>(null);
   const timeoutIdsRef = useRef<number[]>([]);
   const popupLoopSfxRef = useRef<Map<string, HTMLAudioElement>>(new Map());
+  const activePopupsRef = useRef<ActiveIntrusivePopup[]>([]);
+  const popupMotionRef = useRef<Map<string, PopupMotionState>>(new Map());
+  const popupWindowRefsRef = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  useEffect(() => {
+    activePopupsRef.current = activePopups;
+  }, [activePopups]);
 
   useEffect(() => {
     hasAntiVirusRef.current = hasAntiVirus;
@@ -139,10 +152,30 @@ const IntrusivePopupManager: FunctionComponent = () => {
     [getBounds]
   );
 
+  const registerPopupMotion = useCallback((popup: ActiveIntrusivePopup) => {
+    popupMotionRef.current.set(popup.id, {
+      coords: { ...popup.coords },
+      pausedVelocity: popup.pausedVelocity ? { ...popup.pausedVelocity } : null,
+      velocity: popup.velocity ? { ...popup.velocity } : null,
+    });
+  }, []);
+
+  const setPopupWindowRef = useCallback(
+    (popupId: string, element: HTMLDivElement | null) => {
+      if (element) {
+        popupWindowRefsRef.current.set(popupId, element);
+      } else {
+        popupWindowRefsRef.current.delete(popupId);
+      }
+    },
+    []
+  );
+
   const spawnPopup = useCallback(
     (config: IntrusivePopupConfig = createRandomIntrusivePopupConfig()) => {
       if (hasAntiVirusRef.current) return;
       const popup = createPopup(config);
+      registerPopupMotion(popup);
       playIntrusivePopupSpawnSfx();
       const loopAudio = createIntrusivePopupLoopSfx();
       if (loopAudio) {
@@ -153,7 +186,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
       }
       setActivePopups((current) => [...current, popup]);
     },
-    [createPopup]
+    [createPopup, registerPopupMotion]
   );
 
   const spawnRandomPopup = useCallback(() => {
@@ -175,6 +208,8 @@ const IntrusivePopupManager: FunctionComponent = () => {
       stopIntrusivePopupLoopSfx(audio)
     );
     popupLoopSfxRef.current.clear();
+    popupMotionRef.current.clear();
+    popupWindowRefsRef.current.clear();
     setActivePopups([]);
   }, []);
 
@@ -192,6 +227,8 @@ const IntrusivePopupManager: FunctionComponent = () => {
     const loopAudio = popupLoopSfxRef.current.get(popupId);
     stopIntrusivePopupLoopSfx(loopAudio);
     popupLoopSfxRef.current.delete(popupId);
+    popupMotionRef.current.delete(popupId);
+    popupWindowRefsRef.current.delete(popupId);
     setActivePopups((current) =>
       current.filter((popup) => popup.id !== popupId)
     );
@@ -200,6 +237,11 @@ const IntrusivePopupManager: FunctionComponent = () => {
   }, []);
 
   const handlePopupMouseDown = useCallback((popupId: string) => {
+    const motion = popupMotionRef.current.get(popupId);
+    if (motion) {
+      motion.pausedVelocity = motion.velocity ?? motion.pausedVelocity;
+      motion.velocity = null;
+    }
     setActivePopups((current) =>
       current.map((popup) =>
         popup.id === popupId
@@ -227,6 +269,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
 
         const spawned = Array.from({ length: hydraSpawnCount }, () => {
           const popup = createPopup(sourcePopup.config);
+          registerPopupMotion(popup);
           spawnedPopupIds.push(popup.id);
           return popup;
         });
@@ -249,7 +292,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
         });
       });
     },
-    [createPopup]
+    [createPopup, registerPopupMotion]
   );
 
   const togglePopupMaximize = useCallback((popupId: string) => {
@@ -276,14 +319,18 @@ const IntrusivePopupManager: FunctionComponent = () => {
         const maxX = Math.max(0, bounds.width - popup.config.size.width);
         const maxY = Math.max(0, bounds.height - popup.config.size.height);
 
+        const nextCoords = {
+          x: clamp(Math.round(coords.x), 0, maxX),
+          y: clamp(Math.round(coords.y), 0, maxY),
+        };
+        const motion = popupMotionRef.current.get(popupId);
+        if (motion) motion.coords = nextCoords;
+
         return current.map((candidate) =>
           candidate.id === popupId
             ? {
                 ...candidate,
-                coords: {
-                  x: clamp(Math.round(coords.x), 0, maxX),
-                  y: clamp(Math.round(coords.y), 0, maxY),
-                },
+                coords: nextCoords,
               }
             : candidate
         );
@@ -339,6 +386,11 @@ const IntrusivePopupManager: FunctionComponent = () => {
             : popup
         )
       );
+      popupMotionRef.current.forEach((motion) => {
+        if (!motion.pausedVelocity) return;
+        motion.velocity = motion.pausedVelocity;
+        motion.pausedVelocity = null;
+      });
     };
 
     window.addEventListener('mouseup', resumePausedBouncing);
@@ -377,6 +429,13 @@ const IntrusivePopupManager: FunctionComponent = () => {
             const replacement = createPopup(nextPopup.config);
             const replaceEveryMs =
               nextPopup.config.behavior.spontaneousReplaceEveryMs ?? 500;
+            const motion = popupMotionRef.current.get(nextPopup.id);
+            if (motion) {
+              motion.coords = { ...replacement.coords };
+              motion.velocity = replacement.velocity
+                ? { ...replacement.velocity }
+                : null;
+            }
             nextPopup = {
               ...nextPopup,
               coords: replacement.coords,
@@ -392,7 +451,9 @@ const IntrusivePopupManager: FunctionComponent = () => {
             nextPopup.nextAutoSpawnAt !== null &&
             now >= nextPopup.nextAutoSpawnAt
           ) {
-            spawned.push(createPopup(createRandomIntrusivePopupConfig()));
+            const popup = createPopup(createRandomIntrusivePopupConfig());
+            registerPopupMotion(popup);
+            spawned.push(popup);
             const mostRecent = spawned[spawned.length - 1];
             if (mostRecent) spawnedPopupIds.push(mostRecent.id);
             didSpawn = true;
@@ -428,7 +489,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
     return () => {
       window.clearInterval(intervalId);
     };
-  }, [createPopup, hasAntiVirus]);
+  }, [createPopup, hasAntiVirus, registerPopupMotion]);
 
   useEffect(() => {
     if (hasAntiVirus) return undefined;
@@ -443,50 +504,46 @@ const IntrusivePopupManager: FunctionComponent = () => {
       );
       previousTimestamp = timestamp;
 
-      setActivePopups((current) => {
-        if (!current.some((popup) => popup.velocity)) return current;
+      const popups = activePopupsRef.current;
+      if (!popups.length) {
+        rafId = window.requestAnimationFrame(tick);
+        return;
+      }
 
-        const bounds = getBounds();
-        let hasChanges = false;
+      const bounds = getBounds();
 
-        const next = current.map((popup) => {
-          if (!popup.velocity) return popup;
+      popups.forEach((popup) => {
+        if (popup.isMaximized) return;
+        const motion = popupMotionRef.current.get(popup.id);
+        if (!motion?.velocity) return;
 
-          const maxX = Math.max(0, bounds.width - popup.config.size.width);
-          const maxY = Math.max(0, bounds.height - popup.config.size.height);
-          const velocity = { ...popup.velocity };
+        const maxX = Math.max(0, bounds.width - popup.config.size.width);
+        const maxY = Math.max(0, bounds.height - popup.config.size.height);
+        const velocity = motion.velocity;
 
-          let nextX = popup.coords.x + velocity.x * deltaSeconds;
-          let nextY = popup.coords.y + velocity.y * deltaSeconds;
+        let nextX = motion.coords.x + velocity.x * deltaSeconds;
+        let nextY = motion.coords.y + velocity.y * deltaSeconds;
 
-          if (nextX <= 0 || nextX >= maxX) {
-            velocity.x *= -1;
-            nextX = clamp(nextX, 0, maxX);
-          }
+        if (nextX <= 0 || nextX >= maxX) {
+          velocity.x *= -1;
+          nextX = clamp(nextX, 0, maxX);
+        }
 
-          if (nextY <= 0 || nextY >= maxY) {
-            velocity.y *= -1;
-            nextY = clamp(nextY, 0, maxY);
-          }
+        if (nextY <= 0 || nextY >= maxY) {
+          velocity.y *= -1;
+          nextY = clamp(nextY, 0, maxY);
+        }
 
-          if (
-            Math.round(nextX) !== popup.coords.x ||
-            Math.round(nextY) !== popup.coords.y ||
-            velocity.x !== popup.velocity.x ||
-            velocity.y !== popup.velocity.y
-          ) {
-            hasChanges = true;
-            return {
-              ...popup,
-              coords: { x: Math.round(nextX), y: Math.round(nextY) },
-              velocity,
-            };
-          }
+        const roundedX = Math.round(nextX);
+        const roundedY = Math.round(nextY);
+        if (roundedX === motion.coords.x && roundedY === motion.coords.y) {
+          return;
+        }
 
-          return popup;
-        });
-
-        return hasChanges ? next : current;
+        motion.coords = { x: roundedX, y: roundedY };
+        const popupWindow = popupWindowRefsRef.current.get(popup.id);
+        if (!popupWindow) return;
+        popupWindow.style.transform = `translate3d(${roundedX}px, ${roundedY}px, 0px)`;
       });
 
       rafId = window.requestAnimationFrame(tick);
@@ -523,6 +580,7 @@ const IntrusivePopupManager: FunctionComponent = () => {
             onToggleMaximize={togglePopupMaximize}
             onPopupMouseDown={handlePopupMouseDown}
             popup={popup}
+            onWindowElement={(element) => setPopupWindowRef(popup.id, element)}
           />
         ))}
       </div>

@@ -3,7 +3,7 @@ import {
   FunctionComponent,
   ComponentChildren,
   JSX,
-  createRef,
+  RefObject,
 } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 
@@ -19,6 +19,8 @@ type Props = TitleBarProps & {
   getBoundingElement?: () => HTMLElement | null;
   isDraggable?: boolean;
   isResizeable?: boolean;
+  windowRef?: RefObject<HTMLDivElement>;
+  onWindowElement?: (element: HTMLDivElement | null) => void;
   onMouseDown?: () => void;
   onAutoSized?: (size: { x: number; y: number }) => void;
   onMoved?: (coords: { x: number; y: number }) => void;
@@ -41,6 +43,8 @@ const Window: FunctionComponent<Props> = ({
   isInactive = false,
   isMaximized = false,
   isResizeable = true,
+  windowRef: externalWindowRef,
+  onWindowElement,
   onClickMinimize,
   onClickMaximize,
   onClickRestore,
@@ -59,10 +63,16 @@ const Window: FunctionComponent<Props> = ({
   title,
   zIndex = 0,
 }: Props) => {
-  const windowRef = createRef<HTMLDivElement>();
-  const titleBarRef = createRef<HTMLDivElement>();
-  const handleRef = createRef<HTMLDivElement>();
+  const windowRef = useRef<HTMLDivElement>(null);
+  const titleBarRef = useRef<HTMLDivElement>(null);
+  const handleRef = useRef<HTMLDivElement>(null);
   const autoSizedRef = useRef(false);
+
+  const setWindowRef = (element: HTMLDivElement | null) => {
+    windowRef.current = element;
+    if (externalWindowRef) externalWindowRef.current = element;
+    if (onWindowElement) onWindowElement(element);
+  };
 
   const getParentElement = (): HTMLElement | null => {
     return getBoundingElement
@@ -155,7 +165,7 @@ const Window: FunctionComponent<Props> = ({
       className={`${style.window}`}
       onMouseDown={onMouseDown}
       onTouchStart={onMouseDown}
-      ref={windowRef}
+      ref={setWindowRef}
       style={{
         ...inlineStyle,
         height: isMaximized ? '100%' : `${sizeState.y}px`,

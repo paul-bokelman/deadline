@@ -94,11 +94,6 @@ const TimerApp: FunctionComponent<AppProps> = () => {
   }, []);
 
   useEffect(() => {
-    const seconds = Math.max(0, Math.ceil(remainingMs / 1000));
-    gameEventBus.emit('deadline:seconds_remaining', { seconds, remainingMs });
-  }, [remainingMs]);
-
-  useEffect(() => {
     const panel = panelRef.current;
     if (!panel || !('ResizeObserver' in globalThis)) return;
     const observer = new ResizeObserver((entries) => {
