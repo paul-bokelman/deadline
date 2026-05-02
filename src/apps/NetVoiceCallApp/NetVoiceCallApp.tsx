@@ -26,7 +26,10 @@ import { registerManagedAudio } from '@/utils/audio/masterVolume';
 import style from './NetVoiceCallApp.module.css';
 
 const CALL_AUDIO_VOLUME = 0.9;
-const CALLER_VOLUME_MULTIPLIER: Partial<Record<(typeof netVoiceCallers)[keyof typeof netVoiceCallers]['id'], number>> = {
+const CALLER_VOLUME_MULTIPLIER: Partial<Record<
+  typeof netVoiceCallers[keyof typeof netVoiceCallers]['id'],
+  number
+>> = {
   greg: 0.85,
   fly: 1.12,
 };
@@ -58,6 +61,7 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
   const callAudioRef = useRef<HTMLAudioElement | null>(null);
   const callOverAudioRef = useRef<HTMLAudioElement | null>(null);
   const hasEndedCallRef = useRef(false);
+  const isRetryingCallPlaybackRef = useRef(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const compressorRef = useRef<DynamicsCompressorNode | null>(null);
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
@@ -174,47 +178,83 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
     };
   }, [stopCallOverTone, teardownCallNormalization]);
 
-  const handleAccept = useCallback(() => {
-    if (isAccepted || !activeNetVoiceCallId || !call) return;
-    void attachCallNormalization;
-    void stopCallOverTone;
-
-    setIsAccepted(true);
-    ringAudioRef.current?.pause();
-    if (ringAudioRef.current) ringAudioRef.current.currentTime = 0;
-
-    const callAudio = new Audio(call.audioPath);
-    const callerVolumeMultiplier =
-      CALLER_VOLUME_MULTIPLIER[call.callerId] ?? 1;
-    const callVolume = Math.max(
-      0,
-      Math.min(1, CALL_AUDIO_VOLUME * callerVolumeMultiplier)
-    );
-    registerManagedAudio(callAudio, callVolume);
-    attachCallNormalization(callAudio);
-    callAudioRef.current = callAudio;
-    callAudio.addEventListener(
-      'ended',
-      () => {
-        stopCallOverTone();
-        callOverAudioRef.current = playCallOverSfx();
-        setIsAudioFinished(true);
-      },
-      { once: true }
-    );
-    callAudio.play().catch(() => setIsAudioFinished(true));
-
-    gameEventBus.emit('netvoice:call_accepted', {
-      callId: call.id,
-      autoTriggerNextStage: call.autoTriggerNextStage ?? false,
+  const playCallAudio = useCallback(() => {
+    const callAudio = callAudioRef.current;
+    if (!callAudio) return;
+    callAudio.play().catch(() => {
+      isRetryingCallPlaybackRef.current = true;
     });
-  }, [
-    activeNetVoiceCallId,
-    attachCallNormalization,
-    call,
-    isAccepted,
-    stopCallOverTone,
-  ]);
+  }, []);
+
+  useEffect(() => {
+    const retryCallPlayback = () => {
+      if (!isRetryingCallPlaybackRef.current) return;
+      const callAudio = callAudioRef.current;
+      if (!callAudio) return;
+      callAudio
+        .play()
+        .then(() => {
+          isRetryingCallPlaybackRef.current = false;
+        })
+        .catch(() => undefined);
+    };
+
+    window.addEventListener('pointerdown', retryCallPlayback);
+    window.addEventListener('keydown', retryCallPlayback);
+    window.addEventListener('touchstart', retryCallPlayback);
+
+    return () => {
+      window.removeEventListener('pointerdown', retryCallPlayback);
+      window.removeEventListener('keydown', retryCallPlayback);
+      window.removeEventListener('touchstart', retryCallPlayback);
+    };
+  }, []);
+
+  const handleAccept = useCallback(
+    (shouldNormalizeAudio = true) => {
+      if (isAccepted || !activeNetVoiceCallId || !call) return;
+      void attachCallNormalization;
+      void stopCallOverTone;
+
+      setIsAccepted(true);
+      ringAudioRef.current?.pause();
+      if (ringAudioRef.current) ringAudioRef.current.currentTime = 0;
+
+      const callAudio = new Audio(call.audioPath);
+      const callerVolumeMultiplier =
+        CALLER_VOLUME_MULTIPLIER[call.callerId] ?? 1;
+      const callVolume = Math.max(
+        0,
+        Math.min(1, CALL_AUDIO_VOLUME * callerVolumeMultiplier)
+      );
+      registerManagedAudio(callAudio, callVolume);
+      if (shouldNormalizeAudio) attachCallNormalization(callAudio);
+      callAudioRef.current = callAudio;
+      callAudio.addEventListener(
+        'ended',
+        () => {
+          stopCallOverTone();
+          callOverAudioRef.current = playCallOverSfx();
+          setIsAudioFinished(true);
+        },
+        { once: true }
+      );
+      playCallAudio();
+
+      gameEventBus.emit('netvoice:call_accepted', {
+        callId: call.id,
+        autoTriggerNextStage: call.autoTriggerNextStage ?? false,
+      });
+    },
+    [
+      activeNetVoiceCallId,
+      attachCallNormalization,
+      call,
+      isAccepted,
+      playCallAudio,
+      stopCallOverTone,
+    ]
+  );
 
   const handleHangup = useCallback(
     (reason: 'hangup' | 'call_over' = 'hangup') => {
@@ -228,6 +268,7 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
       if (ringAudioRef.current) ringAudioRef.current.currentTime = 0;
       callAudioRef.current?.pause();
       if (callAudioRef.current) callAudioRef.current.currentTime = 0;
+      isRetryingCallPlaybackRef.current = false;
       teardownCallNormalization();
       setIsAudioFinished(true);
       gameEventBus.emit('netvoice:call_ended', {
@@ -243,7 +284,7 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
     if (!activeNetVoiceCallId || isAccepted || !call) return;
 
     const autoAcceptTimer = window.setTimeout(() => {
-      handleAccept();
+      handleAccept(false);
     }, AUTO_ACCEPT_DELAY_MS);
 
     return () => {
@@ -317,7 +358,7 @@ const NetVoiceCallApp: FunctionComponent<AppProps> = () => {
           <Fragment>
             <button
               className={`${style.actionButton} ${style.actionButtonPrimary}`}
-              onClick={handleAccept}
+              onClick={() => handleAccept(true)}
               type="button"
             >
               <span className={style.iconAccept} aria-hidden="true">

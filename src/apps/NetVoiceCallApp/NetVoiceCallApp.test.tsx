@@ -7,7 +7,7 @@ import { GameStateContextValue } from '@/game/state';
 import NetVoiceCallApp from './NetVoiceCallApp';
 
 const mockGameState = vi.hoisted(() => ({
-  current: null as unknown as GameStateContextValue,
+  current: (null as unknown) as GameStateContextValue,
 }));
 
 vi.mock('@/game/state', async () => {
@@ -24,6 +24,7 @@ type AudioListener = () => void;
 
 class MockAudio {
   static instances: MockAudio[] = [];
+  static rejectNextPlay = false;
 
   currentTime = 0;
   duration = 1;
@@ -33,7 +34,13 @@ class MockAudio {
   volume = 1;
   listeners = new Map<string, AudioListener[]>();
   pause = vi.fn();
-  play = vi.fn(() => Promise.resolve());
+  play = vi.fn(() => {
+    if (MockAudio.rejectNextPlay) {
+      MockAudio.rejectNextPlay = false;
+      return Promise.reject(new Error('play blocked'));
+    }
+    return Promise.resolve();
+  });
   load = vi.fn();
 
   constructor(src = '') {
@@ -111,8 +118,9 @@ describe('NetVoiceCallApp', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     originalAudio = window.Audio;
-    window.Audio = MockAudio as unknown as typeof Audio;
+    window.Audio = (MockAudio as unknown) as typeof Audio;
     MockAudio.instances = [];
+    MockAudio.rejectNextPlay = false;
     mockGameState.current = createMockState();
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -127,7 +135,10 @@ describe('NetVoiceCallApp', () => {
 
   it('renders the incoming voice dialog and starts the ringing audio loop', () => {
     act(() => {
-      render(<NetVoiceCallApp closeWindow={vi.fn()} openApp={vi.fn()} />, container);
+      render(
+        <NetVoiceCallApp closeWindow={vi.fn()} openApp={vi.fn()} />,
+        container
+      );
     });
 
     expect(container.textContent).toContain('Incoming voice call');
@@ -142,12 +153,15 @@ describe('NetVoiceCallApp', () => {
     const off = gameEventBus.on('netvoice:call_accepted', accepted);
 
     act(() => {
-      render(<NetVoiceCallApp closeWindow={vi.fn()} openApp={vi.fn()} />, container);
+      render(
+        <NetVoiceCallApp closeWindow={vi.fn()} openApp={vi.fn()} />,
+        container
+      );
     });
 
-    const acceptButton = Array.from(container.querySelectorAll('button')).find(
-      (button) => button.textContent?.includes('Accept')
-    );
+    const acceptButton = Array.from(
+      container.querySelectorAll('button')
+    ).find((button) => button.textContent?.includes('Accept'));
     expect(acceptButton).toBeDefined();
 
     act(() => {
@@ -174,11 +188,14 @@ describe('NetVoiceCallApp', () => {
     const off = gameEventBus.on('netvoice:call_ended', ended);
 
     act(() => {
-      render(<NetVoiceCallApp closeWindow={vi.fn()} openApp={vi.fn()} />, container);
+      render(
+        <NetVoiceCallApp closeWindow={vi.fn()} openApp={vi.fn()} />,
+        container
+      );
     });
-    const acceptButton = Array.from(container.querySelectorAll('button')).find(
-      (button) => button.textContent?.includes('Accept')
-    );
+    const acceptButton = Array.from(
+      container.querySelectorAll('button')
+    ).find((button) => button.textContent?.includes('Accept'));
     act(() => {
       acceptButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
@@ -195,6 +212,85 @@ describe('NetVoiceCallApp', () => {
       autoTriggerNextStage: false,
       reason: 'call_over',
     });
+
+    off();
+  });
+
+  it('auto-accepts without WebAudio normalization so timer-started calls are audible', () => {
+    const createMediaElementSource = vi.fn(() => ({
+      connect: vi.fn(),
+      disconnect: vi.fn(),
+    }));
+    const MockAudioContext = vi.fn(() => ({
+      createDynamicsCompressor: vi.fn(() => ({
+        attack: { value: 0 },
+        connect: vi.fn(),
+        knee: { value: 0 },
+        ratio: { value: 0 },
+        release: { value: 0 },
+        threshold: { value: 0 },
+      })),
+      createGain: vi.fn(() => ({
+        connect: vi.fn(),
+        gain: { value: 0 },
+      })),
+      createMediaElementSource,
+      destination: {},
+      resume: vi.fn(() => Promise.resolve()),
+      state: 'suspended',
+    }));
+    const originalAudioContext = window.AudioContext;
+    window.AudioContext = (MockAudioContext as unknown) as typeof AudioContext;
+
+    act(() => {
+      render(
+        <NetVoiceCallApp closeWindow={vi.fn()} openApp={vi.fn()} />,
+        container
+      );
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(4_000);
+    });
+
+    expect(MockAudio.instances[1]?.src).toBe(
+      '/audio/netvoice/people/alice-intro.mp3'
+    );
+    expect(MockAudio.instances[1]?.play).toHaveBeenCalledTimes(1);
+    expect(createMediaElementSource).not.toHaveBeenCalled();
+
+    window.AudioContext = originalAudioContext;
+  });
+
+  it('does not silently finish a call when playback is initially blocked', async () => {
+    const ended = vi.fn();
+    const off = gameEventBus.on('netvoice:call_ended', ended);
+
+    act(() => {
+      render(
+        <NetVoiceCallApp closeWindow={vi.fn()} openApp={vi.fn()} />,
+        container
+      );
+    });
+
+    MockAudio.rejectNextPlay = true;
+    act(() => {
+      vi.advanceTimersByTime(4_000);
+    });
+    await act(async () => Promise.resolve());
+
+    act(() => {
+      vi.advanceTimersByTime(2_000);
+    });
+
+    expect(ended).not.toHaveBeenCalled();
+
+    act(() => {
+      window.dispatchEvent(new PointerEvent('pointerdown'));
+    });
+    await act(async () => Promise.resolve());
+
+    expect(MockAudio.instances[1]?.play).toHaveBeenCalledTimes(2);
 
     off();
   });
